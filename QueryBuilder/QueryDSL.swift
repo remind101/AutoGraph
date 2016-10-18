@@ -1,30 +1,30 @@
 import Foundation
 
-protocol QueryConvertible {
+public protocol QueryConvertible {
     var graphQLString: String { get }
 }
 
-protocol Field: QueryConvertible {
+public protocol Field: QueryConvertible {
     var name: String { get }
     var alias: String? { get }
-    var serializeAlias: String { get }
+    var serializedAlias: String { get }
 }
 
-extension Field {
-    var serializeAlias: String {
+public extension Field {
+    var serializedAlias: String {
         guard let alias = self.alias else {
             return ""
         }
-        return alias
+        return "\(alias.withoutWhitespace): "
     }
 }
 
-protocol AcceptsFields {
+public protocol AcceptsFields {
     var fields: [Field]? { get }
     var serializedFields: String { get }
 }
 
-extension AcceptsFields {
+public extension AcceptsFields {
     var serializedFields: String {
         guard let fields = self.fields else {
             return ""
@@ -35,53 +35,70 @@ extension AcceptsFields {
     }
 }
 
-protocol Argument: QueryConvertible { }
+public protocol AcceptsSelectionSet: AcceptsFields {
+    var serializedSelectionSet: String { get }
+}
 
-protocol AcceptsArguments {
+public extension AcceptsSelectionSet {
+    var serializedSelectionSet: String {
+        let fields = self.serializedFields
+        guard fields.characters.count > 0 else {
+            return ""
+        }
+        return " {\n\(fields)\n}"
+    }
+}
+
+public protocol Argument {
+    var graphQLArgument: String { get }
+}
+
+public protocol AcceptsArguments {
     var arguments: [(key: String, value: Argument)]? { get }
     var serializedArguments: String { get }
 }
 
-extension AcceptsArguments {
+public extension AcceptsArguments {
     var serializedArguments: String {
         guard let arguments = self.arguments else {
             return ""
         }
         
         let argumentsList = arguments.map { (key, value) in
-            "\(key): \(value.graphQLString)"
-            }.joined(separator: ", ")
+            "\(key): \(value.graphQLArgument)"
+        }.joined(separator: ", ")
         
         return "(\(argumentsList))"
     }
 }
 
-struct Scalar: Field {
-    let name: String
-    let alias: String?
+public struct Scalar: Field {
+    public let name: String
+    public let alias: String?
     
-    var graphQLString: String {
-        return "\(self.serializeAlias): \(name)"
+    public var graphQLString: String {
+        return "\(self.serializedAlias)\(name)"
     }
 }
 
-struct Object: Field, AcceptsArguments, AcceptsFields {
-    let name: String
-    let alias: String?
-    let fields: [Field]?
-    let arguments: [(key: String, value: Argument)]?
+public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
+    public let name: String
+    public let alias: String?
+    public let fields: [Field]?
+    public let arguments: [(key: String, value:
+    Argument)]?
     
-    var graphQLString: String {
-        return "\(self.serializeAlias): \(name)\(self.serializedArguments) {\n\(self.serializedFields)\n}"
+    public var graphQLString: String {
+        return "\(self.serializedAlias)\(name)\(self.serializedArguments)\(self.serializedSelectionSet)"
     }
 }
 
-struct Operation: AcceptsFields, QueryConvertible {
+public struct Operation: AcceptsSelectionSet, QueryConvertible {
     let name: String
-    let fields: [Field]?
+    public let fields: [Field]?
     let arguments: [(key: String, value: Argument)]
     
-    var graphQLString: String {
-        return "query \(self.name) {\n\(self.serializedFields)\n}"
+    public var graphQLString: String {
+        return "query \(self.name)\(self.serializedSelectionSet)"
     }
 }
