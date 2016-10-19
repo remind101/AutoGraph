@@ -3,7 +3,7 @@ import XCTest
 
 class StringExtensionsTests: XCTestCase {
     
-    func testArgumentStringDoesIncludesQuotes() {
+    func testArgumentStringDoesIncludeQuotes() {
         XCTAssertEqual("arg arg".graphQLArgument, "\"arg arg\"")
     }
 }
