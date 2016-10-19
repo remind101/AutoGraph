@@ -35,17 +35,64 @@ public extension AcceptsFields {
     }
 }
 
+// TODO: may want to make this a protocol so that we have concrete fragments b/c
+// all fragments must have unique names.
+public struct Fragment: AcceptsSelectionSet, QueryConvertible {
+    public let name: String
+    public let type: String
+    public let fields: [Field]?
+    public let fragments: [Fragment]?
+    
+    init?(name: String, type: String, fields: [Field]?, fragments: [Fragment]?) {
+        guard name != "on" else {
+            return nil
+        }
+        guard fields?.count ?? 0 > 0 || fragments?.count ?? 0 > 0 else {
+            return nil
+        }
+        self.name = name
+        self.type = type
+        self.fields = fields
+        self.fragments = fragments
+    }
+    
+    public var graphQLString: String {
+        return "fragment \(self.name) on \(self.type)\(self.serializedSelectionSet)"
+    }
+}
+
 public protocol AcceptsSelectionSet: AcceptsFields {
+    var fields: [Field]? { get }
+    var fragments: [Fragment]? { get }
+    var serializedFragments: String { get }
     var serializedSelectionSet: String { get }
 }
 
 public extension AcceptsSelectionSet {
     var serializedSelectionSet: String {
         let fields = self.serializedFields
-        guard fields.characters.count > 0 else {
+        let fragments = self.serializedFragments
+        let selectionSet = [fields, fragments].flatMap { selection -> String? in
+            guard selection.characters.count > 0 else {
+                return nil
+            }
+            return selection
+        }.joined(separator: "\n")
+        
+        guard selectionSet.characters.count > 0 else {
             return ""
         }
-        return " {\n\(fields)\n}"
+        
+        return " {\n\(selectionSet)\n}"
+    }
+    
+    var serializedFragments: String {
+        guard let fragments = self.fragments else {
+            return ""
+        }
+        
+        let fragmentsList = fragments.map { "...\($0.name)" }.joined(separator: "\n")
+        return fragmentsList
     }
 }
 
@@ -85,6 +132,7 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     public let name: String
     public let alias: String?
     public let fields: [Field]?
+    public let fragments: [Fragment]?
     public let arguments: [(key: String, value:
     Argument)]?
     
@@ -96,6 +144,7 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
 public struct Operation: AcceptsSelectionSet, QueryConvertible {
     let name: String
     public let fields: [Field]?
+    public let fragments: [Fragment]?
     let arguments: [(key: String, value: Argument)]
     
     public var graphQLString: String {
