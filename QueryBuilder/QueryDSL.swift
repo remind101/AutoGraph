@@ -141,13 +141,28 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     }
 }
 
-public struct Operation: AcceptsSelectionSet, QueryConvertible {
-    let name: String
+public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments {
+    public enum OperationType: QueryConvertible {
+        case Query
+        case Mutation
+        
+        public var graphQLString: String {
+            switch self {
+            case .Query:
+                return "query"
+            case .Mutation:
+                return "mutation"
+            }
+        }
+    }
+    
+    public let type: OperationType
+    public let name: String
     public let fields: [Field]?
     public let fragments: [Fragment]?
-    let arguments: [(key: String, value: Argument)]
+    public let arguments: [(key: String, value: Argument)]?
     
     public var graphQLString: String {
-        return "query \(self.name)\(self.serializedSelectionSet)"
+        return "\(self.type.graphQLString) \(self.name)\(self.serializedArguments)\(self.serializedSelectionSet)"
     }
 }
