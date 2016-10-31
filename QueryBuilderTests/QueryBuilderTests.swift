@@ -142,3 +142,21 @@ class FragmentTests: XCTestCase {
         XCTAssertEqual(self.subject.graphQLString, "fragment frag on CoolType {\n...frag1\n...frag2\n}")
     }
 }
+
+class OperationTests: XCTestCase {
+    var subject: QueryBuilder.Operation!
+    
+    func testQueryForms() {
+        
+        let scalar = Scalar(name: "name", alias: nil)
+        self.subject = QueryBuilder.Operation(type: .Query, name: "Bullshit", fields: [scalar], fragments: nil, arguments: nil)
+        XCTAssertEqual(self.subject.graphQLString, "query Bullshit {\nname\n}")
+    }
+    
+    func testMutationForms() {
+        
+        let scalar = Scalar(name: "name", alias: nil)
+        self.subject = QueryBuilder.Operation(type: .Mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: [("name", "olga")])
+        XCTAssertEqual(self.subject.graphQLString, "mutation Bullshit(name: \"olga\") {\nname\n}")
+    }
+}
