@@ -1,0 +1,6 @@
+framework module Pods_QueryBuilder {
+  umbrella header "Pods-QueryBuilder-umbrella.h"
+
+  export *
+  module * { export * }
+}
