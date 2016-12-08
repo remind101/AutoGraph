@@ -16,6 +16,7 @@
 		CDA62C331DB69B15004BA66D /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
 		CDA62C351DB69F4E004BA66D /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CDA62C391DB6A586004BA66D /* FoundationExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */; };
+		CDB84BDF1DFA08C300CF90ED /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,6 +28,13 @@
 			remoteInfo = AutoGraph;
 		};
 		CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CDA62C1A1DB69ADE004BA66D;
+			remoteInfo = QueryBuilder;
+		};
+		CDB84BDD1DFA089300CF90ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
 			proxyType = 1;
@@ -58,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDB84BDF1DFA08C300CF90ED /* QueryBuilder.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -182,6 +191,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CDB84BDE1DFA089300CF90ED /* PBXTargetDependency */,
 			);
 			name = AutoGraph;
 			productName = AutoGraph;
@@ -369,6 +379,11 @@
 			isa = PBXTargetDependency;
 			target = CDA62C1A1DB69ADE004BA66D /* QueryBuilder */;
 			targetProxy = CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */;
+		};
+		CDB84BDE1DFA089300CF90ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDA62C1A1DB69ADE004BA66D /* QueryBuilder */;
+			targetProxy = CDB84BDD1DFA089300CF90ED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -633,6 +648,7 @@
 				CDA62C2E1DB69ADE004BA66D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CDA62C2F1DB69ADE004BA66D /* Build configuration list for PBXNativeTarget "QueryBuilderTests" */ = {
 			isa = XCConfigurationList;
@@ -641,6 +657,7 @@
 				CDA62C311DB69ADE004BA66D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
