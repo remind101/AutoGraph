@@ -85,7 +85,13 @@ strip_invalid_archs() {
 
 if [[ "$CONFIGURATION" == "Debug" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/Alamofire/Alamofire.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/Crust/Crust.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/JSONValueRX/JSONValueRX.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/Realm/Realm.framework"
 fi
 if [[ "$CONFIGURATION" == "Release" ]]; then
   install_framework "$BUILT_PRODUCTS_DIR/Alamofire/Alamofire.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/Crust/Crust.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/JSONValueRX/JSONValueRX.framework"
+  install_framework "$BUILT_PRODUCTS_DIR/Realm/Realm.framework"
 fi

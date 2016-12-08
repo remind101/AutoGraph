@@ -1,0 +1,6 @@
+framework module JSONValueRX {
+  umbrella header "JSONValueRX-umbrella.h"
+
+  export *
+  module * { export * }
+}
