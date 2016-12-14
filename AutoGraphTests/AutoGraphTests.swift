@@ -1,31 +1,56 @@
 import XCTest
+import Alamofire
+import Crust
+import Realm
+import QueryBuilder
 @testable import AutoGraph
 
 class AutoGraphTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    }
+    
+    func testFileMapping() {
+        let stub = AllFilmsStub()
+        stub.registerStub()
+        
         
     }
-    
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
+}
+
+class AutoGraph {
+    func send(_ request: Request) {
+        
+    }
+}
+
+class FilmRequest {
+    func mapping() -> FilmMapping {
+        let adaptor = RealmAdaptor(realm: RLMRealm.default())
+        return FilmMapping(adaptor: adaptor)
+    }
+}
+
+class FilmMapping: RealmMapping {
+    public var adaptor: RealmAdaptor
+    public var primaryKeys: [String : Keypath]? {
+        return [ "remoteId" : "uuid" ]
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    public required init(adaptor: RealmAdaptor) {
+        self.adaptor = adaptor
     }
     
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    public func mapping(tomap: inout Film, context: MappingContext) {
+        
+        tomap.remoteId  <- "id"         >*<
+        tomap.title     <- "title"      >*<
+        tomap.episode   <- "episode"    >*<
+        tomap.openingCrawl  <- "openingCrawl"   >*<
+        tomap.director      <- "director"       >*<
+        context
     }
-    
 }
 
 class AllFilmsStub: Stub {

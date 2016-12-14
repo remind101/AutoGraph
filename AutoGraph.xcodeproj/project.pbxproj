@@ -21,6 +21,10 @@
 		CDA62C351DB69F4E004BA66D /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CDA62C391DB6A586004BA66D /* FoundationExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */; };
 		CDB84BDF1DFA08C300CF90ED /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
+		CDBEBE961E00E6530029909A /* RealmMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBE951E00E6530029909A /* RealmMappings.swift */; };
+		CDBEBE981E00E7840029909A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBE971E00E7840029909A /* RLMSupport.swift */; };
+		CDBEBE991E00F0C50029909A /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
+		CDBEBE9B1E00F3DD0029909A /* Crust.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDBEBE9A1E00F3DD0029909A /* Crust.framework */; };
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
@@ -76,6 +80,9 @@
 		CDA62C321DB69B15004BA66D /* QueryDSL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryDSL.swift; sourceTree = "<group>"; };
 		CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensions.swift; sourceTree = "<group>"; };
 		CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensionsTests.swift; sourceTree = "<group>"; };
+		CDBEBE951E00E6530029909A /* RealmMappings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmMappings.swift; sourceTree = "<group>"; };
+		CDBEBE971E00E7840029909A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMSupport.swift; sourceTree = "<group>"; };
+		CDBEBE9A1E00F3DD0029909A /* Crust.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Crust.framework; path = "../../../Library/Developer/Xcode/DerivedData/AutoGraph-ecnfnfghfxzpggasivymkfvdtyqk/Build/Products/Debug-iphonesimulator/Crust/Crust.framework"; sourceTree = "<group>"; };
 		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraph.swift; sourceTree = "<group>"; };
 		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
@@ -104,6 +111,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDBEBE9B1E00F3DD0029909A /* Crust.framework in Frameworks */,
+				CDBEBE991E00F0C50029909A /* QueryBuilder.framework in Frameworks */,
 				CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */,
 				A86FDFBD87626EEE51C2E99A /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */,
 			);
@@ -132,6 +141,7 @@
 		197A881A2E7C06E3F9501B67 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CDBEBE9A1E00F3DD0029909A /* Crust.framework */,
 				0DE248EE17AAF3444855EF1C /* Pods_AutoGraph.framework */,
 				36064A1B02B55F92BE0FDF4C /* Pods_AutoGraph_AutoGraphTests.framework */,
 				90E61EB182F60A82BAC7D589 /* Pods_QueryBuilder.framework */,
@@ -197,6 +207,8 @@
 				CDE3C72A1E00DB2A00AB4EB1 /* Models.m */,
 				CDE3C7261E00DAE400AB4EB1 /* RLMArray+Utilities.h */,
 				CDE3C7271E00DAE400AB4EB1 /* RLMArray+Utilities.m */,
+				CDBEBE971E00E7840029909A /* RLMSupport.swift */,
+				CDBEBE951E00E6530029909A /* RealmMappings.swift */,
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
 				CDE3C7241E00D23400AB4EB1 /* AllFilms.json */,
 				CDA62C091DB16999004BA66D /* Info.plist */,
@@ -473,7 +485,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		70CD5C7D73B0C070828E06CD /* [CP] Copy Pods Resources */ = {
@@ -533,7 +545,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		AC9493B21A5F8291098F887D /* [CP] Check Pods Manifest.lock */ = {
@@ -548,7 +560,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		BA9AA54FDEBA31DCB810ABAC /* [CP] Check Pods Manifest.lock */ = {
@@ -563,7 +575,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -582,7 +594,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDE3C7281E00DAE400AB4EB1 /* RLMArray+Utilities.m in Sources */,
+				CDBEBE981E00E7840029909A /* RLMSupport.swift in Sources */,
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
+				CDBEBE961E00E6530029909A /* RealmMappings.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				CDE3C72B1E00DB2A00AB4EB1 /* Models.m in Sources */,
 			);
@@ -734,6 +748,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULE_DEBUGGING = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -756,6 +771,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULE_DEBUGGING = YES;
 				CODE_SIGN_IDENTITY = "";
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -777,6 +793,21 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULE_DEBUGGING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Alamofire\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Crust\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/JSONValueRX\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/OHHTTPStubs\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Realm\"",
+					"$(PROJECT_DIR)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(inherited)\"",
+					"\"$(CONFIGURATION_TEMP_DIR)/$(PROJECT_NAME).build/DerivedSources\"",
+				);
 				INFOPLIST_FILE = AutoGraphTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Remind.AutoGraphTests;
@@ -793,6 +824,21 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_MODULE_DEBUGGING = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Alamofire\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Crust\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/JSONValueRX\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/OHHTTPStubs\"",
+					"\"$PODS_CONFIGURATION_BUILD_DIR/Realm\"",
+					"$(PROJECT_DIR)",
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+				);
+				HEADER_SEARCH_PATHS = (
+					"\"$(inherited)\"",
+					"\"$(CONFIGURATION_TEMP_DIR)/$(PROJECT_NAME).build/DerivedSources\"",
+				);
 				INFOPLIST_FILE = AutoGraphTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Remind.AutoGraphTests;

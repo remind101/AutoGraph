@@ -1,4 +1,9 @@
 import Foundation
-@_exported import Crust
-@_exported import Realm
-@_exported import QueryBuilder
+import Crust
+import QueryBuilder
+
+class Test {
+    init() {
+        
+    }
+}

@@ -2,6 +2,6 @@
 //  Use this file to import your target's public headers that you would like to expose to Swift.
 //
 
-@import OHHTTPStubs;
+#import <OHHTTPStubs/OHHTTPStubs.h>
 #import "RLMArray+Utilities.h"
 #import "Models.h"
