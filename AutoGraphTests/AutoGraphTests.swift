@@ -35,4 +35,20 @@ class AllFilmsStub: Stub {
         }
         set { }
     }
+    
+    override var graphQLQuery: String {
+        get {
+            return "query {" +
+                        "allFilms {" +
+                            "films {" +
+                                "title" +
+                                "episodeID" +
+                                "openingCrawl" +
+                                "director" +
+                            "}" +
+                        "}" +
+                    "}"
+        }
+        set { }
+    }
 }
