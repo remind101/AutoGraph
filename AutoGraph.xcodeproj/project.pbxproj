@@ -21,6 +21,9 @@
 		CDA62C351DB69F4E004BA66D /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CDA62C391DB6A586004BA66D /* FoundationExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */; };
 		CDB84BDF1DFA08C300CF90ED /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
+		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
+		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
+		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +74,10 @@
 		CDA62C321DB69B15004BA66D /* QueryDSL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryDSL.swift; sourceTree = "<group>"; };
 		CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensions.swift; sourceTree = "<group>"; };
 		CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensionsTests.swift; sourceTree = "<group>"; };
+		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraph.swift; sourceTree = "<group>"; };
+		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
+		CDE3C7241E00D23400AB4EB1 /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
 		D32452EBDA439A266CB5B99B /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		E215A6BA1B5097DFC0F25654 /* Pods_QueryBuilder_QueryBuilderTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_QueryBuilder_QueryBuilderTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F921A935B77C090B25872C8A /* Pods-AutoGraph.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph/Pods-AutoGraph.debug.xcconfig"; sourceTree = "<group>"; };
@@ -171,6 +178,7 @@
 			children = (
 				CDA62BFC1DB16998004BA66D /* AutoGraph.h */,
 				CDA62BFD1DB16998004BA66D /* Info.plist */,
+				CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */,
 			);
 			path = AutoGraph;
 			sourceTree = "<group>";
@@ -179,7 +187,10 @@
 			isa = PBXGroup;
 			children = (
 				CDA62C071DB16999004BA66D /* AutoGraphTests.swift */,
+				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
+				CDE3C7241E00D23400AB4EB1 /* AllFilms.json */,
 				CDA62C091DB16999004BA66D /* Info.plist */,
+				CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */,
 			);
 			path = AutoGraphTests;
 			sourceTree = "<group>";
@@ -322,7 +333,7 @@
 				TargetAttributes = {
 					CDA62BF81DB16998004BA66D = {
 						CreatedOnToolsVersion = 8.0;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0810;
 						ProvisioningStyle = Automatic;
 					};
 					CDA62C011DB16999004BA66D = {
@@ -374,6 +385,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -551,6 +563,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -559,6 +572,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
+				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -750,10 +764,13 @@
 			baseConfigurationReference = 9A1121677F1A4B0EA6C0A459 /* Pods-AutoGraph-AutoGraphTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = AutoGraphTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Remind.AutoGraphTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "AutoGraphTests/AutoGraphTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0.1;
 			};
 			name = Debug;
@@ -763,10 +780,12 @@
 			baseConfigurationReference = D32452EBDA439A266CB5B99B /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = AutoGraphTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Remind.AutoGraphTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "AutoGraphTests/AutoGraphTests-Bridging-Header.h";
 				SWIFT_VERSION = 3.0.1;
 			};
 			name = Release;
