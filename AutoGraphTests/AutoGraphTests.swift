@@ -1,11 +1,3 @@
-//
-//  AutoGraphTests.swift
-//  AutoGraphTests
-//
-//  Created by Rex Fenley on 10/14/16.
-//  Copyright © 2016 Remind. All rights reserved.
-//
-
 import XCTest
 @testable import AutoGraph
 
@@ -14,6 +6,7 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
+        
     }
     
     override func tearDown() {
@@ -33,4 +26,13 @@ class AutoGraphTests: XCTestCase {
         }
     }
     
+}
+
+class AllFilmsStub: Stub {
+    override var jsonFixtureFile: String? {
+        get {
+            return "AllFilms"
+        }
+        set { }
+    }
 }
