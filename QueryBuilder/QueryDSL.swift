@@ -43,7 +43,7 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
     public let fields: [Field]?
     public let fragments: [Fragment]?
     
-    init?(name: String, type: String, fields: [Field]?, fragments: [Fragment]?) {
+    public init?(name: String, type: String, fields: [Field]?, fragments: [Fragment]?) {
         guard name != "on" else {
             return nil
         }
@@ -123,6 +123,11 @@ public struct Scalar: Field {
     public let name: String
     public let alias: String?
     
+    public init(name: String, alias: String?) {
+        self.name = name
+        self.alias = alias
+    }
+    
     public var graphQLString: String {
         return "\(self.serializedAlias)\(name)"
     }
@@ -135,6 +140,15 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     public let fragments: [Fragment]?
     public let arguments: [(key: String, value:
     Argument)]?
+    
+    public init(name: String, alias: String?, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value:
+        Argument)]?) {
+        self.name = name
+        self.alias = alias
+        self.fields = fields
+        self.fragments = fragments
+        self.arguments = arguments
+    }
     
     public var graphQLString: String {
         return "\(self.serializedAlias)\(name)\(self.serializedArguments)\(self.serializedSelectionSet)"
@@ -161,6 +175,14 @@ public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments
     public let fields: [Field]?
     public let fragments: [Fragment]?
     public let arguments: [(key: String, value: Argument)]?
+    
+    public init(type: OperationType, name: String, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value: Argument)]?) {
+        self.type = type
+        self.name = name
+        self.fields = fields
+        self.fragments = fragments
+        self.arguments = arguments
+    }
     
     public var graphQLString: String {
         return "\(self.type.graphQLString) \(self.name)\(self.serializedArguments)\(self.serializedSelectionSet)"
