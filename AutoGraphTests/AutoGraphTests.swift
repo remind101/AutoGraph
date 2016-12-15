@@ -15,17 +15,62 @@ class AutoGraphTests: XCTestCase {
         let stub = AllFilmsStub()
         stub.registerStub()
         
-        
+        AutoGraph.send(FilmRequest())
     }
 }
 
 class AutoGraph {
-    func send(_ request: Request) {
+    static let url = "localhost:8080"
+    class func send(_ request: FilmRequest) {
         
+        Alamofire.request(url, parameters: ["query" : request.query.graphQLString]).responseJSON { response in
+            print(response.request!)  // original URL request
+            print(response.response!) // HTTP URL response
+            print(response.data!)     // server data
+            print(response.result)   // result of response serialization
+            
+            if let JSON = response.result.value {
+                print("JSON: \(JSON)")
+            }
+        }
     }
 }
 
 class FilmRequest {
+    /*
+    "query {" +
+        "allFilms {" +
+            "films {" +
+                "title" +
+                "episodeID" +
+                "openingCrawl" +
+                "director" +
+            "}" +
+        "}" +
+    "}"
+    */
+    
+    let query = QueryBuilder.Operation(type: .query,
+                                       name: "filmRequest",
+                                       fields: [
+                                        Object(name: "allFilms",
+                                               alias: nil,
+                                               fields: [
+                                                Object(name: "films",
+                                                       alias: nil,
+                                                       fields: [
+                                                        Scalar(name: "title", alias: nil),
+                                                        Scalar(name: "episodeID", alias: nil),
+                                                        Scalar(name: "openingCrawl", alias: nil),
+                                                        Scalar(name: "director", alias: nil)],
+                                                       fragments: nil,
+                                                       arguments: nil)],
+                                               fragments: nil,
+                                               arguments: nil)
+                                        ],
+                                       fragments: nil,
+                                       arguments: nil)
+    
     func mapping() -> FilmMapping {
         let adaptor = RealmAdaptor(realm: RLMRealm.default())
         return FilmMapping(adaptor: adaptor)
@@ -63,16 +108,16 @@ class AllFilmsStub: Stub {
     
     override var graphQLQuery: String {
         get {
-            return "query {" +
-                        "allFilms {" +
-                            "films {" +
-                                "title" +
-                                "episodeID" +
-                                "openingCrawl" +
-                                "director" +
-                            "}" +
-                        "}" +
-                    "}"
+            return "query filmRequest {\n" +
+                        "allFilms {\n" +
+                            "films {\n" +
+                                "title\n" +
+                                "episodeID\n" +
+                                "openingCrawl\n" +
+                                "director\n" +
+                            "}\n" +
+                        "}\n" +
+                    "}\n"
         }
         set { }
     }

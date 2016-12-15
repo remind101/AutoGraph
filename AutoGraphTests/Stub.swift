@@ -56,7 +56,8 @@ class Stub {
             }
             
             let queryItems = URLComponents(string: url.absoluteString)?.queryItems
-            guard let query = queryItems?.filter({ $0.name == "query" }).first, query.value == self.graphQLQuery else {
+            guard let query = queryItems?.filter({ $0.name == "query" }).first,
+            query.value?.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
                 return false
             }
             
@@ -85,4 +86,11 @@ class Stub {
         return defaultHeaders
     }
     
+}
+
+extension String {
+    var condensedWhitespace: String {
+        let components = self.components(separatedBy: NSCharacterSet.whitespacesAndNewlines)
+        return components.filter { !$0.isEmpty }.joined(separator: " ")
+    }
 }
