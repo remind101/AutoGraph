@@ -16,11 +16,28 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         AutoGraph.send(FilmRequest())
+        
+        waitFor(delay: 1.0)
+        
+        print("here")
+    }
+    
+    func waitFor(delay: TimeInterval) {
+        let expectation = self.expectation(description: "wait")
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            expectation.fulfill()
+        }
+        
+        self.waitForExpectations(timeout: delay + 1.0, handler: { error in
+            if let error = error {
+                print(error)
+            }
+        })
     }
 }
 
 class AutoGraph {
-    static let url = "localhost:8080"
+    static let url = "http://localhost:8080/graphql"
     class func send(_ request: FilmRequest) {
         
         Alamofire.request(url, parameters: ["query" : request.query.graphQLString]).responseJSON { response in
@@ -100,9 +117,12 @@ class FilmMapping: RealmMapping {
 
 class AllFilmsStub: Stub {
     override var jsonFixtureFile: String? {
-        get {
-            return "AllFilms"
-        }
+        get { return "AllFilms" }
+        set { }
+    }
+    
+    override var urlPath: String? {
+        get { return "/graphql" }
         set { }
     }
     
