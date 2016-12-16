@@ -1,5 +1,5 @@
 import XCTest
-import Alamofire
+import JSONValueRX
 import Crust
 import Realm
 import QueryBuilder
@@ -15,11 +15,12 @@ class AutoGraphTests: XCTestCase {
         let stub = AllFilmsStub()
         stub.registerStub()
         
-        AutoGraph.send(FilmRequest())
+        AutoGraph.send(FilmRequest()) { result, error in
+            print(result as Any)
+            print(error as Any)
+        }
         
         waitFor(delay: 1.0)
-        
-        print("here")
     }
     
     func waitFor(delay: TimeInterval) {
@@ -36,26 +37,9 @@ class AutoGraphTests: XCTestCase {
     }
 }
 
-class AutoGraph {
-    static let url = "http://localhost:8080/graphql"
-    class func send(_ request: FilmRequest) {
-        
-        Alamofire.request(url, parameters: ["query" : request.query.graphQLString]).responseJSON { response in
-            print(response.request!)  // original URL request
-            print(response.response!) // HTTP URL response
-            print(response.data!)     // server data
-            print(response.result)   // result of response serialization
-            
-            if let JSON = response.result.value {
-                print("JSON: \(JSON)")
-            }
-        }
-    }
-}
-
-class FilmRequest {
+class FilmRequest: Request {
     /*
-    "query {" +
+    "query filmRequest {" +
         "allFilms {" +
             "films {" +
                 "title" +
@@ -88,16 +72,32 @@ class FilmRequest {
                                        fragments: nil,
                                        arguments: nil)
     
-    func mapping() -> FilmMapping {
-        let adaptor = RealmAdaptor(realm: RLMRealm.default())
-        return FilmMapping(adaptor: adaptor)
+    var mapping: AllFilmsMapping {
+        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
+        return AllFilmsMapping(adaptor: adaptor)
+    }
+}
+
+class AllFilmsMapping: RealmArrayMapping {
+    typealias SubType = Film
+    
+    public var adaptor: RealmArrayAdaptor<Film>
+    
+    public required init(adaptor: RealmArrayAdaptor<Film>) {
+        self.adaptor = adaptor
+    }
+    
+    public func mapping(tomap: inout [Film], context: MappingContext) {
+        let mapping = FilmMapping(adaptor: self.adaptor.realmAdaptor)
+        _ = tomap <- (.mapping("data.allFilms.films", mapping), context)
     }
 }
 
 class FilmMapping: RealmMapping {
     public var adaptor: RealmAdaptor
+    
     public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : "uuid" ]
+        return [ "remoteId" : "id" ]
     }
     
     public required init(adaptor: RealmAdaptor) {
@@ -106,12 +106,11 @@ class FilmMapping: RealmMapping {
     
     public func mapping(tomap: inout Film, context: MappingContext) {
         
-        tomap.remoteId  <- "id"         >*<
-        tomap.title     <- "title"      >*<
-        tomap.episode   <- "episode"    >*<
-        tomap.openingCrawl  <- "openingCrawl"   >*<
-        tomap.director      <- "director"       >*<
-        context
+        tomap.remoteId      <- ("id", context)
+        tomap.title         <- ("title", context)
+        tomap.episode       <- ("episodeID", context)
+        tomap.openingCrawl  <- ("openingCrawl", context)
+        tomap.director      <- ("director", context)
     }
 }
 
