@@ -3,14 +3,55 @@ import Crust
 import JSONValueRX
 import Realm
 
+public class RealmArrayAdaptor<T: RLMObject>: Adaptor {
+    public typealias BaseType = [T]
+    public typealias ResultsType = [BaseType]
+    
+    public let realm: RLMRealm
+    public let realmAdaptor: RealmAdaptor
+    
+    public init(realm: RLMRealm) {
+        self.realm = realm
+        self.realmAdaptor = RealmAdaptor(realm: realm)
+    }
+    
+    public convenience init() throws {
+        self.init(realm: RLMRealm())
+    }
+    
+    public func mappingBegins() throws {
+        try self.realmAdaptor.mappingBegins()
+    }
+    
+    public func mappingEnded() throws {
+        try self.realmAdaptor.mappingEnded()
+    }
+    
+    public func mappingErrored(_ error: Error) {
+        self.realmAdaptor.mappingErrored(error)
+    }
+    
+    public func fetchObjects(type: BaseType.Type, keyValues: [String : CVarArg]) -> ResultsType? {
+        return nil
+    }
+    
+    public func createObject(type: BaseType.Type) throws -> BaseType {
+        return []
+    }
+    
+    public func deleteObject(_ obj: BaseType) throws { }
+    
+    public func save(objects: [BaseType]) throws { }
+}
+
 public class RealmAdaptor: Adaptor {
     
     public typealias BaseType = RLMObject
     public typealias ResultsType = [BaseType]
     
-    var realm: RLMRealm
-    var cache: Set<BaseType>
-    var requiresPrimaryKeys = false
+    private var cache: Set<BaseType>
+    public let realm: RLMRealm
+    public var requiresPrimaryKeys = false
     
     public init(realm: RLMRealm) {
         self.realm = realm
@@ -137,8 +178,18 @@ public class RealmAdaptor: Adaptor {
 }
 
 public protocol RealmMapping: Mapping {
-    associatedtype Adaptor = RealmAdaptor
-    init(adaptor: RealmAdaptor)
+    associatedtype AdaptorKind = RealmAdaptor
+    init(adaptor: AdaptorKind)
+}
+
+public protocol RealmArrayMapping: Mapping {
+    associatedtype SubType: RLMObject
+    associatedtype AdaptorKind = RealmArrayAdaptor<SubType>
+    init(adaptor: AdaptorKind)
+}
+
+extension RealmArrayMapping {
+    public var primaryKeys: [String : Keypath]? { return nil }
 }
 
 extension RLMArray: Appendable {

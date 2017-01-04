@@ -157,14 +157,14 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
 
 public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments {
     public enum OperationType: QueryConvertible {
-        case Query
-        case Mutation
+        case query
+        case mutation
         
         public var graphQLString: String {
             switch self {
-            case .Query:
+            case .query:
                 return "query"
-            case .Mutation:
+            case .mutation:
                 return "mutation"
             }
         }

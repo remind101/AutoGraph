@@ -4,11 +4,10 @@ import OHHTTPStubs
 class Stub {
     var json: Any? {
         if let jsonFixtureFile = self.jsonFixtureFile {
-            if let path = Bundle.main.path(forResource: jsonFixtureFile, ofType: "json") {
-                if let jsonData = NSData(contentsOfFile: path) {
-                    if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions.mutableContainers) {
-                        return jsonResult
-                    }
+            let path = Bundle(for: type(of: self)).path(forResource: jsonFixtureFile, ofType: "json")!
+            if let jsonData = NSData(contentsOfFile: path) {
+                if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions.mutableContainers) {
+                    return jsonResult
                 }
             }
         }
@@ -46,9 +45,11 @@ class Stub {
     
     func registerStub() {
         
-        OHHTTPStubs.stubRequests(passingTest: { request -> Bool in
-            guard let httpMethod = self.httpMethod, request.httpMethod == httpMethod else {
-                return false
+        func verify(request: URLRequest) -> Bool {
+            if let httpMethod = self.httpMethod {
+                if request.httpMethod != httpMethod {
+                    return false
+                }
             }
             
             guard let url = request.url, url.relativePath == self.urlPath || url.absoluteString == self.urlPath else {
@@ -56,8 +57,9 @@ class Stub {
             }
             
             let queryItems = URLComponents(string: url.absoluteString)?.queryItems
-            guard let query = queryItems?.filter({ $0.name == "query" }).first, query.value == self.graphQLQuery else {
-                return false
+            let query = queryItems?.filter({ $0.name == "query" }).first
+            guard query?.value?.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
+                    return false
             }
             
             if let urlQueryString = self.urlQueryString {
@@ -67,6 +69,11 @@ class Stub {
             }
             
             return true
+        }
+        
+        OHHTTPStubs.stubRequests(passingTest: { request -> Bool in
+            
+            return verify(request: request)
             
         }, withStubResponse: { request in
             let response = self.responseObject
@@ -85,4 +92,11 @@ class Stub {
         return defaultHeaders
     }
     
+}
+
+extension String {
+    var condensedWhitespace: String {
+        let components = self.components(separatedBy: NSCharacterSet.whitespacesAndNewlines)
+        return components.filter { !$0.isEmpty }.joined(separator: " ")
+    }
 }

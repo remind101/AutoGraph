@@ -149,14 +149,14 @@ class OperationTests: XCTestCase {
     func testQueryForms() {
         
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .Query, name: "Bullshit", fields: [scalar], fragments: nil, arguments: nil)
+        self.subject = QueryBuilder.Operation(type: .query, name: "Bullshit", fields: [scalar], fragments: nil, arguments: nil)
         XCTAssertEqual(self.subject.graphQLString, "query Bullshit {\nname\n}")
     }
     
     func testMutationForms() {
         
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .Mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: [("name", "olga")])
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: [("name", "olga")])
         XCTAssertEqual(self.subject.graphQLString, "mutation Bullshit(name: \"olga\") {\nname\n}")
     }
 }
