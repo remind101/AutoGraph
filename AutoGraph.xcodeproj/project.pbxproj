@@ -24,6 +24,7 @@
 		CDBEBE981E00E7840029909A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBE971E00E7840029909A /* RLMSupport.swift */; };
 		CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEA91E1CB1400029909A /* Errors.swift */; };
 		CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAB1E1CB5E80029909A /* Utilities.swift */; };
+		CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */; };
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
@@ -93,6 +94,7 @@
 		CDBEBEA71E01E92A0029909A /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OHHTTPStubs.framework; path = "Pods/../build/Debug-iphoneos/OHHTTPStubs/OHHTTPStubs.framework"; sourceTree = "<group>"; };
 		CDBEBEA91E1CB1400029909A /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		CDBEBEAB1E1CB5E80029909A /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
 		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraph.swift; sourceTree = "<group>"; };
 		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 			isa = PBXGroup;
 			children = (
 				CDA62C071DB16999004BA66D /* AutoGraphTests.swift */,
+				CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */,
 				CDE3C7291E00DB2A00AB4EB1 /* Models.h */,
 				CDE3C72A1E00DB2A00AB4EB1 /* Models.m */,
 				CDE3C7261E00DAE400AB4EB1 /* RLMArray+Utilities.h */,
@@ -612,6 +615,7 @@
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
 				CDBEBE961E00E6530029909A /* RealmMappings.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
+				CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */,
 				CDE3C72B1E00DB2A00AB4EB1 /* Models.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

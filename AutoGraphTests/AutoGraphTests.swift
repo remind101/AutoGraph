@@ -1,6 +1,7 @@
 import XCTest
-import JSONValueRX
+import Alamofire
 import Crust
+import JSONValueRX
 import Realm
 import QueryBuilder
 @testable import AutoGraph
@@ -11,16 +12,126 @@ class AutoGraphTests: XCTestCase {
         super.setUp()
     }
     
-    func testFileMapping() {
+    func testFunctionalFileMapping() {
         let stub = AllFilmsStub()
         stub.registerStub()
         
-        AutoGraph.send(FilmRequest()) { result, error in
-            print(result as Any)
-            print(error as Any)
+        AutoGraph.send(FilmRequest()) { result in
+            print(result)
         }
         
         waitFor(delay: 1.0)
+    }
+    
+    func testErrorsJsonReturnsGraphQLError() {
+        let message = "Cannot query field \"d\" on type \"Planet\"."
+        let line = 18
+        let column = 7
+        
+        let result = Alamofire.Result.success([
+            "dumb" : "data",
+            "errors": [
+                [
+                    "message": message,
+                    "locations": [
+                        [
+                            "line": line,
+                            "column": column
+                        ]
+                    ]
+                ]
+            ]
+            ] as Any)
+        
+        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        
+        var called = false
+        
+        AutoGraph.handle(FilmRequest(), response: response) { result in
+            called = true
+            
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .graphQL(errors: let errors) = error else {
+                XCTFail("`error` should be an `.mapping` error")
+                return
+            }
+            
+            XCTAssertEqual(errors.count, 1)
+            
+            let gqlError = errors[0]
+            XCTAssertEqual(gqlError.message, message)
+            XCTAssertEqual(gqlError.locations.count, 1)
+            
+            let location = gqlError.locations[0]
+            XCTAssertEqual(location.line, line)
+            XCTAssertEqual(location.column, column)
+        }
+        
+        XCTAssertTrue(called)
+    }
+    
+    func testNetworkErrorReturnsNetworkError() {
+        let result = Alamofire.Result<Any>.failure(NSError(domain: "", code: 0, userInfo: nil))
+        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        
+        var called = false
+        
+        AutoGraph.handle(FilmRequest(), response: response) { result in
+            called = true
+            
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .network(error: _) = error else {
+                XCTFail("`error` should be an `.network` error")
+                return
+            }
+        }
+        
+        XCTAssertTrue(called)
+    }
+    
+    func testMappingErrorReturnsMappingError() {
+        class FilmBadRequest: FilmRequest {
+            override var mapping: AllFilmsMapping {
+                let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
+                return AllFilmsBadMapping(adaptor: adaptor)
+            }
+        }
+        
+        class AllFilmsBadMapping: AllFilmsMapping {
+            public override func mapping(tomap: inout [Film], context: MappingContext) {
+                let mapping = FilmMapping(adaptor: self.adaptor.realmAdaptor)
+                _ = tomap <- (.mapping("bad_path", mapping), context)
+            }
+        }
+        
+        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
+        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        
+        var called = false
+        
+        AutoGraph.handle(FilmBadRequest(), response: response) { result in
+            called = true
+            
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .mapping(error: _) = error else {
+                XCTFail("`error` should be an `.mapping` error")
+                return
+            }
+        }
+        
+        XCTAssertTrue(called)
     }
     
     func waitFor(delay: TimeInterval) {
@@ -34,110 +145,5 @@ class AutoGraphTests: XCTestCase {
                 print(error)
             }
         })
-    }
-}
-
-class FilmRequest: Request {
-    /*
-    "query filmRequest {" +
-        "allFilms {" +
-            "films {" +
-                "title" +
-                "episodeID" +
-                "openingCrawl" +
-                "director" +
-            "}" +
-        "}" +
-    "}"
-    */
-    
-    let query = QueryBuilder.Operation(type: .query,
-                                       name: "filmRequest",
-                                       fields: [
-                                        Object(name: "allFilms",
-                                               alias: nil,
-                                               fields: [
-                                                Object(name: "films",
-                                                       alias: nil,
-                                                       fields: [
-                                                        Scalar(name: "title", alias: nil),
-                                                        Scalar(name: "episodeID", alias: nil),
-                                                        Scalar(name: "openingCrawl", alias: nil),
-                                                        Scalar(name: "director", alias: nil)],
-                                                       fragments: nil,
-                                                       arguments: nil)],
-                                               fragments: nil,
-                                               arguments: nil)
-                                        ],
-                                       fragments: nil,
-                                       arguments: nil)
-    
-    var mapping: AllFilmsMapping {
-        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-        return AllFilmsMapping(adaptor: adaptor)
-    }
-}
-
-class AllFilmsMapping: RealmArrayMapping {
-    typealias SubType = Film
-    
-    public var adaptor: RealmArrayAdaptor<Film>
-    
-    public required init(adaptor: RealmArrayAdaptor<Film>) {
-        self.adaptor = adaptor
-    }
-    
-    public func mapping(tomap: inout [Film], context: MappingContext) {
-        let mapping = FilmMapping(adaptor: self.adaptor.realmAdaptor)
-        _ = tomap <- (.mapping("data.allFilms.films", mapping), context)
-    }
-}
-
-class FilmMapping: RealmMapping {
-    public var adaptor: RealmAdaptor
-    
-    public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : "id" ]
-    }
-    
-    public required init(adaptor: RealmAdaptor) {
-        self.adaptor = adaptor
-    }
-    
-    public func mapping(tomap: inout Film, context: MappingContext) {
-        
-        tomap.remoteId      <- ("id", context)
-        tomap.title         <- ("title", context)
-        tomap.episode       <- ("episodeID", context)
-        tomap.openingCrawl  <- ("openingCrawl", context)
-        tomap.director      <- ("director", context)
-    }
-}
-
-class AllFilmsStub: Stub {
-    override var jsonFixtureFile: String? {
-        get { return "AllFilms" }
-        set { }
-    }
-    
-    override var urlPath: String? {
-        get { return "/graphql" }
-        set { }
-    }
-    
-    override var graphQLQuery: String {
-        get {
-            return "query filmRequest {\n" +
-                        "allFilms {\n" +
-                            "films {\n" +
-                                "title\n" +
-                                "episodeID\n" +
-                                "openingCrawl\n" +
-                                "director\n" +
-                            "}\n" +
-                        "}\n" +
-                    "}\n"
-        }
-        set { }
     }
 }

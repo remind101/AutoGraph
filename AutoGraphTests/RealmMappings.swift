@@ -208,10 +208,6 @@ extension RLMArray: Appendable {
 public func <- <T, U: Mapping, C: MappingContext>(field: inout RLMArray<T>, map:(key: Spec<U>, context: C)) -> C
     where U.MappedObject == T {
         
-        // Realm specifies that List "must be declared with 'let'". Seems to actually work either way in practice, but for safety
-        // we're going to include a List mapper that accepts fields with a 'let' declaration and forward to our
-        // `RangeReplaceableCollectionType` mapper.
-        
         var variableList = field.allObjects() as! [T]
         let context = mapCollectionField(&variableList, map: map)
         field.append(contentsOf: variableList)
