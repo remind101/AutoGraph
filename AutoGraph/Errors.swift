@@ -29,19 +29,19 @@ import JSONValueRX
  
 */
 
-enum AutoGraphError: LocalizedError {
+indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError])
-    case network(error: Error)
+    case network(error: Error, underlying: AutoGraphError?)
     case mapping(error: Error)
-    case invalidQuery
+    case invalidResponse
     
-    init?(graphQLJSON: JSONValue) {
-        guard let errorsJSON = graphQLJSON["errors"] else {
+    init?(graphQLResponseJSON: JSONValue) {
+        guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
         }
         
         guard case .array(let errors) = errorsJSON else {
-            self = .invalidQuery
+            self = .invalidResponse
             return
         }
         
@@ -54,13 +54,13 @@ enum AutoGraphError: LocalizedError {
         case .graphQL(let errors):
             return errors.flatMap { $0.localizedDescription }.joined(separator: "\n")
             
-        case .network(let error):
-            return "Network Failure: " + error.localizedDescription
+        case .network(let error, let underlying):
+            return "Network Failure: " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
             
         case .mapping(let error):
             return "Mapping Failure: " + error.localizedDescription
         
-        case .invalidQuery:
+        case .invalidResponse:
             return self.localizedDescription
         }
     }

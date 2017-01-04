@@ -88,7 +88,7 @@ class AutoGraphTests: XCTestCase {
                 return
             }
             
-            guard case .network(error: _) = error else {
+            guard case .network(_) = error else {
                 XCTFail("`error` should be an `.network` error")
                 return
             }

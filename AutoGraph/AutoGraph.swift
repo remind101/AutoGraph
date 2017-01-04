@@ -25,20 +25,36 @@ public class AutoGraph {
     }
     
     class func handle<T: Request>(_ request: T, response: DataResponse<Any>, completion: @escaping RequestCompletion<T>) {
+        
         do {
             
             let value: Any = try {
                 switch response.result {
                 case .success(let value):
                     return value
+                    
                 case .failure(let e):
-                    throw AutoGraphError.network(error: e)
+                    
+                    let gqlError: AutoGraphError? = {
+                        guard let value = Alamofire.Request.serializeResponseJSON(
+                            options: .allowFragments,
+                            response: response.response,
+                            data: response.data, error: nil).value,
+                            let json = try? JSONValue(object: value) else {
+                                
+                            return nil
+                        }
+                        
+                        return AutoGraphError(graphQLResponseJSON: json)
+                    }()
+                    
+                    throw AutoGraphError.network(error: e, underlying: gqlError)
                 }
             }()
             
             let json = try JSONValue(object: value)
             
-            if let queryError = AutoGraphError(graphQLJSON: json) {
+            if let queryError = AutoGraphError(graphQLResponseJSON: json) {
                 throw queryError
             }
             
