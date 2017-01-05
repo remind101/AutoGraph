@@ -1,7 +1,6 @@
 import JSONValueRX
 import Crust
 import Realm
-import QueryBuilder
 @testable import AutoGraph
 
 class FilmRequest: Request {
@@ -18,26 +17,26 @@ class FilmRequest: Request {
      "}"
      */
     
-    let query = QueryBuilder.Operation(type: .query,
-                                       name: "filmRequest",
-                                       fields: [
-                                        Object(name: "allFilms",
-                                               alias: nil,
-                                               fields: [
-                                                Object(name: "films",
-                                                       alias: nil,
-                                                       fields: [
-                                                        Scalar(name: "title", alias: nil),
-                                                        Scalar(name: "episodeID", alias: nil),
-                                                        Scalar(name: "openingCrawl", alias: nil),
-                                                        Scalar(name: "director", alias: nil)],
-                                                       fragments: nil,
-                                                       arguments: nil)],
-                                               fragments: nil,
-                                               arguments: nil)
-        ],
-                                       fragments: nil,
-                                       arguments: nil)
+    let query = Operation(type: .query,
+                          name: "filmRequest",
+                          fields: [
+                            Object(name: "allFilms",
+                                   alias: nil,
+                                   fields: [
+                                    Object(name: "films",
+                                           alias: nil,
+                                           fields: [
+                                            Scalar(name: "title", alias: nil),
+                                            Scalar(name: "episodeID", alias: nil),
+                                            Scalar(name: "openingCrawl", alias: nil),
+                                            Scalar(name: "director", alias: nil)],
+                                           fragments: nil,
+                                           arguments: nil)],
+                                   fragments: nil,
+                                   arguments: nil)
+                            ],
+                          fragments: nil,
+                          arguments: nil)
     
     var mapping: AllFilmsMapping {
         let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())

@@ -11,7 +11,8 @@
 		631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */; };
 		86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
-		CD3BFF211E1DD62F008CE41A /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
+		CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
+		CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraph.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -42,13 +43,6 @@
 			remoteInfo = AutoGraph;
 		};
 		CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CDA62C1A1DB69ADE004BA66D;
-			remoteInfo = QueryBuilder;
-		};
-		CDB84BDD1DFA089300CF90ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
 			proxyType = 1;
@@ -112,7 +106,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD3BFF211E1DD62F008CE41A /* QueryBuilder.framework in Frameworks */,
 				86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -291,7 +284,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				CDB84BDE1DFA089300CF90ED /* PBXTargetDependency */,
 			);
 			name = AutoGraph;
 			productName = AutoGraph;
@@ -602,6 +594,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */,
+				CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */,
 				CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */,
 				CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */,
 				CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */,
@@ -652,11 +646,6 @@
 			isa = PBXTargetDependency;
 			target = CDA62C1A1DB69ADE004BA66D /* QueryBuilder */;
 			targetProxy = CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */;
-		};
-		CDB84BDE1DFA089300CF90ED /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CDA62C1A1DB69ADE004BA66D /* QueryBuilder */;
-			targetProxy = CDB84BDD1DFA089300CF90ED /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
