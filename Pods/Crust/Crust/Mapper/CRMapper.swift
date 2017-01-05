@@ -28,16 +28,16 @@ open class MappingContext {
 }
 
 /// Method caller used to perform mappings.
-public struct CRMapper<T, U: Mapping> where U.MappedObject == T {
+public struct CRMapper<T: Mapping> {
     
     public init() { }
     
-    public func mapFromJSONToNewObject(_ json: JSONValue, mapping: U) throws -> T {
+    public func mapFromJSONToNewObject(_ json: JSONValue, mapping: T) throws -> T.MappedObject {
         let object = try mapping.getNewInstance()
         return try mapFromJSON(json, toObject: object, mapping: mapping)
     }
     
-    public func mapFromJSONToExistingObject(_ json: JSONValue, mapping: U, parentContext: MappingContext? = nil) throws -> T {
+    public func mapFromJSONToExistingObject(_ json: JSONValue, mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
         var object = try mapping.getExistingInstance(json: json)
         if object == nil {
             object = try mapping.getNewInstance()
@@ -45,7 +45,7 @@ public struct CRMapper<T, U: Mapping> where U.MappedObject == T {
         return try mapFromJSON(json, toObject: object!, mapping: mapping, parentContext: parentContext)
     }
     
-    public func mapFromJSON(_ json: JSONValue, toObject object: T, mapping: U, parentContext: MappingContext? = nil) throws -> T {
+    public func mapFromJSON(_ json: JSONValue, toObject object: T.MappedObject, mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
         var object = object
         let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
         context.parent = parentContext
@@ -53,7 +53,7 @@ public struct CRMapper<T, U: Mapping> where U.MappedObject == T {
         return object
     }
     
-    public func mapFromObjectToJSON(_ object: T, mapping: U) throws -> JSONValue {
+    public func mapFromObjectToJSON(_ object: T.MappedObject, mapping: T) throws -> JSONValue {
         var object = object
         let context = MappingContext(withObject: object, json: JSONValue.object([:]), direction: MappingDirection.toJSON)
         try mapping.performMappingWithObject(&object, context: context)
