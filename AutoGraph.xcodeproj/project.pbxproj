@@ -11,6 +11,7 @@
 		631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */; };
 		86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
+		CD3BFF211E1DD62F008CE41A /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
 		CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraph.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -111,6 +112,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD3BFF211E1DD62F008CE41A /* QueryBuilder.framework in Frameworks */,
 				86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
