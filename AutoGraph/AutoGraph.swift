@@ -59,7 +59,7 @@ public class AutoGraph {
             }
             
             do {
-                let mapper = CRMapper<T.Mapping.MappedObject, T.Mapping>()
+                let mapper = CRMapper<T.Mapping>()
                 let result = try mapper.mapFromJSONToNewObject(json, mapping: request.mapping)
                 completion(.success(result))
             }

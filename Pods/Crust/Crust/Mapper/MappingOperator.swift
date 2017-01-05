@@ -198,7 +198,7 @@ private func mapToJson<T, U: Mapping>(_ json: JSONValue, fromField field: T?, vi
         return json
     }
     
-    json[key] = try CRMapper<T, U>().mapFromObjectToJSON(field, mapping: mapping)
+    json[key] = try CRMapper<U>().mapFromObjectToJSON(field, mapping: mapping)
     return json
 }
 
@@ -231,7 +231,7 @@ private func mapFromJson<T: JSONable>(_ json: JSONValue, toField field: inout T?
 
 private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout T, mapping: U, context: MappingContext) throws where U.MappedObject == T {
     
-    let mapper = CRMapper<T, U>()
+    let mapper = CRMapper<U>()
     field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
 }
 
@@ -242,7 +242,7 @@ private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout 
         return
     }
     
-    let mapper = CRMapper<T, U>()
+    let mapper = CRMapper<U>()
     field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
 }
 
@@ -292,7 +292,7 @@ private func mapToJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSO
     var json = json
     
     let results = try field.map {
-        try CRMapper<T, U>().mapFromObjectToJSON($0, mapping: mapping)
+        try CRMapper<U>().mapFromObjectToJSON($0, mapping: mapping)
     }
     json[key] = .array(results)
     
@@ -302,7 +302,7 @@ private func mapToJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSO
 private func mapFromJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSONValue, toField field: inout V, mapping: U, context: MappingContext, allowDuplicates: Bool) throws where U.MappedObject == T, V.Iterator.Element == T, T: Equatable {
     
     if case .array(let xs) = json {
-        let mapper = CRMapper<T, U>()
+        let mapper = CRMapper<U>()
         var results = [T]()
         for x in xs {
             if !allowDuplicates {
