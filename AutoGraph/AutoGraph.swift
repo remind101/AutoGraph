@@ -2,12 +2,11 @@ import Foundation
 import Alamofire
 import Crust
 import JSONValueRX
-import QueryBuilder
 
 public protocol Request {
     associatedtype Mapping: Crust.Mapping
     
-    var query: QueryBuilder.Operation { get }
+    var query: Operation { get }
     var mapping: Mapping { get }
 }
 
