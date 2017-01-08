@@ -1,6 +1,6 @@
-import Foundation
 import Alamofire
 import Crust
+import Foundation
 import JSONValueRX
 
 public protocol Request {
@@ -10,20 +10,41 @@ public protocol Request {
     var mapping: Mapping { get }
 }
 
-public typealias RequestCompletion<T: Request> = (_ result: Result<T.Mapping.MappedObject>) -> ()
+public typealias RequestCompletion<M: Crust.Mapping> = (_ result: Result<M.MappedObject>) -> ()
 
 public class AutoGraph {
-    public static var url = "http://localhost:8080/graphql"
-    
-    public class func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T>) {
-        
-        Alamofire.request(url, parameters: ["query" : request.query.graphQLString]).responseJSON { response in
-            
-            self.handle(request, response: response, completion: completion)
+    public var baseUrl: String {
+        get {
+            return self.dispatcher.url
+        }
+        set {
+            self.dispatcher.url = newValue
+            self.authHandler = AuthHandler(baseUrl: newValue,
+                                           accessToken: self.authHandler.accessToken,
+                                           refreshToken: self.authHandler.refreshToken)
         }
     }
     
-    class func handle<T: Request>(_ request: T, response: DataResponse<Any>, completion: @escaping RequestCompletion<T>) {
+    public var authHandler: AuthHandler {
+        didSet {
+            self.authHandler.delegate = self
+        }
+    }
+    
+    let dispatcher: Dispatcher
+    
+    init(baseUrl: String = "http://localhost:8080/graphql") {
+        self.dispatcher = Dispatcher(url: baseUrl)
+        self.authHandler = AuthHandler(baseUrl: baseUrl, accessToken: nil, refreshToken: nil)
+        self.dispatcher.delegate = self
+        self.authHandler.delegate = self
+    }
+    
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {
+        self.dispatcher.send(request: request, completion: completion)
+    }
+    
+    func handle<Mapping: Crust.Mapping>(response: DataResponse<Any>, mapping: Mapping, completion: @escaping RequestCompletion<Mapping>) {
         
         do {
             
@@ -58,8 +79,8 @@ public class AutoGraph {
             }
             
             do {
-                let mapper = CRMapper<T.Mapping>()
-                let result = try mapper.mapFromJSONToNewObject(json, mapping: request.mapping)
+                let mapper = CRMapper<Mapping>()
+                let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping)
                 completion(.success(result))
             }
             catch let e {
@@ -69,5 +90,35 @@ public class AutoGraph {
         catch let e {
             completion(.failure(e))
         }
+    }
+    
+    public func cancelAll() {
+        self.dispatcher.cancelAll()
+        Alamofire.SessionManager.default.session.getTasksWithCompletionHandler { dataTasks, uploadTasks, downloadTasks in
+            dataTasks.forEach { $0.cancel() }
+            uploadTasks.forEach { $0.cancel() }
+            downloadTasks.forEach { $0.cancel() }
+        }
+    }
+}
+
+extension AutoGraph: AuthHandlerDelegate {
+    func authHandlerBeganReauthentication(_ authHandler: AuthHandler) {
+        self.dispatcher.paused = true
+    }
+    
+    func authHandler(_ authHandler: AuthHandler, reauthenticatedSuccessfully: Bool) {
+        guard reauthenticatedSuccessfully else {
+            self.cancelAll()
+            return
+        }
+        
+        self.dispatcher.paused = false
+    }
+}
+
+extension AutoGraph: DispatcherDelegate {
+    func dispatcherDidFinish<Mapping : Crust.Mapping>(response: DataResponse<Any>, mapping: Mapping, completion: @escaping (Result<Mapping.MappedObject>) -> ()) {
+        self.handle(response: response, mapping: mapping, completion: completion)
     }
 }

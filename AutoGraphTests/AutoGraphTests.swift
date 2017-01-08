@@ -7,15 +7,19 @@ import Realm
 
 class AutoGraphTests: XCTestCase {
     
+    var subject: AutoGraph!
+    
     override func setUp() {
         super.setUp()
+        
+        self.subject = AutoGraph()
     }
     
     func testFunctionalFileMapping() {
         let stub = AllFilmsStub()
         stub.registerStub()
         
-        AutoGraph.send(FilmRequest()) { result in
+        self.subject.send(FilmRequest()) { result in
             print(result)
         }
         
@@ -46,7 +50,7 @@ class AutoGraphTests: XCTestCase {
         
         var called = false
         
-        AutoGraph.handle(FilmRequest(), response: response) { result in
+        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -79,7 +83,7 @@ class AutoGraphTests: XCTestCase {
         
         var called = false
         
-        AutoGraph.handle(FilmRequest(), response: response) { result in
+        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -116,7 +120,7 @@ class AutoGraphTests: XCTestCase {
         
         var called = false
         
-        AutoGraph.handle(FilmBadRequest(), response: response) { result in
+        self.subject.handle(response: response, mapping: FilmBadRequest().mapping) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {

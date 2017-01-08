@@ -13,6 +13,8 @@
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
 		CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
 		CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
+		CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */; };
+		CD3BFF2E1E205D74008CE41A /* AuthHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */; };
 		CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraph.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -63,6 +65,8 @@
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.release.xcconfig"; sourceTree = "<group>"; };
 		C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dispatcher.swift; sourceTree = "<group>"; };
+		CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandler.swift; sourceTree = "<group>"; };
 		CDA62BF91DB16998004BA66D /* AutoGraph.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraph.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -186,7 +190,9 @@
 			children = (
 				CDA62BFC1DB16998004BA66D /* AutoGraph.h */,
 				CDA62BFD1DB16998004BA66D /* Info.plist */,
+				CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */,
 				CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */,
+				CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */,
 				CDBEBEA91E1CB1400029909A /* Errors.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
 			);
@@ -595,7 +601,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */,
+				CD3BFF2E1E205D74008CE41A /* AuthHandler.swift in Sources */,
 				CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */,
+				CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */,
 				CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */,
 				CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */,
 				CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */,
@@ -692,7 +700,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -740,7 +748,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
