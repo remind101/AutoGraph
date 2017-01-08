@@ -7,6 +7,21 @@ import Realm
 
 class AutoGraphTests: XCTestCase {
     
+    class MockDispatcher: Dispatcher {
+        var cancelCalled = false
+        override func cancelAll() {
+            cancelCalled = true
+        }
+    }
+    
+    class MockClient: Client {
+        var cancelCalled = false
+        func cancelAll() {
+            cancelCalled = true
+        }
+        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ()) { }
+    }
+    
     var subject: AutoGraph!
     
     override func setUp() {
@@ -26,115 +41,42 @@ class AutoGraphTests: XCTestCase {
         waitFor(delay: 1.0)
     }
     
-    func testErrorsJsonReturnsGraphQLError() {
-        let message = "Cannot query field \"d\" on type \"Planet\"."
-        let line = 18
-        let column = 7
+    func testCancelAllCancelsDispatcherAndClient() {
+        let mockClient = MockClient()
+        let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
+        self.subject = AutoGraph(client: mockClient, dispatcher: mockDispatcher)
         
-        let result = Alamofire.Result.success([
-            "dumb" : "data",
-            "errors": [
-                [
-                    "message": message,
-                    "locations": [
-                        [
-                            "line": line,
-                            "column": column
-                        ]
-                    ]
-                ]
-            ]
-            ] as Any)
+        self.subject.cancelAll()
         
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
-        
-        var called = false
-        
-        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
-            called = true
-            
-            guard case .failure(let error as AutoGraphError) = result else {
-                XCTFail("`result` should be an `AutoGraphError`")
-                return
-            }
-            
-            guard case .graphQL(errors: let errors) = error else {
-                XCTFail("`error` should be an `.mapping` error")
-                return
-            }
-            
-            XCTAssertEqual(errors.count, 1)
-            
-            let gqlError = errors[0]
-            XCTAssertEqual(gqlError.message, message)
-            XCTAssertEqual(gqlError.locations.count, 1)
-            
-            let location = gqlError.locations[0]
-            XCTAssertEqual(location.line, line)
-            XCTAssertEqual(location.column, column)
-        }
-        
-        XCTAssertTrue(called)
+        XCTAssertTrue(mockClient.cancelCalled)
+        XCTAssertTrue(mockDispatcher.cancelCalled)
     }
     
-    func testNetworkErrorReturnsNetworkError() {
-        let result = Alamofire.Result<Any>.failure(NSError(domain: "", code: 0, userInfo: nil))
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
-        
-        var called = false
-        
-        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
-            called = true
-            
-            guard case .failure(let error as AutoGraphError) = result else {
-                XCTFail("`result` should be an `AutoGraphError`")
-                return
-            }
-            
-            guard case .network(_) = error else {
-                XCTFail("`error` should be an `.network` error")
-                return
-            }
-        }
-        
-        XCTAssertTrue(called)
+    func testAuthHandlerBeganReauthenticationPausesDispatcher() {
+        XCTAssertFalse(self.subject.dispatcher.paused)
+        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        XCTAssertTrue(self.subject.dispatcher.paused)
     }
     
-    func testMappingErrorReturnsMappingError() {
-        class FilmBadRequest: FilmRequest {
-            override var mapping: AllFilmsMapping {
-                let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-                return AllFilmsBadMapping(adaptor: adaptor)
-            }
-        }
+    func testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher() {
+        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        XCTAssertTrue(self.subject.dispatcher.paused)
+        self.subject.authHandler(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: true)
+        XCTAssertFalse(self.subject.dispatcher.paused)
+    }
+    
+    func testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll() {
+        let mockClient = MockClient()
+        let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
+        self.subject = AutoGraph(client: mockClient, dispatcher: mockDispatcher)
         
-        class AllFilmsBadMapping: AllFilmsMapping {
-            public override func mapping(tomap: inout [Film], context: MappingContext) {
-                let mapping = FilmMapping(adaptor: self.adaptor.realmAdaptor)
-                _ = tomap <- (.mapping("bad_path", mapping), context)
-            }
-        }
+        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        XCTAssertTrue(self.subject.dispatcher.paused)
+        self.subject.authHandler(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: false)
+        XCTAssertTrue(self.subject.dispatcher.paused)
         
-        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
-        
-        var called = false
-        
-        self.subject.handle(response: response, mapping: FilmBadRequest().mapping) { result in
-            called = true
-            
-            guard case .failure(let error as AutoGraphError) = result else {
-                XCTFail("`result` should be an `AutoGraphError`")
-                return
-            }
-            
-            guard case .mapping(error: _) = error else {
-                XCTFail("`error` should be an `.mapping` error")
-                return
-            }
-        }
-        
-        XCTAssertTrue(called)
+        XCTAssertTrue(mockClient.cancelCalled)
+        XCTAssertTrue(mockDispatcher.cancelCalled)
     }
     
     func waitFor(delay: TimeInterval) {
