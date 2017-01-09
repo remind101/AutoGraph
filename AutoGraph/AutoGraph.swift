@@ -3,9 +3,12 @@ import Crust
 import Foundation
 import JSONValueRX
 
-typealias Client = RequestSender & Cancellable
+public protocol Client: RequestSender, Cancellable {
+    var baseUrl: String { get }
+    var authHandler: AuthHandler? { get }
+}
 
-protocol Cancellable {
+public protocol Cancellable {
     func cancelAll()
 }
 
@@ -21,36 +24,37 @@ public typealias RequestCompletion<M: Crust.Mapping> = (_ result: Result<M.Mappe
 public class AutoGraph {
     public var baseUrl: String {
         get {
-            return self.dispatcher.url
-        }
-        set {
-            self.dispatcher.url = newValue
-            self.authHandler = AuthHandler(baseUrl: newValue,
-                                           accessToken: self.authHandler.accessToken,
-                                           refreshToken: self.authHandler.refreshToken)
+            return self.client.baseUrl
         }
     }
     
-    public var authHandler: AuthHandler {
-        didSet {
-            self.authHandler.delegate = self
+    public var authHandler: AuthHandler? {
+        get {
+            return self.client.authHandler
         }
     }
     
     let client: Client
     let dispatcher: Dispatcher
     
-    convenience init(baseUrl: String = "http://localhost:8080/graphql") {
-        let client = AlamofireClient()
-        let dispatcher = Dispatcher(url: baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        self.init(baseUrl: baseUrl, client: client, dispatcher: dispatcher)
+    private static let localHost = "http://localhost:8080/graphql"
+    
+    public required init(client: Client = AlamofireClient(baseUrl: localHost)) {
+        self.client = client
+        self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.client.authHandler?.delegate = self
     }
     
-    init(baseUrl: String = "http://localhost:8080/graphql", client: Client, dispatcher: Dispatcher) {
+    convenience init() {
+        let client = AlamofireClient(baseUrl: AutoGraph.localHost)
+        let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.init(client: client, dispatcher: dispatcher)
+    }
+    
+    init(client: Client, dispatcher: Dispatcher) {
         self.client = client
         self.dispatcher = dispatcher
-        self.authHandler = AuthHandler(baseUrl: baseUrl, accessToken: nil, refreshToken: nil)
-        self.authHandler.delegate = self
+        self.client.authHandler?.delegate = self
     }
     
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {

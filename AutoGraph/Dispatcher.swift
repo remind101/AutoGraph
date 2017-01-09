@@ -2,13 +2,13 @@ import Alamofire
 import Crust
 import Foundation
 
-protocol RequestSender {
+public protocol RequestSender {
     func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ())
 }
 
 class Dispatcher {
         
-    var url: String
+    let url: String
     let responseHandler: ResponseHandler
     let requestSender: RequestSender
     

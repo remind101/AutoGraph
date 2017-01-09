@@ -12,6 +12,9 @@ public protocol ReauthenticationDelegate: class {
     func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: RefreshCompletion)
 }
 
+// NOTE: Currently too coupled to Alamofire, will need to write an adaptor and
+// move some of this into AlamofireClient eventually.
+
 public class AuthHandler {
     
     internal weak var delegate: AuthHandlerDelegate?
@@ -24,19 +27,21 @@ public class AuthHandler {
         return SessionManager(configuration: configuration)
     }()
     
+    public let baseUrl: String
+    public fileprivate(set) var accessToken: String?
+    public fileprivate(set) var refreshToken: String?
+    
+    public fileprivate(set) var isRefreshing = false
+    
     fileprivate let lock = NSLock()
-    
-    fileprivate(set) var baseUrl: String
-    fileprivate(set) var accessToken: String?
-    fileprivate(set) var refreshToken: String?
-    
-    fileprivate(set) var isRefreshing = false
+    fileprivate let callbackQueue: DispatchQueue
     fileprivate var requestsToRetry: [RequestRetryCompletion] = []
     
-    public init(baseUrl: String, accessToken: String?, refreshToken: String?) {
+    public init(baseUrl: String, accessToken: String?, refreshToken: String?, callbackQueue: DispatchQueue = DispatchQueue.main) {
         self.baseUrl = baseUrl
         self.accessToken = accessToken
         self.refreshToken = refreshToken
+        self.callbackQueue = callbackQueue
     }
 }
 
@@ -89,7 +94,7 @@ extension AuthHandler: RequestRetrier {
         
         self.isRefreshing = true
         
-        DispatchQueue.main.async {
+        self.callbackQueue.async {
             self.delegate?.authHandlerBeganReauthentication(self)
             
             self.reauthenticationDelegate?.autoGraphRequiresReauthentication(accessToken: self.accessToken, refreshToken: self.refreshToken) {

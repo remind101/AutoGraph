@@ -15,6 +15,9 @@ class AutoGraphTests: XCTestCase {
     }
     
     class MockClient: Client {
+        public var authHandler: AuthHandler? = nil
+        public var baseUrl: String = ""
+
         var cancelCalled = false
         func cancelAll() {
             cancelCalled = true
