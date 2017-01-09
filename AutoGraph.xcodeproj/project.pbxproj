@@ -34,6 +34,9 @@
 		CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEA91E1CB1400029909A /* Errors.swift */; };
 		CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAB1E1CB5E80029909A /* Utilities.swift */; };
 		CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */; };
+		CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */; };
+		CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */; };
+		CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */; };
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
@@ -104,6 +107,9 @@
 		CDBEBEA91E1CB1400029909A /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		CDBEBEAB1E1CB5E80029909A /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
+		CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClientTests.swift; sourceTree = "<group>"; };
+		CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandlerTests.swift; sourceTree = "<group>"; };
+		CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatcherTests.swift; sourceTree = "<group>"; };
 		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraph.swift; sourceTree = "<group>"; };
 		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
@@ -224,7 +230,10 @@
 			isa = PBXGroup;
 			children = (
 				CD3BFF331E22D270008CE41A /* Realm */,
+				CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */,
+				CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */,
 				CDA62C071DB16999004BA66D /* AutoGraphTests.swift */,
+				CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */,
 				CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */,
 				CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */,
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
@@ -633,11 +642,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */,
 				CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */,
 				CD3BFF3B1E22D270008CE41A /* RealmMappings.swift in Sources */,
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */,
+				CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */,
+				CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */,
 				CD3BFF321E22D1EC008CE41A /* ResponseHandlerTests.swift in Sources */,
 				CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */,
 				CD3BFF3A1E22D270008CE41A /* Models.m in Sources */,
