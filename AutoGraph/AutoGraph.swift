@@ -1,7 +1,16 @@
-import Foundation
 import Alamofire
 import Crust
+import Foundation
 import JSONValueRX
+
+public protocol Client: RequestSender, Cancellable {
+    var baseUrl: String { get }
+    var authHandler: AuthHandler? { get }
+}
+
+public protocol Cancellable {
+    func cancelAll()
+}
 
 public protocol Request {
     associatedtype Mapping: Crust.Mapping
@@ -10,64 +19,65 @@ public protocol Request {
     var mapping: Mapping { get }
 }
 
-public typealias RequestCompletion<T: Request> = (_ result: Result<T.Mapping.MappedObject>) -> ()
+public typealias RequestCompletion<M: Crust.Mapping> = (_ result: Result<M.MappedObject>) -> ()
 
 public class AutoGraph {
-    public static var url = "http://localhost:8080/graphql"
-    
-    public class func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T>) {
-        
-        Alamofire.request(url, parameters: ["query" : request.query.graphQLString]).responseJSON { response in
-            
-            self.handle(request, response: response, completion: completion)
+    public var baseUrl: String {
+        get {
+            return self.client.baseUrl
         }
     }
     
-    class func handle<T: Request>(_ request: T, response: DataResponse<Any>, completion: @escaping RequestCompletion<T>) {
+    public var authHandler: AuthHandler? {
+        get {
+            return self.client.authHandler
+        }
+    }
+    
+    let client: Client
+    let dispatcher: Dispatcher
+    
+    private static let localHost = "http://localhost:8080/graphql"
+    
+    public required init(client: Client = AlamofireClient(baseUrl: localHost)) {
+        self.client = client
+        self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.client.authHandler?.delegate = self
+    }
+    
+    convenience init() {
+        let client = AlamofireClient(baseUrl: AutoGraph.localHost)
+        let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.init(client: client, dispatcher: dispatcher)
+    }
+    
+    init(client: Client, dispatcher: Dispatcher) {
+        self.client = client
+        self.dispatcher = dispatcher
+        self.client.authHandler?.delegate = self
+    }
+    
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {
+        self.dispatcher.send(request: request, completion: completion)
+    }
+    
+    public func cancelAll() {
+        self.dispatcher.cancelAll()
+        self.client.cancelAll()
+    }
+}
+
+extension AutoGraph: AuthHandlerDelegate {
+    func authHandlerBeganReauthentication(_ authHandler: AuthHandler) {
+        self.dispatcher.paused = true
+    }
+    
+    func authHandler(_ authHandler: AuthHandler, reauthenticatedSuccessfully: Bool) {
+        guard reauthenticatedSuccessfully else {
+            self.cancelAll()
+            return
+        }
         
-        do {
-            
-            let value: Any = try {
-                switch response.result {
-                case .success(let value):
-                    return value
-                    
-                case .failure(let e):
-                    
-                    let gqlError: AutoGraphError? = {
-                        guard let value = Alamofire.Request.serializeResponseJSON(
-                            options: .allowFragments,
-                            response: response.response,
-                            data: response.data, error: nil).value,
-                            let json = try? JSONValue(object: value) else {
-                                
-                            return nil
-                        }
-                        
-                        return AutoGraphError(graphQLResponseJSON: json)
-                    }()
-                    
-                    throw AutoGraphError.network(error: e, underlying: gqlError)
-                }
-            }()
-            
-            let json = try JSONValue(object: value)
-            
-            if let queryError = AutoGraphError(graphQLResponseJSON: json) {
-                throw queryError
-            }
-            
-            do {
-                let mapper = CRMapper<T.Mapping>()
-                let result = try mapper.mapFromJSONToNewObject(json, mapping: request.mapping)
-                completion(.success(result))
-            }
-            catch let e {
-                throw AutoGraphError.mapping(error: e)
-            }
-        }
-        catch let e {
-            completion(.failure(e))
-        }
+        self.dispatcher.paused = false
     }
 }
