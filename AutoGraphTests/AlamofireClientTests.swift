@@ -15,7 +15,13 @@ class AlamofireClientTests: XCTestCase {
         self.subject = AlamofireClient(baseUrl: "localhost")
     }
     
-    func testSetsRetrieAndAdaptorOnSession() {
+    override func tearDown() {
+        self.subject = nil
+        
+        super.tearDown()
+    }
+    
+    func testSetsRetrierAndAdaptorOnSession() {
         let sessionManager = Alamofire.SessionManager.default
         let authHandler = self.subject.authHandler!
         XCTAssertEqual(ObjectIdentifier(sessionManager.retrier! as! AuthHandler), ObjectIdentifier(authHandler))

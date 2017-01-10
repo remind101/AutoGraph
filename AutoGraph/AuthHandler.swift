@@ -55,10 +55,10 @@ extension AuthHandler: RequestAdapter {
             self.lock.unlock()
         }
         
-        if let url = urlRequest.url, let accessToken = self.accessToken, url.absoluteString.hasPrefix(baseUrl) {
-            var urlRequest = urlRequest
-            urlRequest.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
-            return urlRequest
+        if let url = urlRequest.url, let accessToken = self.accessToken, url.absoluteString.hasPrefix(self.baseUrl) {
+            var mutableRequest = urlRequest
+            mutableRequest.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
+            return mutableRequest
         }
         
         return urlRequest
@@ -94,30 +94,34 @@ extension AuthHandler: RequestRetrier {
         
         self.isRefreshing = true
         
-        self.callbackQueue.async {
-            self.delegate?.authHandlerBeganReauthentication(self)
+        self.callbackQueue.async { [weak self] in
+            guard let strongSelf = self else { return }
             
-            self.reauthenticationDelegate?.autoGraphRequiresReauthentication(accessToken: self.accessToken, refreshToken: self.refreshToken) {
+            strongSelf.delegate?.authHandlerBeganReauthentication(strongSelf)
+            
+            strongSelf.reauthenticationDelegate?.autoGraphRequiresReauthentication(accessToken: strongSelf.accessToken, refreshToken: strongSelf.refreshToken) {
                 [weak self] succeeded, accessToken, refreshToken in
                 
-                guard let strongSelf = self else { return }
-                
-                strongSelf.lock.lock()
-                defer {
-                    strongSelf.lock.unlock()
-                }
-                
-                if let accessToken = accessToken, let refreshToken = refreshToken {
-                    strongSelf.accessToken = accessToken
-                    strongSelf.refreshToken = refreshToken
-                }
-                
-                strongSelf.requestsToRetry.forEach { $0(succeeded, 0.0) }
-                strongSelf.requestsToRetry.removeAll()
-                
-                strongSelf.isRefreshing = false
-                strongSelf.delegate?.authHandler(strongSelf, reauthenticatedSuccessfully: succeeded)
+                self?.reauthenticated(succuss: succeeded, accessToken: accessToken, refreshToken: refreshToken)
             }
         }
+    }
+    
+    func reauthenticated(succuss: Bool, accessToken: String?, refreshToken: String?) -> Void {
+        self.lock.lock()
+        defer {
+            self.lock.unlock()
+        }
+        
+        if let accessToken = accessToken, let refreshToken = refreshToken {
+            self.accessToken = accessToken
+            self.refreshToken = refreshToken
+        }
+        
+        self.requestsToRetry.forEach { $0(succuss, 0.0) }
+        self.requestsToRetry.removeAll()
+        
+        self.isRefreshing = false
+        self.delegate?.authHandler(self, reauthenticatedSuccessfully: succuss)
     }
 }

@@ -26,6 +26,12 @@ class DispatcherTests: XCTestCase {
         self.subject = Dispatcher(url: "localhost", requestSender: self.mockRequestSender, responseHandler: ResponseHandler())
     }
     
+    override func tearDown() {
+        self.subject = nil
+        self.mockRequestSender = nil
+        super.tearDown()
+    }
+    
     func testForwardsRequestToSender() {
         let request = FilmRequest()
         
@@ -33,8 +39,8 @@ class DispatcherTests: XCTestCase {
             return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
         }
         
+        XCTAssertFalse(self.mockRequestSender.expectation)
         self.subject.send(request: request, completion: { _ in })
-        
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
@@ -55,5 +61,24 @@ class DispatcherTests: XCTestCase {
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         self.subject.cancelAll()
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
+    }
+    
+    func testForwardsAndClearsPendingRequestsOnUnpause() {
+        let request = FilmRequest()
+        
+        self.mockRequestSender.testSendRequest = { url, params, completion in
+            return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
+        }
+        
+        self.subject.paused = true
+        self.subject.send(request: request, completion: { _ in })
+        
+        XCTAssertEqual(self.subject.pendingRequests.count, 1)
+        XCTAssertFalse(self.mockRequestSender.expectation)
+        
+        self.subject.paused = false
+        
+        XCTAssertEqual(self.subject.pendingRequests.count, 0)
+        XCTAssertTrue(self.mockRequestSender.expectation)
     }
 }

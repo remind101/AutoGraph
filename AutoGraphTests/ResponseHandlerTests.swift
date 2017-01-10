@@ -15,6 +15,12 @@ class ResponseHandlerTests: XCTestCase {
         self.subject = ResponseHandler()
     }
     
+    override func tearDown() {
+        self.subject = nil
+        
+        super.tearDown()
+    }
+    
     func testErrorsJsonReturnsGraphQLError() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18

@@ -21,6 +21,7 @@ class Dispatcher {
                 self.pendingRequests.forEach { sendable in
                     self.send(sendable: sendable)
                 }
+                self.pendingRequests.removeAll()
             }
         }
     }

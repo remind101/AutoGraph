@@ -33,6 +33,12 @@ class AutoGraphTests: XCTestCase {
         self.subject = AutoGraph()
     }
     
+    override func tearDown() {
+        self.subject = nil
+        
+        super.tearDown()
+    }
+    
     func testFunctionalFileMapping() {
         let stub = AllFilmsStub()
         stub.registerStub()

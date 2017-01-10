@@ -1,6 +1,8 @@
 import Foundation
 import Alamofire
 
+public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
+
 public class AlamofireClient: Client {
     
     private let sessionManager: SessionManager
@@ -8,7 +10,7 @@ public class AlamofireClient: Client {
     public let baseUrl: String
     public var authHandler: AuthHandler?
     
-    public var tokens: (accessToken: String?, refreshToken: String?) {
+    public var tokens: AuthTokens {
         set {
             self.authHandler = AuthHandler(baseUrl: self.baseUrl,
                                            accessToken: newValue.accessToken,
