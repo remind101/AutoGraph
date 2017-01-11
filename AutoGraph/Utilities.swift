@@ -15,6 +15,32 @@ public enum Result<Value> {
     }
 }
 
+public protocol ArraySubMapping: Mapping {
+    init(adaptor: AdaptorKind)
+}
+
+open class ArrayMapping<SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>: Mapping
+where SubAdaptor.BaseType == SubType, SubAdaptor.ResultsType == [SubType],
+SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType {
+    
+    public typealias MappedObject = [SubType]
+    public typealias AdaptorKind = ArrayAdaptor<SubType, SubAdaptor>
+    
+    public let adaptor: ArrayAdaptor<SubType, SubAdaptor>
+    
+    public required init(adaptor: AdaptorKind) {
+        self.adaptor = adaptor
+    }
+    
+    public var primaryKeys: [String : Keypath]? { return nil }
+    open var keyPath: Keypath { return "" }
+    
+    public func mapping(tomap: inout [SubType], context: MappingContext) {
+        let mapping = SubMapping(adaptor: self.adaptor.subAdaptor)
+        _ = tomap <- (.mapping(self.keyPath, mapping), context)
+    }
+}
+
 open class ArrayAdaptor<SubBaseType, SubAdaptor: Adaptor>: Adaptor
 where SubAdaptor.BaseType == SubBaseType, SubAdaptor.ResultsType == [SubBaseType] {
     
