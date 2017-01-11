@@ -1,47 +1,22 @@
+import AutoGraph
 import Foundation
 import Crust
 import JSONValueRX
 import Realm
 
-public class RealmArrayAdaptor<T: RLMObject>: Adaptor {
-    public typealias BaseType = [T]
-    public typealias ResultsType = [BaseType]
-    
+public class RealmArrayAdaptor: ArrayAdaptor<RLMObject, RealmAdaptor> {
     public let realm: RLMRealm
     public let realmAdaptor: RealmAdaptor
     
     public init(realm: RLMRealm) {
         self.realm = realm
         self.realmAdaptor = RealmAdaptor(realm: realm)
+        super.init(subAdaptor: RealmAdaptor(realm: realm))
     }
     
     public convenience init() throws {
         self.init(realm: RLMRealm())
     }
-    
-    public func mappingBegins() throws {
-        try self.realmAdaptor.mappingBegins()
-    }
-    
-    public func mappingEnded() throws {
-        try self.realmAdaptor.mappingEnded()
-    }
-    
-    public func mappingErrored(_ error: Error) {
-        self.realmAdaptor.mappingErrored(error)
-    }
-    
-    public func fetchObjects(type: BaseType.Type, keyValues: [String : CVarArg]) -> ResultsType? {
-        return nil
-    }
-    
-    public func createObject(type: BaseType.Type) throws -> BaseType {
-        return []
-    }
-    
-    public func deleteObject(_ obj: BaseType) throws { }
-    
-    public func save(objects: [BaseType]) throws { }
 }
 
 public class RealmAdaptor: Adaptor {
@@ -184,7 +159,7 @@ public protocol RealmMapping: Mapping {
 
 public protocol RealmArrayMapping: Mapping {
     associatedtype SubType: RLMObject
-    associatedtype AdaptorKind = RealmArrayAdaptor<SubType>
+    associatedtype AdaptorKind = RealmArrayAdaptor
     init(adaptor: AdaptorKind)
 }
 

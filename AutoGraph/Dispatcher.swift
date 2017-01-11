@@ -36,7 +36,7 @@ class Dispatcher {
         
         let sendable: Sendable = (query: request.query, completion: { [weak self] response in
             
-            self?.responseHandler.handle(response: response, mapping: request.mapping, completion: completion)
+            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
         })
         
         guard !self.paused else {

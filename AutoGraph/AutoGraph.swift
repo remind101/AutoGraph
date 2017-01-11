@@ -3,19 +3,40 @@ import Crust
 import Foundation
 import JSONValueRX
 
+public protocol Cancellable {
+    func cancelAll()
+}
+
 public protocol Client: RequestSender, Cancellable {
     var baseUrl: String { get }
     var authHandler: AuthHandler? { get }
 }
 
-public protocol Cancellable {
-    func cancelAll()
+/// Declare a Mapped type as `ThreadUnsafe` if the object being mapped cannot be safely
+/// passed between threads.
+///
+/// Before returning `Result` to the caller, a `ThreadUnsafe` object will be refetched
+/// on the main thread using `primaryKey`.
+public protocol ThreadUnsafe {
+    static var primaryKey: String { get }
 }
 
 public protocol Request {
     associatedtype Mapping: Crust.Mapping
     
+    /// The query to be sent to GraphQL.
     var query: Operation { get }
+    
+    /// The mapping to use when mapping JSON into the a concrete type.
+    ///
+    /// **WARNING:**
+    ///
+    /// `mapping` does NOT execute on the main thread. It's important that any `Adaptor`
+    /// used by `mapping` establishes it's own connection to the DB from within `mapping`.
+    ///
+    /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
+    /// across threads if no `primaryKeys` are provided by `mapping`. If `primaryKeys` are provided
+    /// then the resulting mapped objects will be refetched upon returning to the main thread. 
     var mapping: Mapping { get }
 }
 

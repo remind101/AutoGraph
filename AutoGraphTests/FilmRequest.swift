@@ -39,7 +39,7 @@ class FilmRequest: Request {
                           arguments: nil)
     
     var mapping: AllFilmsMapping {
-        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
+        let adaptor = RealmArrayAdaptor(realm: RLMRealm.default())
         return AllFilmsMapping(adaptor: adaptor)
     }
 }
@@ -47,9 +47,9 @@ class FilmRequest: Request {
 class AllFilmsMapping: RealmArrayMapping {
     typealias SubType = Film
     
-    public var adaptor: RealmArrayAdaptor<Film>
+    public var adaptor: RealmArrayAdaptor
     
-    public required init(adaptor: RealmArrayAdaptor<Film>) {
+    public required init(adaptor: RealmArrayAdaptor) {
         self.adaptor = adaptor
     }
     

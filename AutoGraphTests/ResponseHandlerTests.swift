@@ -7,12 +7,18 @@ import Realm
 
 class ResponseHandlerTests: XCTestCase {
     
+    class MockQueue: OperationQueue {
+        override func addOperation(_ op: Foundation.Operation) {
+            op.start()
+        }
+    }
+    
     var subject: ResponseHandler!
     
     override func setUp() {
         super.setUp()
         
-        self.subject = ResponseHandler()
+        self.subject = ResponseHandler(queue: MockQueue(), callbackQueue: MockQueue())
     }
     
     override func tearDown() {
@@ -45,7 +51,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
+        self.subject.handle(response: response, mapping: { FilmRequest().mapping }) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -78,7 +84,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: FilmRequest().mapping) { result in
+        self.subject.handle(response: response, mapping: { FilmRequest().mapping }) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -98,7 +104,7 @@ class ResponseHandlerTests: XCTestCase {
     func testMappingErrorReturnsMappingError() {
         class FilmBadRequest: FilmRequest {
             override var mapping: AllFilmsMapping {
-                let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
+                let adaptor = RealmArrayAdaptor(realm: RLMRealm.default())
                 return AllFilmsBadMapping(adaptor: adaptor)
             }
         }
@@ -115,7 +121,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: FilmBadRequest().mapping) { result in
+        self.subject.handle(response: response, mapping: { FilmBadRequest().mapping }) { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {

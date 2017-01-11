@@ -5,7 +5,17 @@ import JSONValueRX
 
 class ResponseHandler {
     
-    func handle<Mapping: Crust.Mapping>(response: DataResponse<Any>, mapping: Mapping, completion: @escaping RequestCompletion<Mapping>) {
+    private let queue: OperationQueue
+    private let callbackQueue: OperationQueue
+    
+    init(queue: OperationQueue = OperationQueue(),
+         callbackQueue: OperationQueue = OperationQueue.main) {
+        
+        self.queue = queue
+        self.callbackQueue = callbackQueue
+    }
+    
+    func handle<Mapping: Crust.Mapping>(response: DataResponse<Any>, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
         
         do {
             let value: Any = try {
@@ -30,7 +40,7 @@ class ResponseHandler {
                     
                     throw AutoGraphError.network(error: e, underlying: gqlError)
                 }
-                }()
+            }()
             
             let json = try JSONValue(object: value)
             
@@ -38,17 +48,55 @@ class ResponseHandler {
                 throw queryError
             }
             
-            do {
-                let mapper = CRMapper<Mapping>()
-                let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping)
-                completion(.success(result))
-            }
-            catch let e {
-                throw AutoGraphError.mapping(error: e)
+            self.queue.addOperation { [weak self] in
+                self?.map(json: json, mapping: mapping, completion: completion)
             }
         }
         catch let e {
-            completion(.failure(e))
+            self.fail(error: e, mapping: mapping, completion: completion)
+        }
+    }
+    
+    private func map<Mapping: Crust.Mapping>(json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
+        do {
+            let mapper = CRMapper<Mapping>()
+            let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping())
+            self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
+        }
+        catch let e {
+            self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+        }
+    }
+    
+    private func fail<Mapping: Crust.Mapping>(error: Error, mapping: () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
+        self.callbackQueue.addOperation {
+            completion(.failure(error))
+        }
+    }
+    
+    // TODO: make SequenceMapping and make an overload for that.
+    private func refetchAndComplete<Mapping: Crust.Mapping>(result: Mapping.MappedObject, json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) where Mapping.MappedObject: Sequence {
+        
+        
+    }
+    
+    private func refetchAndComplete<Mapping: Crust.Mapping>(result: Mapping.MappedObject, json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
+        
+        if case let results as Collection = result {
+            
+        }
+        
+        self.callbackQueue.addOperation {
+            
+            let map = mapping()
+            
+            guard map.primaryKeys != nil else {
+                completion(.success(result))
+                return
+            }
+            
+            
+            completion(.success(result))
         }
     }
 }
