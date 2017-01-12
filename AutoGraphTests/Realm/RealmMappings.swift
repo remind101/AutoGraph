@@ -98,6 +98,9 @@ public class RealmAdaptor: Adaptor {
         }
     }
     
+    // TODO: Support composite primary keys. This would require having a new method, one where keyValues
+    // is `[[String : CVarArg]]` that does a series of and/or Predicates and then changing this method to
+    // andPredicate.
     public func fetchObjects(type: BaseType.Type, keyValues: [String : CVarArg]) -> ResultsType? {
         
         // Really we should be using either a mapping associated with the primary key or the primary key's
@@ -123,7 +126,7 @@ public class RealmAdaptor: Adaptor {
             predicates.append(predicate)
         }
         
-        let andPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        let andPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
         
         return fetchObjects(type: type, predicate: andPredicate)
     }

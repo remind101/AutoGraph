@@ -74,10 +74,35 @@ class ResponseHandler {
         }
     }
     
-    // TODO: make SequenceMapping and make an overload for that.
-    private func refetchAndComplete<Mapping: Crust.Mapping>(result: Mapping.MappedObject, json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) where Mapping.MappedObject: Sequence {
-        
-        
+    private func refetchAndComplete<Mapping: Crust.Mapping, MappedObject: Sequence>
+        (result: MappedObject,
+         json: JSONValue,
+         mapping: @escaping () -> Mapping,
+         completion: @escaping RequestCompletion<Mapping>)
+        where Mapping.MappedObject == MappedObject, MappedObject.Iterator.Element: ThreadUnsafe {
+            
+            let primaryKey = MappedObject.Iterator.Element.primaryKey
+            let primaryKeys: [ = result.flatMap {
+                guard let value = $0.value(forKeyPath: primaryKey) else {
+                    return nil
+                }
+                return [primaryKey, value]
+            }
+            
+            self.callbackQueue.addOperation {
+                let map = mapping()
+                let results = primaryKeys.map { map.adaptor.fetchObjects(type: MappedObject.Iterator.Element.self, keyValues: <#T##[String : CVarArg]#>) }
+            }
+    }
+    
+    private func refetchAndComplete<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe>
+        (result: MappedObject,
+         json: JSONValue,
+         mapping: @escaping () -> Mapping,
+         completion: @escaping RequestCompletion<Mapping>)
+        where Mapping.MappedObject == MappedObject {
+            
+            
     }
     
     private func refetchAndComplete<Mapping: Crust.Mapping>(result: Mapping.MappedObject, json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {

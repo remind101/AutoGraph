@@ -17,8 +17,9 @@ public protocol Client: RequestSender, Cancellable {
 ///
 /// Before returning `Result` to the caller, a `ThreadUnsafe` object will be refetched
 /// on the main thread using `primaryKey`.
-public protocol ThreadUnsafe {
+public protocol ThreadUnsafe: class {
     static var primaryKey: String { get }
+    func value(forKeyPath keyPath: String) -> Any?
 }
 
 public protocol Request {
