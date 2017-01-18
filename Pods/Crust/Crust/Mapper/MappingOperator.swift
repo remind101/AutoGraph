@@ -232,7 +232,7 @@ private func mapFromJson<T: JSONable>(_ json: JSONValue, toField field: inout T?
 private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout T, mapping: U, context: MappingContext) throws where U.MappedObject == T {
     
     let mapper = Mapper<U>()
-    field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
+    field = try mapper.map(from: json, using: mapping, parentContext: context)
 }
 
 private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout T?, mapping: U, context: MappingContext) throws where U.MappedObject == T {
@@ -243,7 +243,7 @@ private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout 
     }
     
     let mapper = Mapper<U>()
-    field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
+    field = try mapper.map(from: json, using: mapping, parentContext: context)
 }
 
 // MARK: - Appendable - RangeReplaceableCollectionType subset (Array and Realm List follow this protocol)
@@ -255,6 +255,7 @@ public protocol Appendable: Sequence {
 
 extension Array: Appendable { }
 
+@discardableResult
 public func <- <T, U: Mapping, V: RangeReplaceableCollection, C: MappingContext>(field: inout V, map:(key: Spec<U>, context: C)) -> C where U.MappedObject == T, V.Iterator.Element == T, T: Equatable {
     
     return mapCollectionField(&field, map: map)
@@ -282,7 +283,6 @@ public func mapCollectionField<T, U: Mapping, V: RangeReplaceableCollection, C: 
             let json = map.context.json
             let baseJSON = json[map.key]
             if case .some(.array(let arr)) = baseJSON, map.key.keyPath == "", arr.count == 0 {
-                print(json)
                 try mapper(json, &field)
             }
             else if let baseJSON = baseJSON {
@@ -325,7 +325,7 @@ private func mapFromJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: J
                 }
             }
             
-            let obj = try mapper.mapFromJSONToExistingObject(x, mapping: mapping, parentContext: context)
+            let obj = try mapper.map(from: x, using: mapping, parentContext: context)
             results.append(obj)
         }
         field.append(contentsOf: results)

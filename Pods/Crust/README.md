@@ -144,7 +144,7 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
                 "data.founding_date" : NSDate().toISOString(),
             ]
     )
-    let company = try! mapper.mapFromJSONToNewObject(json: json, mapping: CompanyMapping())
+    let company = try! mapper.map(from: json, using: CompanyMapping())
     ```
 
 NOTE:

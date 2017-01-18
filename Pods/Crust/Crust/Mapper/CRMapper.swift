@@ -32,17 +32,32 @@ public struct Mapper<T: Mapping> {
     
     public init() { }
     
-    public func mapFromJSONToNewObject(_ json: JSONValue, mapping: T) throws -> T.MappedObject {
-        let object = try mapping.getNewInstance()
-        return try mapFromJSON(json, toObject: object, mapping: mapping)
+    public func map<Element, Collection: RangeReplaceableCollection, M: Mapping>(
+        from json: JSONValue,
+        using mapping: M,
+        into collection: inout Collection)
+        throws -> Collection
+    where M.MappedObject == Collection.Iterator.Element, Collection.Iterator.Element == Element, Element: Equatable, M.MappedObject: Equatable {
+        
+        // TODO: This was added for expediancy. Refactor by moving out `perform` calls where spec has control and adding an array spec.
+        // And maybe even allow passing in a spec vs a mapping.
+        let context = MappingContext(withObject: collection, json: json, direction: MappingDirection.fromJSON)
+        
+        try mapping.startMapping(context: context)
+        collection <- (Spec.mapping("", mapping), context)
+        try mapping.completeMapping(collection: collection, context: context)
+        
+        return collection
     }
     
-    public func mapFromJSONToExistingObject(_ json: JSONValue, mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
-        var object = try mapping.getExistingInstance(json: json)
-        if object == nil {
-            object = try mapping.getNewInstance()
-        }
-        return try mapFromJSON(json, toObject: object!, mapping: mapping, parentContext: parentContext)
+    public func map(from json: JSONValue, using mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
+        let object = try { () -> T.MappedObject in
+            guard let object = try mapping.getExistingInstance(json: json) else {
+                return try mapping.getNewInstance()
+            }
+            return object
+        }()
+        return try mapFromJSON(json, toObject: object, mapping: mapping, parentContext: parentContext)
     }
     
     public func mapFromJSON(_ json: JSONValue, toObject object: T.MappedObject, mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
@@ -144,10 +159,25 @@ public extension Mapping {
         
         self.executeMapping(object: &object, context: context)
         
+        try self.completeMapping(object: &object, context: context)
+    }
+    
+    internal func completeMapping(object: inout MappedObject, context: MappingContext) throws {
+        try self.completeMapping(objects: [object], context: context)
+        context.object = object
+    }
+    
+    internal func completeMapping<C: RangeReplaceableCollection>(collection: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
+        try self.completeMapping(objects: collection, context: context)
+        context.object = collection
+    }
+    
+    private func completeMapping<C: RangeReplaceableCollection>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
         if context.error == nil {
             do {
                 try self.checkForAdaptorBaseTypeConformance()
-                try self.adaptor.save(objects: [ object as! AdaptorKind.BaseType ])
+                let objects = objects.map { $0 as! AdaptorKind.BaseType }
+                try self.adaptor.save(objects: objects)
             } catch let error as NSError {
                 context.error = error
             }
@@ -162,6 +192,5 @@ public extension Mapping {
         
         try self.endMapping(context: context)
         
-        context.object = object
     }
 }
