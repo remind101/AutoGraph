@@ -39,7 +39,7 @@ class ResponseHandler {
             }
             
             do {
-                let mapper = CRMapper<Mapping>()
+                let mapper = Mapper<Mapping>()
                 let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping)
                 completion(.success(result))
             }
