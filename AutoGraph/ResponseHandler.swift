@@ -59,8 +59,8 @@ class ResponseHandler {
     
     private func map<Mapping: Crust.Mapping>(json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
         do {
-            let mapper = CRMapper<Mapping>()
-            let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping())
+            let mapper = Mapper<Mapping>()
+            let result = try mapper.mapFromJSONToExistingObject(json, mapping: mapping())
             self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
         }
         catch let e {
@@ -82,16 +82,16 @@ class ResponseHandler {
         where Mapping.MappedObject == MappedObject, MappedObject.Iterator.Element: ThreadUnsafe {
             
             let primaryKey = MappedObject.Iterator.Element.primaryKey
-            let primaryKeys: [ = result.flatMap {
-                guard let value = $0.value(forKeyPath: primaryKey) else {
+            let primaryKeys: [[String : CVarArg]] = result.flatMap {
+                guard case let value as CVarArg = $0.value(forKeyPath: primaryKey) else {
                     return nil
                 }
-                return [primaryKey, value]
+                return [primaryKey : value]
             }
             
             self.callbackQueue.addOperation {
                 let map = mapping()
-                let results = primaryKeys.map { map.adaptor.fetchObjects(type: MappedObject.Iterator.Element.self, keyValues: <#T##[String : CVarArg]#>) }
+                let results = map.adaptor.fetchObjects(type: MappedObject.Iterator.Element.self, primaryKeyValues: primaryKeys, isMapping: false)
             }
     }
     
