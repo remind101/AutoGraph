@@ -40,7 +40,7 @@ class ResponseHandler {
             
             do {
                 let mapper = Mapper<Mapping>()
-                let result = try mapper.mapFromJSONToNewObject(json, mapping: mapping)
+                let result = try mapper.map(from: json, using: mapping)
                 completion(.success(result))
             }
             catch let e {
