@@ -6,7 +6,7 @@ public enum MappingDirection {
     case toJSON
 }
 
-internal let CRMappingDomain = "CRMappingDomain"
+internal let CrustMappingDomain = "CrustMappingDomain"
 
 public protocol Keypath: JSONKeypath { }
 
@@ -14,11 +14,11 @@ extension String: Keypath { }
 extension Int: Keypath { }
 
 open class MappingContext {
-    open var json: JSONValue
-    open var object: Any
-    open fileprivate(set) var dir: MappingDirection
+    open internal(set) var json: JSONValue
+    open internal(set) var object: Any
     open internal(set) var error: Error?
     open internal(set) var parent: MappingContext? = nil
+    open fileprivate(set) var dir: MappingDirection
     
     init(withObject object: Any, json: JSONValue, direction: MappingDirection) {
         self.dir = direction
@@ -28,7 +28,7 @@ open class MappingContext {
 }
 
 /// Method caller used to perform mappings.
-public struct CRMapper<T: Mapping> {
+public struct Mapper<T: Mapping> {
     
     public init() { }
     
@@ -77,11 +77,11 @@ public extension Mapping {
                 keyValues[primaryKey] = val.valuesAsNSObjects()
             } else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(keyPath) does not exist in JSON but is expected from mapping \(Self.self)" ]
-                throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
         }
         
-        let obj = self.adaptor.fetchObjects(type: MappedObject.self as! AdaptorKind.BaseType.Type, keyValues: keyValues)?.first
+        let obj = self.adaptor.fetchObjects(type: MappedObject.self as! AdaptorKind.BaseType.Type, primaryKeyValues: [keyValues], isMapping: true)?.first
         return obj as! MappedObject?
     }
     
@@ -98,7 +98,7 @@ public extension Mapping {
         
         guard MappedObject.self is AdaptorKind.BaseType.Type else {
             let userInfo = [ NSLocalizedFailureReasonErrorKey : "Type of object \(MappedObject.self) is not a subtype of \(AdaptorKind.BaseType.self)" ]
-            throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+            throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
         }
     }
     
@@ -113,7 +113,7 @@ public extension Mapping {
                 var userInfo = [AnyHashable : Any]()
                 userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingBegins for adaptor \(self.adaptor)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
-                throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
         }
     }
@@ -129,7 +129,7 @@ public extension Mapping {
                 var userInfo = [AnyHashable : Any]()
                 userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingEnded for adaptor \(self.adaptor)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
-                throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
         }
     }

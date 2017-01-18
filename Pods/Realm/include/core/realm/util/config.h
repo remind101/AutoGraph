@@ -6,7 +6,7 @@
  *
  *************************************************************************/
 
-#define REALM_VERSION               "2.2.1"
+#define REALM_VERSION               "unknown"
 
 #define REALM_INSTALL_PREFIX        "/Users/realm/workspace/realm_realm-core_master-ZBP7YYGK7EEKLBWAJKZQMIXPK7BHX4IZSAMXTSGLQ5SXVPPKKJMQ/install"
 #define REALM_INSTALL_EXEC_PREFIX   "/Users/realm/workspace/realm_realm-core_master-ZBP7YYGK7EEKLBWAJKZQMIXPK7BHX4IZSAMXTSGLQ5SXVPPKKJMQ/install"

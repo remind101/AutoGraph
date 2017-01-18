@@ -174,7 +174,7 @@ void SyncManager::reset_for_testing()
         // NOTE: these should always match the defaults.
         m_log_level = util::Logger::Level::info;
         m_logger_factory = nullptr;
-        m_client_reconnect_mode = sync::Client::Reconnect::normal;
+        m_client_reconnect_mode = ReconnectMode::normal;
         m_client_validate_ssl = true;
     }
 }
@@ -191,35 +191,16 @@ void SyncManager::set_logger_factory(SyncLoggerFactory& factory) noexcept
     m_logger_factory = &factory;
 }
 
-void SyncManager::set_error_handler(std::function<sync::Client::ErrorHandler> handler)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    auto wrapped_handler = [=](int error_code, std::string message) {
-        // FIXME: If the sync team decides to route all errors through the session-level error handler, the client-level
-        // error handler might go away altogether.
-        switch (error_code) {
-            case 100:       // Connection closed (no error)
-            case 101:       // Unspecified non-critical error
-                return;
-            default:
-                handler(error_code, message);
-        }
-    };
-    m_error_handler = std::move(wrapped_handler);
-}
-
 void SyncManager::set_client_should_reconnect_immediately(bool reconnect_immediately)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    using Reconnect = sync::Client::Reconnect;
-    m_client_reconnect_mode = reconnect_immediately ? Reconnect::immediately : Reconnect::normal;
+    m_client_reconnect_mode = reconnect_immediately ? ReconnectMode::immediate : ReconnectMode::normal;
 }
 
 bool SyncManager::client_should_reconnect_immediately() const noexcept
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    using Reconnect = sync::Client::Reconnect;
-    return m_client_reconnect_mode == Reconnect::immediately;
+    return m_client_reconnect_mode == ReconnectMode::immediate;
 }
 
 void SyncManager::set_client_should_validate_ssl(bool validate_ssl)
@@ -301,6 +282,21 @@ std::vector<std::shared_ptr<SyncUser>> SyncManager::all_logged_in_users() const
         }
     }
     return users;
+}
+
+std::shared_ptr<SyncUser> SyncManager::get_current_user() const
+{
+    std::lock_guard<std::mutex> lock(m_user_mutex);
+    
+    auto is_active_user = [](auto& el) { return el.second->state() == SyncUser::State::Active; };
+    auto it = std::find_if(m_users.begin(), m_users.end(), is_active_user);
+    if (it == m_users.end()) {
+        return nullptr;
+    }
+    if (std::find_if(std::next(it), m_users.end(), is_active_user) != m_users.end()) {
+        throw std::logic_error("Current user is not valid if more that one valid, logged-in user exists.");
+    }
+    return it->second;
 }
 
 std::string SyncManager::path_for_realm(const std::string& user_identity, const std::string& raw_realm_url) const
@@ -417,7 +413,6 @@ std::unique_ptr<SyncClient> SyncManager::create_sync_client() const
         logger = std::move(stderr_logger);
     }
     return std::make_unique<SyncClient>(std::move(logger),
-                                        std::move(m_error_handler),
                                         m_client_reconnect_mode,
                                         m_client_validate_ssl);
 }

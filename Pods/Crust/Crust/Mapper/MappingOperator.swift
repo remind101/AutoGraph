@@ -73,7 +73,7 @@ public func mapField<T: JSONable, C: MappingContext>(_ field: inout T, map:(key:
                 try mapFromJson(baseJSON, toField: &field)
             } else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "Could not find value in JSON \(map.context.json) from keyPath \(map.key)" ]
-                throw NSError(domain: CRMappingDomain, code: 0, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         } catch let error as NSError {
             map.context.error = error
@@ -100,7 +100,7 @@ public func mapField<T: JSONable, C: MappingContext>(_ field: inout T?, map:(key
                 try mapFromJson(baseJSON, toField: &field)
             } else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "Value not present in JSON \(map.context.json) from keyPath \(map.key)" ]
-                throw NSError(domain: CRMappingDomain, code: 0, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         } catch let error as NSError {
             map.context.error = error
@@ -119,7 +119,7 @@ public func mapFieldWithMapping<T, U: Mapping, C: MappingContext>(_ field: inout
     
     guard case .mapping(let key, let mapping) = map.key else {
         let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected KeyExtension.mapping to map type \(T.self)" ]
-        map.context.error = NSError(domain: CRMappingDomain, code: -1000, userInfo: userInfo)
+        map.context.error = NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
         return map.context
     }
     
@@ -133,7 +133,7 @@ public func mapFieldWithMapping<T, U: Mapping, C: MappingContext>(_ field: inout
                 try mapFromJson(baseJSON, toField: &field, mapping: mapping, context: map.context)
             } else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "JSON at key path \(map.key) does not exist to map from" ]
-                throw NSError(domain: CRMappingDomain, code: 0, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         }
     } catch let error as NSError {
@@ -152,7 +152,7 @@ public func mapFieldWithMapping<T, U: Mapping, C: MappingContext>(_ field: inout
     
     guard case .mapping(let key, let mapping) = map.key else {
         let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected KeyExtension.mapping to map type \(T.self)" ]
-        map.context.error = NSError(domain: CRMappingDomain, code: -1000, userInfo: userInfo)
+        map.context.error = NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
         return map.context
     }
     
@@ -166,7 +166,7 @@ public func mapFieldWithMapping<T, U: Mapping, C: MappingContext>(_ field: inout
                 try mapFromJson(baseJSON, toField: &field, mapping: mapping, context: map.context)
             } else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "JSON at key path \(map.key) does not exist to map from" ]
-                throw NSError(domain: CRMappingDomain, code: 0, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         }
     } catch let error as NSError {
@@ -198,7 +198,7 @@ private func mapToJson<T, U: Mapping>(_ json: JSONValue, fromField field: T?, vi
         return json
     }
     
-    json[key] = try CRMapper<U>().mapFromObjectToJSON(field, mapping: mapping)
+    json[key] = try Mapper<U>().mapFromObjectToJSON(field, mapping: mapping)
     return json
 }
 
@@ -210,7 +210,7 @@ private func mapFromJson<T: JSONable>(_ json: JSONValue, toField field: inout T)
         field = fromJson
     } else {
         let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json) to type \(T.self) failed" ]
-        throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+        throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
     }
 }
 
@@ -225,13 +225,13 @@ private func mapFromJson<T: JSONable>(_ json: JSONValue, toField field: inout T?
         field = fromJson
     } else {
         let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json) to type \(T.self) failed" ]
-        throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+        throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
     }
 }
 
 private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout T, mapping: U, context: MappingContext) throws where U.MappedObject == T {
     
-    let mapper = CRMapper<U>()
+    let mapper = Mapper<U>()
     field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
 }
 
@@ -242,7 +242,7 @@ private func mapFromJson<T, U: Mapping>(_ json: JSONValue, toField field: inout 
         return
     }
     
-    let mapper = CRMapper<U>()
+    let mapper = Mapper<U>()
     field = try mapper.mapFromJSONToExistingObject(json, mapping: mapping, parentContext: context)
 }
 
@@ -273,12 +273,24 @@ public func mapCollectionField<T, U: Mapping, V: RangeReplaceableCollection, C: 
             let json = map.context.json
             try map.context.json = mapToJson(json, fromField: field, viaKey: map.key, mapping: mapping)
         case .fromJSON:
-            if let baseJSON = map.context.json[map.key] {
+            
+            let mapper = { (json: JSONValue, field: inout V) in
                 let allowDupes = map.key.options.contains(.AllowDuplicatesInCollection)
-                try mapFromJson(baseJSON, toField: &field, mapping: mapping, context: map.context, allowDuplicates: allowDupes)
-            } else {
+                try mapFromJson(json, toField: &field, mapping: mapping, context: map.context, allowDuplicates: allowDupes)
+            }
+            
+            let json = map.context.json
+            let baseJSON = json[map.key]
+            if case .some(.array(let arr)) = baseJSON, map.key.keyPath == "", arr.count == 0 {
+                print(json)
+                try mapper(json, &field)
+            }
+            else if let baseJSON = baseJSON {
+                try mapper(baseJSON, &field)
+            }
+            else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "JSON at key path \(map.key) does not exist to map from" ]
-                throw NSError(domain: CRMappingDomain, code: 0, userInfo: userInfo)
+                throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         }
     } catch let error as NSError {
@@ -292,7 +304,7 @@ private func mapToJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSO
     var json = json
     
     let results = try field.map {
-        try CRMapper<U>().mapFromObjectToJSON($0, mapping: mapping)
+        try Mapper<U>().mapFromObjectToJSON($0, mapping: mapping)
     }
     json[key] = .array(results)
     
@@ -302,7 +314,7 @@ private func mapToJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSO
 private func mapFromJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: JSONValue, toField field: inout V, mapping: U, context: MappingContext, allowDuplicates: Bool) throws where U.MappedObject == T, V.Iterator.Element == T, T: Equatable {
     
     if case .array(let xs) = json {
-        let mapper = CRMapper<U>()
+        let mapper = Mapper<U>()
         var results = [T]()
         for x in xs {
             if !allowDuplicates {
@@ -319,6 +331,6 @@ private func mapFromJson<T, U: Mapping, V: RangeReplaceableCollection>(_ json: J
         field.append(contentsOf: results)
     } else {
         let userInfo = [ NSLocalizedFailureReasonErrorKey : "Trying to map json of type \(type(of: json)) to \(V.self)<\(T.self)>" ]
-        throw NSError(domain: CRMappingDomain, code: -1, userInfo: userInfo)
+        throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
     }
 }
