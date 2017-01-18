@@ -82,13 +82,15 @@ constexpr int get_current_protocol_version() noexcept
     return 15;
 }
 
-// Reserve 0 for compatibility with std::error_code.
-//
-// ATTENTION: Please remember to update is_session_level_error() and
-// is_connection_level_error() definitions when adding/removing error codes.
+/// \brief Protocol errors discovered by the server, and reported to the client
+/// by way of ERROR messages.
+///
+/// These errors will be reported to the client-side application via the error
+/// handlers of the affected sessions.
+///
+/// ATTENTION: Please remember to update is_session_level_error() when
+/// adding/removing error codes.
 enum class ProtocolError {
-    invalid_error                =  99, // Server sent an invalid error code (ERROR)
-
     // Connection level and protocol errors
     connection_closed            = 100, // Connection closed (no error)
     other_error                  = 101, // Other connection level error
@@ -120,15 +122,12 @@ enum class ProtocolError {
 
 inline constexpr bool is_session_level_error(ProtocolError error)
 {
-    return int(error) >= 200 && int(error) <= 213;
+    return int(error) >= 200 && int(error) <= 299;
 }
 
-inline constexpr bool is_connection_level_error(ProtocolError error)
-{
-    return int(error) >= 100 && int(error) <= 109;
-}
-
-const char* get_error_message(ProtocolError) noexcept;
+/// Returns null if the specified protocol error code is not defined by
+/// ProtocolError.
+const char* get_protocol_error_message(int error_code) noexcept;
 
 const std::error_category& protocol_error_category() noexcept;
 

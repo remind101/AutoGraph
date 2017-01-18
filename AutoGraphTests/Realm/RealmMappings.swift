@@ -4,18 +4,20 @@ import Crust
 import JSONValueRX
 import Realm
 
-public class RealmArrayAdaptor: ArrayAdaptor<RLMObject, RealmAdaptor> {
+/// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdaptor` and map to `RLMObject` using `Crust`.
+
+public class RealmArrayAdaptor<RealmObject: RLMObject>: AbstractArrayAdaptor<RealmObject, RealmAdaptor> {
     public let realm: RLMRealm
     public let realmAdaptor: RealmAdaptor
     
     public init(realm: RLMRealm) {
         self.realm = realm
         self.realmAdaptor = RealmAdaptor(realm: realm)
-        super.init(subAdaptor: RealmAdaptor(realm: realm))
+        super.init(subAdaptor: self.realmAdaptor)
     }
     
-    public convenience init() throws {
-        self.init(realm: RLMRealm())
+    public convenience init() {
+        self.init(realm: RLMRealm.default())
     }
 }
 
@@ -34,7 +36,7 @@ public class RealmAdaptor: Adaptor {
     }
     
     public convenience init() throws {
-        self.init(realm: RLMRealm())
+        self.init(realm: RLMRealm.default())
     }
     
     public func mappingBegins() throws {
@@ -98,10 +100,7 @@ public class RealmAdaptor: Adaptor {
         }
     }
     
-    // TODO: Support composite primary keys. This would require having a new method, one where keyValues
-    // is `[[String : CVarArg]]` that does a series of and/or Predicates and then changing this method to
-    // andPredicate.
-    public func fetchObjects(type: BaseType.Type, keyValues: [String : CVarArg]) -> ResultsType? {
+    public func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
         
         // Really we should be using either a mapping associated with the primary key or the primary key's
         // Type's `fromJson(_:)` method. Unfortunately that method comes from JSONable which you cannot
@@ -117,33 +116,41 @@ public class RealmAdaptor: Adaptor {
             return type.sanitizeValue(value, fromProperty: key, realm: self.realm)
         }
         
-        var predicates = Array<NSPredicate>()
-        for (key, var value) in keyValues {
-            if case let obj as NSObject = value {
-                value = sanitize(key: key, value: obj)
+        var totalPredicate = Array<NSPredicate>()
+        
+        for keyValues in primaryKeyValues {
+            var objectPredicates = Array<NSPredicate>()
+            for (key, var value) in keyValues {
+                if case let obj as NSObject = value {
+                    value = sanitize(key: key, value: obj)
+                }
+                let predicate = NSPredicate(format: "%K == %@", key, value)
+                objectPredicates.append(predicate)
             }
-            let predicate = NSPredicate(format: "%K == %@", key, value)
-            predicates.append(predicate)
+            let objectPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: objectPredicates)
+            totalPredicate.append(objectPredicate)
         }
         
-        let andPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: predicates)
+        let orPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: totalPredicate)
         
-        return fetchObjects(type: type, predicate: andPredicate)
+        return fetchObjects(type: type, predicate: orPredicate, isMapping: isMapping)
     }
     
-    public func fetchObjects(type: BaseType.Type, predicate: NSPredicate) -> ResultsType? {
+    public func fetchObjects(type: BaseType.Type, predicate: NSPredicate, isMapping: Bool) -> ResultsType? {
         
         var objects = self.cache.filter {
             type(of: $0) == type
             }.filter {
                 predicate.evaluate(with: $0)
         }
+        
         if objects.count > 0 {
             return Array(objects)
         }
         
-        if type.primaryKey() != nil {
-            // We're going to build an unstored object and update when saving based on the primary key.
+        // Since we use this function to fetch existing objects to map to, but we can't remap the primary key,
+        // we're going to build an unstored object and update when saving based on the primary key.
+        guard !isMapping || type.primaryKey() == nil else {
             return nil
         }
         
@@ -156,18 +163,7 @@ public class RealmAdaptor: Adaptor {
 }
 
 public protocol RealmMapping: Mapping {
-    associatedtype AdaptorKind = RealmAdaptor
-    init(adaptor: AdaptorKind)
-}
-
-public protocol RealmArrayMapping: Mapping {
-    associatedtype SubType: RLMObject
-    associatedtype AdaptorKind = RealmArrayAdaptor
-    init(adaptor: AdaptorKind)
-}
-
-extension RealmArrayMapping {
-    public var primaryKeys: [String : Keypath]? { return nil }
+    init(adaptor: RealmAdaptor)
 }
 
 extension RLMArray: Appendable {
@@ -180,6 +176,16 @@ extension RLMArray: Appendable {
             self.addObjectNonGeneric(obj)
         }
     }
+}
+
+public protocol RealmArrayMapping: Mapping {
+    associatedtype SubType: RLMObject
+    associatedtype AdaptorKind = RealmArrayAdaptor<SubType>
+    init(adaptor: AdaptorKind)
+}
+
+extension RealmArrayMapping {
+    public var primaryKeys: [String : Keypath]? { return nil }
 }
 
 @discardableResult

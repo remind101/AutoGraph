@@ -36,15 +36,28 @@ namespace sync {
 
 class Client {
 public:
-    enum class Reconnect {
+    enum class Error;
+
+    enum class ReconnectMode {
         /// This is the mode that should always be used in production. In this
         /// mode the client uses a scheme for determining a reconnect delay that
         /// prevents it from creating too many connection requests in a short
-        /// amount of time.
+        /// amount of time (i.e., a server hammering protection mechanism).
         normal,
 
-        /// Never delay reconnect attempts. For testing purposes only.
-        immediately
+        /// Delay reconnect attempts indefinitely. For testing purposes only.
+        ///
+        /// A reconnect attempt can be manually scheduled by calling
+        /// cancel_reconnect_delay(). In particular, when a connection breaks,
+        /// or when an attempt at establishing the connection fails, the error
+        /// handler is called. If one calls cancel_reconnect_delay() from that
+        /// invocation of the error handler, the effect is to allow another
+        /// reconnect attempt to occur.
+        never,
+
+        /// Never delay reconnect attempts. Perform them immediately. For
+        /// testing purposes only.
+        immediate
     };
 
     struct Config {
@@ -92,10 +105,13 @@ public:
         bool enable_default_port_hack = true;
 
         /// For testing purposes only.
-        Reconnect reconnect = Reconnect::normal;
+        ReconnectMode reconnect_mode = ReconnectMode::normal;
 
         /// Create a separate connection for each session. For testing purposes
         /// only.
+        ///
+        // FIXME: This setting is ignored for now, due to limitations in the
+        // load balancer.
         bool one_connection_per_session = false;
 
         /// Do not access the local file system. Sessions will act as if
@@ -113,39 +129,22 @@ public:
     Client(Client&&) noexcept;
     ~Client() noexcept;
 
-    using ErrorHandler = void(int error_code, std::string message);
-
-    /// \brief Set a function to be called when the server reports a
-    /// connection-level error.
-    ///
-    /// Only connection-level errors are reported through this callback. See
-    /// also Session::set_error_handler(). See \ref Error (or `protocol.md`) for
-    /// a list of errors and their categorization.
-    ///
-    /// The callback function will always be called by the thread that executes
-    /// run(). If the callback function throws an exception, that exception will
-    /// "travel" out through run().
-    ///
-    /// Note: Any call to this function must have returned before run() is
-    /// called. If this function is called multiple times, each call overrides
-    /// the previous setting.
-    ///
-    /// Note: This function is **not thread-safe**.
-    void set_error_handler(std::function<ErrorHandler>);
-
     /// Run the internal event-loop of the client. At most one thread may
     /// execute run() at any given time. The call will not return until somebody
     /// calls stop().
     void run();
 
-    // Thread-safe
+    /// See run().
+    ///
+    /// Thread-safe.
     void stop() noexcept;
 
-    /// Technically thread-safe, but the returned value is not accurate until
-    /// after run() has returned.
+    /// \brief Cancel current or next reconnect delay for all servers.
     ///
-    /// For testing purposes.
-    uint_fast64_t errors_seen() const noexcept;
+    /// This corresponds to calling Session::cancel_reconnect_delay() on all
+    /// bound sessions, but will also cancel reconnect delays applying to
+     // servers for which there are currently no bound sessions.
+    void cancel_reconnect_delay();
 
 private:
     class Impl;
@@ -187,7 +186,6 @@ public:
     using port_type = util::network::Endpoint::port_type;
     using version_type = _impl::History::version_type;
     using SyncTransactCallback = void(VersionID old_version, VersionID new_version);
-    using ErrorHandler = Client::ErrorHandler;
     using WaitOperCompletionHandler = std::function<void(std::error_code)>;
 
     /// \brief Start a new session for the specified client-side Realm.
@@ -233,12 +231,37 @@ public:
     /// refers to the associated Client object.
     void set_sync_transact_callback(std::function<SyncTransactCallback>);
 
-    /// \brief Set a function to be called when an error is reported by the
-    /// server to have occurred in this session.
+    /// \brief Signature of an error handler.
     ///
-    /// Only session-level errors are reported through the callback. See also
-    /// Client::set_error_handler(). See \ref Error (or `protocol.md`) for a
-    /// list of errors and their categorization.
+    /// \param ec The error code. For the list of errors reported by the server,
+    /// see \ref ProtocolError (or `protocol.md`). For the list of errors
+    /// corresponding with protocol violation that are detected by the client,
+    /// see Client::Error.
+    ///
+    /// \param is_fatal The error is of a kind that is likely to persist, and
+    /// cause all future reconnect attempts to fail. The client may choose to
+    /// try to reconnect again later, but if so, the waiting period will be
+    /// substantial.
+    ///
+    /// \param detailed_message The message associated with the error. It is
+    /// usually equal to `ec.message()`, but may also be a more specific message
+    /// (one that provides extra context). The purpose of this message is mostly
+    /// to aid debugging. For non-debugging purposes, `ec.message()` should
+    /// generally be considered sufficient.
+    ///
+    /// \sa set_error_handler().
+    using ErrorHandler = void(std::error_code ec, bool is_fatal,
+                              const std::string& detailed_message);
+
+    /// \brief Set the error handler for this session.
+    ///
+    /// Sets a function to be called when an error causes a connection
+    /// initiation attempt to fail, or an established connection to be broken.
+    ///
+    /// When a connection is established on behalf of multiple sessions, a
+    /// connection-level error will be reported to all those sessions. A
+    /// session-level error, on the other hand, will only be reported to the
+    /// affected session.
     ///
     /// The callback function will always be called by the thread that executes
     /// the event loop (Client::run()), but not until bind() is called. If the
@@ -328,10 +351,6 @@ public:
     /// experience. Without refreshing the token, the client will be notified
     /// that the session is terminated due to insufficient privileges and must
     /// reacquire a fresh token, which is a potentially disruptive process.
-    ///
-    /// It is an error if the user token used with this message represents a
-    /// different user identity than a previously used user token. The server
-    /// will detect this scenario and report an error.
     ///
     /// It is an error to call this function before calling `Client::bind()`.
     ///
@@ -443,6 +462,29 @@ public:
     void wait_for_download_complete_or_client_stopped();
     /// @}
 
+    /// \brief Cancel the current or next reconnect delay for the server
+    /// associated with this session.
+    ///
+    /// When the network connection is severed, or an attempt to establish
+    /// connection fails, a certain delay will take effect before the client
+    /// will attempt to reestablish the connection. This delay will generally
+    /// grow with the number of unsuccessful reconnect attempts, and can grow to
+    /// over a minute. In some cases however, the application will know when it
+    /// is a good time to stop waiting and retry immediately. One example is
+    /// when a device has been offline for a while, and the operating system
+    /// then tells the application that network connectivity has been restored.
+    ///
+    /// Clearly, this function should not be called too often and over extended
+    /// periods of time, as that would effectively disable the built-in "server
+    /// hammering" protection.
+    ///
+    /// It is an error to call this function before bind() has been called, and
+    /// has returned.
+    ///
+    /// This function is fully thread-safe. That is, it may be called by any
+    /// thread, and by multiple threads concurrently.
+    void cancel_reconnect_delay();
+
 private:
     class Impl;
     Impl* m_impl;
@@ -451,6 +493,47 @@ private:
                         WaitOperCompletionHandler);
 };
 
+
+/// \brief Protocol errors discovered by the client.
+///
+/// These errors will terminate the network connection (disconnect all sessions
+/// associated with the affected connection), and the error will be reported to
+/// the application via the error handlers of the affected sessions.
+enum class Client::Error {
+    connection_closed           = 100, ///< Connection closed (no error)
+    unknown_message             = 101, ///< Unknown type of input message
+    bad_syntax                  = 102, ///< Bad syntax in input message head
+    limits_exceeded             = 103, ///< Limits exceeded in input message
+    bad_session_ident           = 104, ///< Bad session identifier in input message
+    bad_message_order           = 105, ///< Bad input message order
+    bad_file_ident_pair         = 106, ///< Bad file identifier pair (ALLOC)
+    bad_progress                = 107, ///< Bad progress information (DOWNLOAD)
+    bad_changeset_header_syntax = 108, ///< Bad syntax in changeset header (DOWNLOAD)
+    bad_changeset_size          = 109, ///< Bad changeset size in changeset header (DOWNLOAD)
+    bad_origin_file_ident       = 110, ///< Bad origin file identifier in changeset header (DOWNLOAD)
+    bad_server_version          = 111, ///< Bad server version in changeset header (DOWNLOAD)
+    bad_changeset               = 112, ///< Bad changeset (DOWNLOAD)
+    bad_request_ident           = 113, ///< Bad request identifier (MARK)
+    bad_error_code              = 114, ///< Bad error code (ERROR)
+};
+
+const std::error_category& client_error_category() noexcept;
+
+std::error_code make_error_code(Client::Error) noexcept;
+
+} // namespace sync
+} // namespace realm
+
+namespace std {
+
+template<> struct is_error_code_enum<realm::sync::Client::Error> {
+    static const bool value = true;
+};
+
+} // namespace std
+
+namespace realm {
+namespace sync {
 
 
 
