@@ -42,13 +42,3 @@ extension DataResponse {
         }
     }
 }
-
-//extension Adaptor where BaseType: Sequence {
-//    func fetchObjects(type: BaseType.Iterator.Element.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> [BaseType.Iterator.Element]? {
-//        
-//        guard let result = self.subAdaptor.fetchObjects(type: type, primaryKeyValues: primaryKeyValues, isMapping: isMapping) else {
-//            return nil
-//        }
-//        return result
-//    }
-//}
