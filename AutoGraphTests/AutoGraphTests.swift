@@ -43,11 +43,38 @@ class AutoGraphTests: XCTestCase {
         let stub = AllFilmsStub()
         stub.registerStub()
         
+        var called = false
         self.subject.send(AllFilmsRequest()) { result in
+            called = true
             print(result)
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
         }
         
         waitFor(delay: 1.0)
+        XCTAssertTrue(called)
+    }
+    
+    func testFunctionalSingleFilmRequest() {
+        let stub = FilmStub()
+        stub.registerStub()
+        
+        var called = false
+        self.subject.send(FilmRequest()) { result in
+            called = true
+            print(result)
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: 1.0)
+        XCTAssertTrue(called)
     }
     
     func testCancelAllCancelsDispatcherAndClient() {

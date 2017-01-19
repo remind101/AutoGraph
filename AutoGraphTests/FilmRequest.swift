@@ -3,79 +3,68 @@ import Crust
 import Realm
 @testable import AutoGraph
 
-class AllFilmsRequest: Request {
+class FilmRequest: Request {
     /*
-     "query filmRequest {" +
-        "allFilms {" +
-            "films {" +
-                "title" +
-                "episodeID" +
-                "openingCrawl" +
-                "director" +
-            "}" +
-        "}" +
-     "}"
+     query film {
+        film(id: "ZmlsbXM6MQ==") {
+            title
+            episodeID
+            director
+            openingCrawl
+        }
+     }
      */
     
     let query = Operation(type: .query,
-                          name: "filmRequest",
+                          name: "film",
                           fields: [
-                            Object(name: "allFilms",
+                            Object(name: "film",
                                    alias: nil,
                                    fields: [
-                                    Object(name: "films",
-                                           alias: nil,
-                                           fields: [
-                                            Scalar(name: "title", alias: nil),
-                                            Scalar(name: "episodeID", alias: nil),
-                                            Scalar(name: "openingCrawl", alias: nil),
-                                            Scalar(name: "director", alias: nil)],
-                                           fragments: nil,
-                                           arguments: nil)],
+                                    Scalar(name: "id", alias: nil),
+                                    Scalar(name: "title", alias: nil),
+                                    Scalar(name: "episodeID", alias: nil),
+                                    Scalar(name: "director", alias: nil),
+                                    Scalar(name: "openingCrawl", alias: nil)],
                                    fragments: nil,
-                                   arguments: nil)
+                                   arguments: [(key: "id", value: "ZmlsbXM6MQ==")])
                             ],
                           fragments: nil,
                           arguments: nil)
     
-    var mapping: AllFilmsMapping {
-        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-        return AllFilmsMapping(adaptor: adaptor)
+    var mapping: FilmMapping {
+        return FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default()))
     }
 }
 
 extension Film: ThreadUnsafe { }
 
-class AllFilmsMapping: ArrayMapping<Film, RealmAdaptor, FilmMapping> {
-    open override var keyPath: Keypath {
-        return "data.allFilms.films"
-    }
-}
-
 class FilmMapping: RealmMapping, ArraySubMapping {
     public var adaptor: RealmAdaptor
     
     public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : "id" ]
+        return [ "remoteId" : keyPath + "id" ]
     }
     
     public required init(adaptor: RealmAdaptor) {
         self.adaptor = adaptor
     }
     
+    open var keyPath: String { return "data.film." }
+    
     public func mapping(tomap: inout Film, context: MappingContext) {
-        
-        tomap.remoteId      <- ("id", context)
-        tomap.title         <- ("title", context)
-        tomap.episode       <- ("episodeID", context)
-        tomap.openingCrawl  <- ("openingCrawl", context)
-        tomap.director      <- ("director", context)
+        // TODO: Need to add key path at a global scope...
+        tomap.remoteId      <- (keyPath + "id", context)
+        tomap.title         <- (keyPath + "title", context)
+        tomap.episode       <- (keyPath + "episodeID", context)
+        tomap.openingCrawl  <- (keyPath + "openingCrawl", context)
+        tomap.director      <- (keyPath + "director", context)
     }
 }
 
-class AllFilmsStub: Stub {
+class FilmStub: Stub {
     override var jsonFixtureFile: String? {
-        get { return "AllFilms" }
+        get { return "Film" }
         set { }
     }
     
@@ -86,16 +75,15 @@ class AllFilmsStub: Stub {
     
     override var graphQLQuery: String {
         get {
-            return "query filmRequest {\n" +
-                "allFilms {\n" +
-                    "films {\n" +
-                        "title\n" +
-                        "episodeID\n" +
-                        "openingCrawl\n" +
-                        "director\n" +
-                    "}\n" +
-                "}\n" +
-            "}\n"
+            return "query film {\n" +
+                        "film(id: \"ZmlsbXM6MQ==\") {\n" +
+                            "id\n" +
+                            "title\n" +
+                            "episodeID\n" +
+                            "director\n" +
+                            "openingCrawl\n" +
+                        "}\n" +
+                    "}\n"
         }
         set { }
     }
