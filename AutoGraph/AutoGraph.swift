@@ -87,6 +87,10 @@ public class AutoGraph {
             self.dispatcher.send(request: request, completion: completion)
     }
     
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) where T.Mapping.MappedObject: ThreadUnsafe {
+        self.dispatcher.send(request: request, completion: completion)
+    }
+    
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {
         self.dispatcher.send(request: request, completion: completion)
     }

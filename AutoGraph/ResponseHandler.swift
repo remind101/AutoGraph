@@ -38,6 +38,25 @@ class ResponseHandler {
         }
     }
     
+    func handle<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe>(response: DataResponse<Any>, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) where Mapping.MappedObject == MappedObject {
+        
+        do {
+            let value = try response.extractValue()
+            let json = try JSONValue(object: value)
+            
+            if let queryError = AutoGraphError(graphQLResponseJSON: json) {
+                throw queryError
+            }
+            
+            self.queue.addOperation { [weak self] in
+                self?.map(json: json, mapping: mapping, completion: completion)
+            }
+        }
+        catch let e {
+            self.fail(error: e, mapping: mapping, completion: completion)
+        }
+    }
+    
     func handle<Mapping: Crust.Mapping>(response: DataResponse<Any>, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {
         
         do {
@@ -61,7 +80,7 @@ class ResponseHandler {
         (json: JSONValue,
          mapping: @escaping () -> M,
          completion: @escaping RequestCompletion<M>)
-    where M: ArrayMapping<SubType, SubAdaptor, SubMapping>, SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
+        where M: ArrayMapping<SubType, SubAdaptor, SubMapping>, SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
             
             do {
                 let map = mapping()
@@ -72,6 +91,20 @@ class ResponseHandler {
             catch let e {
                 self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
             }
+    }
+    
+    private func map<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe>(json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) where Mapping.MappedObject == MappedObject {
+        do {
+            let map = mapping()
+            let mapper = Mapper<Mapping>()
+            let result = try mapper.map(from: json, using: map)
+            print(result)
+            
+            self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
+        }
+        catch let e {
+            self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+        }
     }
     
     private func map<Mapping: Crust.Mapping>(json: JSONValue, mapping: @escaping () -> Mapping, completion: @escaping RequestCompletion<Mapping>) {

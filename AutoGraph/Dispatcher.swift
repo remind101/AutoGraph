@@ -49,6 +49,20 @@ class Dispatcher {
         self.send(sendable: sendable)
     }
     
+    public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping>) where T.Mapping.MappedObject: ThreadUnsafe {
+        
+        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
+            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
+        })
+        
+        guard !self.paused else {
+            self.pendingRequests.append(sendable)
+            return
+        }
+        
+        self.send(sendable: sendable)
+    }
+    
     public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping>) {
         
         let sendable: Sendable = (query: request.query, completion: { [weak self] response in
