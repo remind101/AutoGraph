@@ -98,7 +98,6 @@ class ResponseHandler {
             let map = mapping()
             let mapper = Mapper<Mapping>()
             let result = try mapper.map(from: json, using: map)
-            print(result)
             
             self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
         }
@@ -112,7 +111,6 @@ class ResponseHandler {
             let map = mapping()
             let mapper = Mapper<Mapping>()
             let result = try mapper.map(from: json, using: map)
-            print(result)
             
             self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
         }
