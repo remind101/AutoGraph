@@ -39,11 +39,11 @@ class AutoGraphTests: XCTestCase {
         super.tearDown()
     }
     
-    func testFunctionalFileMapping() {
+    func testFunctionalAllFilmsRequest() {
         let stub = AllFilmsStub()
         stub.registerStub()
         
-        self.subject.send(FilmRequest()) { result in
+        self.subject.send(AllFilmsRequest()) { result in
             print(result)
         }
         

@@ -10,8 +10,7 @@ public protocol ArraySubMapping: Mapping {
 
 open class ArrayMapping<SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>: Mapping
     where SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType {
-
-    public typealias MappedObject = [SubType]
+    
     public typealias AdaptorKind = AbstractArrayAdaptor<SubType, SubAdaptor>
     
     public let adaptor: AbstractArrayAdaptor<SubType, SubAdaptor>
@@ -24,7 +23,7 @@ open class ArrayMapping<SubType: Equatable, SubAdaptor: Adaptor, SubMapping: Arr
     open var keyPath: Keypath { return "" }
     open var options: MappingOptions { return MappingOptions.None }
     
-    public func mapping(tomap: inout [SubType], context: MappingContext) {
+    open func mapping(tomap: inout [SubType], context: MappingContext) {
         let mapping = SubMapping(adaptor: self.adaptor.subAdaptor)
         _ = tomap <- (.mappingOptions(.mapping(self.keyPath, mapping), self.options), context)
     }

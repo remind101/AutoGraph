@@ -178,16 +178,6 @@ extension RLMArray: Appendable {
     }
 }
 
-public protocol RealmArrayMapping: Mapping {
-    associatedtype SubType: RLMObject
-    associatedtype AdaptorKind = RealmArrayAdaptor<SubType>
-    init(adaptor: AdaptorKind)
-}
-
-extension RealmArrayMapping {
-    public var primaryKeys: [String : Keypath]? { return nil }
-}
-
 @discardableResult
 public func <- <T, U: Mapping, C: MappingContext>(field: inout RLMArray<T>, map:(key: Spec<U>, context: C)) -> C
     where U.MappedObject == T {

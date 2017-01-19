@@ -32,10 +32,36 @@ class Dispatcher {
         self.responseHandler = responseHandler
     }
     
+    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
+        (request: T, completion: @escaping RequestCompletion<T.Mapping>)
+        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
+        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
+    
+        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
+//            guard let strongSelf = self else {
+//                return
+//            }
+            
+//            T.Mapping.handle(handler: strongSelf.responseHandler, response: response, mapping: { request.mapping }, completion: completion)
+            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
+        })
+        
+        guard !self.paused else {
+            self.pendingRequests.append(sendable)
+            return
+        }
+        
+        self.send(sendable: sendable)
+    }
+    
     public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping>) {
         
         let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            
+//            guard let strongSelf = self else {
+//                return
+//            }
+//            
+//            T.Mapping.handle(handler: strongSelf.responseHandler, response: response, mapping: { request.mapping }, completion: completion)
             self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
         })
         

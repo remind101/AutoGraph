@@ -18,7 +18,7 @@ public protocol Client: RequestSender, Cancellable {
 /// Before returning `Result` to the caller, a `ThreadUnsafe` object will be refetched
 /// on the main thread using `primaryKey`.
 public protocol ThreadUnsafe: class {
-    static var primaryKey: String { get }
+    static func primaryKey() -> String?
     func value(forKeyPath keyPath: String) -> Any?
 }
 
@@ -77,6 +77,14 @@ public class AutoGraph {
         self.client = client
         self.dispatcher = dispatcher
         self.client.authHandler?.delegate = self
+    }
+    
+    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
+        (_ request: T, completion: @escaping RequestCompletion<T.Mapping>)
+        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
+        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
+    
+            self.dispatcher.send(request: request, completion: completion)
     }
     
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {

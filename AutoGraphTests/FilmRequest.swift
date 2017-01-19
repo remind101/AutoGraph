@@ -3,7 +3,7 @@ import Crust
 import Realm
 @testable import AutoGraph
 
-class FilmRequest: Request {
+class AllFilmsRequest: Request {
     /*
      "query filmRequest {" +
         "allFilms {" +
@@ -39,27 +39,20 @@ class FilmRequest: Request {
                           arguments: nil)
     
     var mapping: AllFilmsMapping {
-        let adaptor = RealmArrayAdaptor(realm: RLMRealm.default())
+        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
         return AllFilmsMapping(adaptor: adaptor)
     }
 }
 
-class AllFilmsMapping: RealmArrayMapping {
-    typealias SubType = Film
-    
-    public var adaptor: RealmArrayAdaptor
-    
-    public required init(adaptor: RealmArrayAdaptor) {
-        self.adaptor = adaptor
-    }
-    
-    public func mapping(tomap: inout [Film], context: MappingContext) {
-        let mapping = FilmMapping(adaptor: self.adaptor.realmAdaptor)
-        _ = tomap <- (.mapping("data.allFilms.films", mapping), context)
+extension Film: ThreadUnsafe { }
+
+class AllFilmsMapping: ArrayMapping<Film, RealmAdaptor, FilmMapping> {
+    open override var keyPath: Keypath {
+        return "data.allFilms.films"
     }
 }
 
-class FilmMapping: RealmMapping {
+class FilmMapping: RealmMapping, ArraySubMapping {
     public var adaptor: RealmAdaptor
     
     public var primaryKeys: [String : Keypath]? {
