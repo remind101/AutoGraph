@@ -6,7 +6,7 @@ class Stub {
         if let jsonFixtureFile = self.jsonFixtureFile {
             let path = Bundle(for: type(of: self)).path(forResource: jsonFixtureFile, ofType: "json")!
             if let jsonData = NSData(contentsOfFile: path) {
-                if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions.mutableContainers) {
+                if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions(rawValue: UInt(0))) {
                     return jsonResult
                 }
             }

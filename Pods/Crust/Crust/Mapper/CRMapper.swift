@@ -32,12 +32,12 @@ public struct Mapper<T: Mapping> {
     
     public init() { }
     
-    public func map<Element, Collection: RangeReplaceableCollection, M: Mapping>(
+    public func map<Collection: RangeReplaceableCollection, M: Mapping>(
         from json: JSONValue,
         using mapping: M,
         into collection: inout Collection)
         throws -> Collection
-    where M.MappedObject == Collection.Iterator.Element, Collection.Iterator.Element == Element, Element: Equatable, M.MappedObject: Equatable {
+    where M.MappedObject == Collection.Iterator.Element, M.MappedObject: Equatable {
         
         // TODO: This was added for expediancy. Refactor by moving out `perform` calls where spec has control and adding an array spec.
         // And maybe even allow passing in a spec vs a mapping.

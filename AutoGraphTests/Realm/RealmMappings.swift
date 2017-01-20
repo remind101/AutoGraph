@@ -1,14 +1,10 @@
+import AutoGraph
 import Foundation
 import Crust
 import JSONValueRX
 import Realm
 
 /// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdaptor` and map to `RLMObject` using `Crust`.
-
-import Foundation
-import Crust
-import JSONValueRX
-import Realm
 
 public class RealmArrayAdaptor<RealmObject: RLMObject>: AbstractArrayAdaptor<RealmObject, RealmAdaptor> {
     public let realm: RLMRealm
@@ -180,16 +176,6 @@ extension RLMArray: Appendable {
             self.addObjectNonGeneric(obj)
         }
     }
-}
-
-public protocol RealmArrayMapping: Mapping {
-    associatedtype SubType: RLMObject
-    associatedtype AdaptorKind = RealmArrayAdaptor<SubType>
-    init(adaptor: AdaptorKind)
-}
-
-extension RealmArrayMapping {
-    public var primaryKeys: [String : Keypath]? { return nil }
 }
 
 @discardableResult

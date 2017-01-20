@@ -1,4 +1,7 @@
+import Alamofire
+import Crust
 import Foundation
+import JSONValueRX
 
 public enum Result<Value> {
     case success(Value)
@@ -10,6 +13,32 @@ public enum Result<Value> {
             return transform(val)
         case .failure(let e):
             return .failure(e)
+        }
+    }
+}
+
+extension DataResponse {
+    func extractValue() throws -> Any {
+        switch self.result {
+        case .success(let value):
+            return value
+            
+        case .failure(let e):
+            
+            let gqlError: AutoGraphError? = {
+                guard let value = Alamofire.Request.serializeResponseJSON(
+                    options: .allowFragments,
+                    response: self.response,
+                    data: self.data, error: nil).value,
+                let json = try? JSONValue(object: value) else {
+                        
+                        return nil
+                }
+                
+                return AutoGraphError(graphQLResponseJSON: json)
+            }()
+            
+            throw AutoGraphError.network(error: e, underlying: gqlError)
         }
     }
 }

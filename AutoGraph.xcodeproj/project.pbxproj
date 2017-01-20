@@ -11,6 +11,8 @@
 		631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */; };
 		86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
+		CD2014221E30831C00D16F14 /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD2014211E30831C00D16F14 /* FilmRequest.swift */; };
+		CD2014261E308CB600D16F14 /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CD2014251E308CB600D16F14 /* Film.json */; };
 		CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
 		CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */; };
@@ -33,7 +35,7 @@
 		CDA62C391DB6A586004BA66D /* FoundationExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */; };
 		CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEA91E1CB1400029909A /* Errors.swift */; };
 		CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAB1E1CB5E80029909A /* Utilities.swift */; };
-		CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */; };
+		CDBEBEAE1E1D97E60029909A /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAD1E1D97E60029909A /* AllFilmsRequest.swift */; };
 		CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */; };
 		CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */; };
 		CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */; };
@@ -71,6 +73,8 @@
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.release.xcconfig"; sourceTree = "<group>"; };
 		C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CD2014211E30831C00D16F14 /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
+		CD2014251E308CB600D16F14 /* Film.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film.json; sourceTree = "<group>"; };
 		CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dispatcher.swift; sourceTree = "<group>"; };
 		CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandler.swift; sourceTree = "<group>"; };
 		CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseHandler.swift; sourceTree = "<group>"; };
@@ -106,7 +110,7 @@
 		CDBEBEA71E01E92A0029909A /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OHHTTPStubs.framework; path = "Pods/../build/Debug-iphoneos/OHHTTPStubs/OHHTTPStubs.framework"; sourceTree = "<group>"; };
 		CDBEBEA91E1CB1400029909A /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		CDBEBEAB1E1CB5E80029909A /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
-		CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
+		CDBEBEAD1E1D97E60029909A /* AllFilmsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
 		CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClientTests.swift; sourceTree = "<group>"; };
 		CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandlerTests.swift; sourceTree = "<group>"; };
 		CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatcherTests.swift; sourceTree = "<group>"; };
@@ -231,13 +235,15 @@
 			children = (
 				CD3BFF331E22D270008CE41A /* Realm */,
 				CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */,
+				CDBEBEAD1E1D97E60029909A /* AllFilmsRequest.swift */,
 				CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */,
 				CDA62C071DB16999004BA66D /* AutoGraphTests.swift */,
 				CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */,
-				CDBEBEAD1E1D97E60029909A /* FilmRequest.swift */,
+				CD2014211E30831C00D16F14 /* FilmRequest.swift */,
 				CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */,
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
 				CDE3C7241E00D23400AB4EB1 /* AllFilms.json */,
+				CD2014251E308CB600D16F14 /* Film.json */,
 				CDA62C091DB16999004BA66D /* Info.plist */,
 				CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */,
 			);
@@ -449,6 +455,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */,
+				CD2014261E308CB600D16F14 /* Film.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -651,7 +658,8 @@
 				CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */,
 				CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */,
 				CD3BFF321E22D1EC008CE41A /* ResponseHandlerTests.swift in Sources */,
-				CDBEBEAE1E1D97E60029909A /* FilmRequest.swift in Sources */,
+				CD2014221E30831C00D16F14 /* FilmRequest.swift in Sources */,
+				CDBEBEAE1E1D97E60029909A /* AllFilmsRequest.swift in Sources */,
 				CD3BFF3A1E22D270008CE41A /* Models.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

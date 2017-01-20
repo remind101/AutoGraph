@@ -33,7 +33,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testForwardsRequestToSender() {
-        let request = FilmRequest()
+        let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
             return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
@@ -45,7 +45,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testHoldsRequestsWhenPaused() {
-        let request = FilmRequest()
+        let request = AllFilmsRequest()
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         self.subject.paused = true
@@ -54,7 +54,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testClearsRequestsOnCancel() {
-        let request = FilmRequest()
+        let request = AllFilmsRequest()
         
         self.subject.paused = true
         self.subject.send(request: request, completion: { _ in })
@@ -64,7 +64,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testForwardsAndClearsPendingRequestsOnUnpause() {
-        let request = FilmRequest()
+        let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
             return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])

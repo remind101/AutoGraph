@@ -33,6 +33,7 @@ indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError])
     case network(error: Error, underlying: AutoGraphError?)
     case mapping(error: Error)
+    case refetching
     case invalidResponse
     
     init?(graphQLResponseJSON: JSONValue) {
@@ -59,6 +60,9 @@ indirect enum AutoGraphError: LocalizedError {
             
         case .mapping(let error):
             return "Mapping Failure: " + error.localizedDescription
+        
+        case .refetching:
+            return "Failed to refetch data on main thread"
         
         case .invalidResponse:
             return self.localizedDescription
