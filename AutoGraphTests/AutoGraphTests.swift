@@ -38,7 +38,7 @@ class AutoGraphTests: XCTestCase {
         
         super.tearDown()
     }
-    
+    /*
     func testFunctionalAllFilmsRequest() {
         let stub = AllFilmsStub()
         stub.registerStub()
@@ -57,7 +57,7 @@ class AutoGraphTests: XCTestCase {
         waitFor(delay: 1.0)
         XCTAssertTrue(called)
     }
-    
+    */
     func testFunctionalSingleFilmRequest() {
         let stub = FilmStub()
         stub.registerStub()
