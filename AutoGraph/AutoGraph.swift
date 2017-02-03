@@ -131,16 +131,6 @@ public class AutoGraph {
         self.client.authHandler?.delegate = self
     }
     
-    /*
-    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
-        (_ request: T, completion: @escaping RequestCompletion<T.Mapping>)
-        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
-        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
-    
-            self.dispatcher.send(request: request, completion: completion)
-    }
-    */
-    
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
     where
     T.Result: RangeReplaceableCollection,
@@ -156,16 +146,6 @@ public class AutoGraph {
         self.dispatcher.send(request: request, resultSpec: request.generateSpec(completion: completion))
     }
     
-    /*
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>)
-    where T.Mapping.MappedObject: ThreadUnsafe {
-        self.dispatcher.send(request: request, completion: completion)
-    }
- 
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>) {
-        self.dispatcher.send(request: request, completion: completion)
-    }
-    */
     public func cancelAll() {
         self.dispatcher.cancelAll()
         self.client.cancelAll()

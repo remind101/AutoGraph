@@ -39,26 +39,23 @@ class FilmRequest: Request {
 
 extension Film: ThreadUnsafe { }
 
-class FilmMapping: RealmMapping, ArraySubMapping {
+class FilmMapping: RealmMapping {
     public var adaptor: RealmAdaptor
     
     public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : keyPath + "id" ]
+        return [ "remoteId" : "id" ]
     }
     
     public required init(adaptor: RealmAdaptor) {
         self.adaptor = adaptor
     }
     
-    open var keyPath: String { return "" }
-    
     public func mapping(tomap: inout Film, context: MappingContext) {
-        // TODO: Need to add key path at a global scope...
-        tomap.remoteId      <- (keyPath + "id", context)
-        tomap.title         <- (keyPath + "title", context)
-        tomap.episode       <- (keyPath + "episodeID", context)
-        tomap.openingCrawl  <- (keyPath + "openingCrawl", context)
-        tomap.director      <- (keyPath + "director", context)
+        tomap.remoteId      <- ("id", context)
+        tomap.title         <- ("title", context)
+        tomap.episode       <- ("episodeID", context)
+        tomap.openingCrawl  <- ("openingCrawl", context)
+        tomap.director      <- ("director", context)
     }
 }
 

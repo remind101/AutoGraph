@@ -31,24 +31,6 @@ class Dispatcher {
         self.requestSender = requestSender
         self.responseHandler = responseHandler
     }
-    /*
-    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
-        (request: T, completion: @escaping RequestCompletion<T.Mapping>)
-        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
-        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
-    
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
-        
-        guard !self.paused else {
-            self.pendingRequests.append(sendable)
-            return
-        }
-        
-        self.send(sendable: sendable)
-    }
-    */
     
     public func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
     (request: T, resultSpec: ResultSpec<M, CM, C>) {
@@ -64,35 +46,7 @@ class Dispatcher {
         
         self.send(sendable: sendable)
     }
-    /*
-    public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>) {
-        
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
-        
-        guard !self.paused else {
-            self.pendingRequests.append(sendable)
-            return
-        }
-        
-        self.send(sendable: sendable)
-    }
     
-    public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>) where T.Mapping.MappedObject: ThreadUnsafe {
-        
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
-        
-        guard !self.paused else {
-            self.pendingRequests.append(sendable)
-            return
-        }
-        
-        self.send(sendable: sendable)
-    }
-    */
     func send(sendable: Sendable) {
         self.requestSender.sendRequest(url: self.url, parameters: ["query" : sendable.query.graphQLString], completion: sendable.completion)
     }

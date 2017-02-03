@@ -128,21 +128,7 @@ class ResponseHandlerTests: XCTestCase {
                 return
             }
         })
-        /*
-        self.subject.handle(response: response, mapping: { AllFilmsBadRequest().mapping }) { result in
-            called = true
-            
-            guard case .failure(let error as AutoGraphError) = result else {
-                XCTFail("`result` should be an `AutoGraphError`")
-                return
-            }
-            
-            guard case .mapping(error: _) = error else {
-                XCTFail("`error` should be an `.mapping` error")
-                return
-            }
-        }
-        */
+        
         XCTAssertTrue(called)
     }
 }
