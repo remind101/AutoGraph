@@ -49,7 +49,9 @@ public struct Mapper<T: Mapping> {
         
         var object = try { () -> T.MappedObject in
             let mapping = spec.mapping
-            guard let object = try mapping.getExistingInstance(json: json) else {
+            // TODO: Figure out better ways to represent `nil` keyPaths than `""`.
+            let baseJson = json[spec.keyPath] ?? json
+            guard let object = try mapping.getExistingInstance(json: baseJson) else {
                 return try mapping.getNewInstance()
             }
             return object

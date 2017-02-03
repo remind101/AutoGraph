@@ -35,7 +35,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   Crust:
-    :commit: d79a746adf8b23f465163c1d75f89314ae2d4964
+    :commit: 6ade9aba3130018c8f8a53b22811bf49f7b6a807
     :git: https://github.com/rexmas/Crust.git
   OHHTTPStubs:
     :commit: 6ae4411746be02b1007addee45ce575bdb053885
