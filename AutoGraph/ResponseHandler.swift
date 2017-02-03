@@ -231,9 +231,9 @@ class ResponseHandler {
     private func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultSpec: ResultSpec<M, CM, C>) {
         switch resultSpec {
         case .object(mappingSpec: _, completion: let completion):
-            self.fail(error: AutoGraphError.mapping(error: error), completion: completion)
+            self.fail(error: error, completion: completion)
         case .collection(mappingSpec: _, completion: let completion):
-            self.fail(error: AutoGraphError.mapping(error: error), completion: completion)
+            self.fail(error: error, completion: completion)
         }
     }
 

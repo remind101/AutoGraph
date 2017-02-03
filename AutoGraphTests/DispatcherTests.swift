@@ -31,7 +31,7 @@ class DispatcherTests: XCTestCase {
         self.mockRequestSender = nil
         super.tearDown()
     }
-    /*
+    
     func testForwardsRequestToSender() {
         let request = AllFilmsRequest()
         
@@ -40,7 +40,7 @@ class DispatcherTests: XCTestCase {
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultSpec: request.generateSpec(completion: { _ in }))
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
@@ -49,7 +49,7 @@ class DispatcherTests: XCTestCase {
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultSpec: request.generateSpec(completion: { _ in }))
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
     }
     
@@ -57,7 +57,7 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultSpec: request.generateSpec(completion: { _ in }))
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         self.subject.cancelAll()
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
@@ -71,7 +71,7 @@ class DispatcherTests: XCTestCase {
         }
         
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultSpec: request.generateSpec(completion: { _ in }))
         
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -81,5 +81,4 @@ class DispatcherTests: XCTestCase {
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
- */
 }

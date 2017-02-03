@@ -26,7 +26,7 @@ class ResponseHandlerTests: XCTestCase {
         
         super.tearDown()
     }
-    /*
+    
     func testErrorsJsonReturnsGraphQLError() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18
@@ -51,7 +51,8 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        //self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -60,7 +61,7 @@ class ResponseHandlerTests: XCTestCase {
             }
             
             guard case .graphQL(errors: let errors) = error else {
-                XCTFail("`error` should be an `.mapping` error")
+                XCTFail("`error` should be an `.graphQL` error")
                 return
             }
             
@@ -73,7 +74,7 @@ class ResponseHandlerTests: XCTestCase {
             let location = gqlError.locations[0]
             XCTAssertEqual(location.line, line)
             XCTAssertEqual(location.column, column)
-        }
+        })
         
         XCTAssertTrue(called)
     }
@@ -84,7 +85,8 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        //self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -96,22 +98,15 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.network` error")
                 return
             }
-        }
+        })
         
         XCTAssertTrue(called)
     }
     
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
-            /*override var mapping: AllFilmsMapping {
-                let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-                return AllFilmsBadMapping(adaptor: adaptor)
-            }*/
-        }
-        
-        class AllFilmsBadMapping: AllFilmsMapping {
-            open override var keyPath: Keypath {
-                return "bad_path"
+            override var mapping: Spec<FilmMapping> {
+                return Spec.mapping("bad_path", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
             }
         }
         
@@ -120,6 +115,20 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
+        self.subject.handle(response: response, resultSpec: AllFilmsBadRequest().generateSpec { result in
+            called = true
+            
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .mapping(error: _) = error else {
+                XCTFail("`error` should be an `.mapping` error")
+                return
+            }
+        })
+        /*
         self.subject.handle(response: response, mapping: { AllFilmsBadRequest().mapping }) { result in
             called = true
             
@@ -133,8 +142,7 @@ class ResponseHandlerTests: XCTestCase {
                 return
             }
         }
-        
+        */
         XCTAssertTrue(called)
     }
- */
 }
