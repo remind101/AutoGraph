@@ -32,22 +32,34 @@ public struct Mapper<T: Mapping> {
     
     public init() { }
     
-    public func map<Collection: RangeReplaceableCollection, M: Mapping>(
-        from json: JSONValue,
-        using mapping: M,
-        into collection: inout Collection)
-        throws -> Collection
-    where M.MappedObject == Collection.Iterator.Element, M.MappedObject: Equatable {
+    public func map<M: Mapping, C: RangeReplaceableCollection>(from json: JSONValue, using spec: Spec<M>) throws -> C
+    where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, M.SequenceKind == C {
         
-        // TODO: This was added for expediancy. Refactor by moving out `perform` calls where spec has control and adding an array spec.
-        // And maybe even allow passing in a spec vs a mapping.
+        var collection = C()
         let context = MappingContext(withObject: collection, json: json, direction: MappingDirection.fromJSON)
         
-        try mapping.startMapping(context: context)
-        collection <- (Spec.mapping("", mapping), context)
-        try mapping.completeMapping(collection: collection, context: context)
+        try spec.mapping.start(context: context)
+        collection <- (spec, context)
+        try spec.mapping.completeMapping(collection: collection, context: context)
         
         return collection
+    }
+    
+    public func map(from json: JSONValue, using spec: Spec<T>, parentContext: MappingContext? = nil) throws -> T.MappedObject {
+        
+        var object = try { () -> T.MappedObject in
+            let mapping = spec.mapping
+            guard let object = try mapping.getExistingInstance(json: json) else {
+                return try mapping.getNewInstance()
+            }
+            return object
+        }()
+        
+        let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
+        context.parent = parentContext
+        try self.perform(spec, on: &object, with: context)
+        
+        return object
     }
     
     public func map(from json: JSONValue, using mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
@@ -57,22 +69,35 @@ public struct Mapper<T: Mapping> {
             }
             return object
         }()
-        return try mapFromJSON(json, toObject: object, mapping: mapping, parentContext: parentContext)
+        return try map(from: json, to: object, using: mapping, parentContext: parentContext)
     }
     
-    public func mapFromJSON(_ json: JSONValue, toObject object: T.MappedObject, mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
+    public func map(from json: JSONValue, to object: T.MappedObject, using mapping: T, parentContext: MappingContext? = nil) throws -> T.MappedObject {
         var object = object
         let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
         context.parent = parentContext
-        try mapping.performMappingWithObject(&object, context: context)
+        try self.perform(mapping, on: &object, with: context)
         return object
     }
     
     public func mapFromObjectToJSON(_ object: T.MappedObject, mapping: T) throws -> JSONValue {
         var object = object
         let context = MappingContext(withObject: object, json: JSONValue.object([:]), direction: MappingDirection.toJSON)
-        try mapping.performMappingWithObject(&object, context: context)
+        try self.perform(mapping, on: &object, with: context)
         return context.json
+    }
+    
+    internal func perform(_ mapping: T, on object: inout T.MappedObject, with context: MappingContext) throws {
+        try mapping.start(context: context)
+        mapping.execute(object: &object, context: context)
+        try mapping.complete(object: &object, context: context)
+    }
+    
+    internal func perform(_ spec: Spec<T>, on object: inout T.MappedObject, with context: MappingContext) throws {
+        let mapping = spec.mapping
+        try mapping.start(context: context)
+        object <- (spec, context)
+        try mapping.complete(object: &object, context: context)
     }
 }
 
@@ -107,6 +132,12 @@ public extension Mapping {
         return try self.adaptor.createObject(type: MappedObject.self as! AdaptorKind.BaseType.Type) as! MappedObject
     }
     
+    func delete(obj: MappedObject) throws {
+        try self.checkForAdaptorBaseTypeConformance()
+        
+        try self.adaptor.deleteObject(obj as! AdaptorKind.BaseType)
+    }
+    
     internal func checkForAdaptorBaseTypeConformance() throws {
         // NOTE: This sux but `MappedObject: AdaptorKind.BaseType` as a type constraint throws a compiler error as of 7.1 Xcode
         // and `MappedObject == AdaptorKind.BaseType` doesn't work with sub-types (i.e. expects MappedObject to be that exact type)
@@ -117,7 +148,7 @@ public extension Mapping {
         }
     }
     
-    internal func startMapping(context: MappingContext) throws {
+    internal func start(context: MappingContext) throws {
         if context.parent == nil {
             var underlyingError: NSError?
             do {
@@ -149,30 +180,21 @@ public extension Mapping {
         }
     }
     
-    public func executeMapping(object: inout MappedObject, context: MappingContext) {
+    public func execute(object: inout MappedObject, context: MappingContext) {
         self.mapping(tomap: &object, context: context)
     }
     
-    internal func performMappingWithObject(_ object: inout MappedObject, context: MappingContext) throws {
-        
-        try self.startMapping(context: context)
-        
-        self.executeMapping(object: &object, context: context)
-        
-        try self.completeMapping(object: &object, context: context)
-    }
-    
-    internal func completeMapping(object: inout MappedObject, context: MappingContext) throws {
+    internal func complete(object: inout MappedObject, context: MappingContext) throws {
         try self.completeMapping(objects: [object], context: context)
         context.object = object
     }
     
-    internal func completeMapping<C: RangeReplaceableCollection>(collection: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
+    internal func completeMapping<C: Sequence>(collection: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
         try self.completeMapping(objects: collection, context: context)
         context.object = collection
     }
     
-    private func completeMapping<C: RangeReplaceableCollection>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
+    private func completeMapping<C: Sequence>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
         if context.error == nil {
             do {
                 try self.checkForAdaptorBaseTypeConformance()
@@ -191,6 +213,5 @@ public extension Mapping {
         }
         
         try self.endMapping(context: context)
-        
     }
 }

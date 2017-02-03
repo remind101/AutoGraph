@@ -1,8 +1,8 @@
 PODS:
   - Alamofire (4.3.0)
-  - Crust (0.1.5):
+  - Crust (0.1.6):
     - JSONValueRX
-  - JSONValueRX (1.3)
+  - JSONValueRX (1.4)
   - OHHTTPStubs (5.2.3):
     - OHHTTPStubs/Default (= 5.2.3)
   - OHHTTPStubs/Core (5.2.3)
@@ -16,32 +16,38 @@ PODS:
   - OHHTTPStubs/NSURLSession (5.2.3):
     - OHHTTPStubs/Core
   - OHHTTPStubs/OHPathHelpers (5.2.3)
-  - Realm (2.2.0):
-    - Realm/Headers (= 2.2.0)
-  - Realm/Headers (2.2.0)
+  - Realm (2.4.2):
+    - Realm/Headers (= 2.4.2)
+  - Realm/Headers (2.4.2)
 
 DEPENDENCIES:
   - Alamofire (~> 4)
-  - Crust
+  - Crust (from `https://github.com/rexmas/Crust.git`, branch `array-insertions`)
   - OHHTTPStubs (from `https://github.com/AliSoftware/OHHTTPStubs.git`)
   - Realm
 
 EXTERNAL SOURCES:
+  Crust:
+    :branch: array-insertions
+    :git: https://github.com/rexmas/Crust.git
   OHHTTPStubs:
     :git: https://github.com/AliSoftware/OHHTTPStubs.git
 
 CHECKOUT OPTIONS:
+  Crust:
+    :commit: d79a746adf8b23f465163c1d75f89314ae2d4964
+    :git: https://github.com/rexmas/Crust.git
   OHHTTPStubs:
     :commit: 6ae4411746be02b1007addee45ce575bdb053885
     :git: https://github.com/AliSoftware/OHHTTPStubs.git
 
 SPEC CHECKSUMS:
   Alamofire: 856a113053a7bc9cbe5d6367a555d773fc5cfef7
-  Crust: e6d394ee72cd50676d86f49212bcc7fc05d604b8
-  JSONValueRX: 5f890e9bfb5b4a24af75b408796fb520560c208a
+  Crust: faf822319f4c31deda8721af4caf76cc6075fced
+  JSONValueRX: 5d6b5805a704a43b7b3ca481e8d0ce71d3823f18
   OHHTTPStubs: ab1dbe01565b50926b639f423bb0ce7ca11f9f00
-  Realm: d95b8fb34c83f1e764b66d319277a62c2b6e4bf5
+  Realm: d27b758e12d62a3371879a065d4c40aa212c5a54
 
-PODFILE CHECKSUM: '09646e6aad9d8cb5d06a7aa282dab695154d6abc'
+PODFILE CHECKSUM: 9b374c2291649d941453c5c964d4d0db69ec175b
 
 COCOAPODS: 1.1.1

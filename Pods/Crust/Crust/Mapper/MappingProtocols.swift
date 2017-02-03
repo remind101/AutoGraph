@@ -1,17 +1,50 @@
 import Foundation
 import JSONValueRX
 
-public struct MappingOptions: OptionSet {
-    public let rawValue: UInt
-    public init(rawValue: UInt) {
-        self.rawValue = rawValue
+public enum CollectionInsertionMethod<Container: Sequence> {
+    case append
+    case replace(delete: ((_ orphansToDelete: Container) -> Container)?)
+}
+
+public typealias CollectionUpdatePolicy<Container: Sequence> =
+    (insert: CollectionInsertionMethod<Container>, unique: Bool)
+
+public enum Spec<T: Mapping>: Keypath {
+    
+    case mapping(Keypath, T)
+    case collectionMapping(Keypath, T, CollectionUpdatePolicy<T.SequenceKind>)
+    
+    public var keyPath: String {
+        switch self {
+        case .mapping(let keyPath, _):
+            return keyPath.keyPath
+        case .collectionMapping(let keyPath, _, _):
+            return keyPath.keyPath
+        }
     }
-    public static let None = MappingOptions(rawValue: 0)
-    public static let AllowDuplicatesInCollection = MappingOptions(rawValue: 1)
+    
+    public var mapping: T {
+        switch self {
+        case .mapping(_, let mapping):
+            return mapping
+        case .collectionMapping(_, let mapping, _):
+            return mapping
+        }
+    }
+    
+    public var collectionUpdatePolicy: CollectionUpdatePolicy<T.SequenceKind> {
+        switch self {
+        case .mapping(_, _):
+            return (.append, true)
+        case .collectionMapping(_, _, let method):
+            return method
+        }
+    }
 }
 
 public protocol Mapping {
     associatedtype MappedObject
+    associatedtype SequenceKind: Sequence = [MappedObject]
     associatedtype AdaptorKind: Adaptor
     
     var adaptor: AdaptorKind { get }
@@ -87,45 +120,3 @@ public extension Transform {
     }
 }
 
-public enum Spec<T: Mapping>: Keypath {
-    case mapping(Keypath, T)
-    indirect case mappingOptions(Spec, MappingOptions)
-    
-    public var keyPath: String {
-        switch self {
-        case .mapping(let keyPath, _):
-            return keyPath.keyPath
-        case .mappingOptions(let keyPath, _):
-            return keyPath.keyPath
-        }
-    }
-    
-    public var options: MappingOptions {
-        switch self {
-        case .mappingOptions(_, let options):
-            return options
-        default:
-            return [ .None ]
-        }
-    }
-    
-    public var mapping: T {
-        switch self {
-        case .mapping(_, let mapping):
-            return mapping
-        case .mappingOptions(let mapping, _):
-            return mapping.mapping
-        }
-    }
-}
-
-// TODO: Move into JSONValue lib.
-extension NSDate: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> NSDate? {
-        return Date.fromJSON(x) as NSDate?
-    }
-    
-    public static func toJSON(_ x: NSDate) -> JSONValue {
-        return Date.toJSON(x as Date)
-    }
-}

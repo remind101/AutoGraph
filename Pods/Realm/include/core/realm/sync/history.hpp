@@ -51,6 +51,7 @@ struct SyncProgress {
     version_type latest_server_version = 0;
     int_fast64_t latest_server_session_ident = 0;
     version_type latest_client_version = 0;
+    int_fast64_t downloadable_bytes = 0;
 };
 
 
@@ -193,6 +194,12 @@ public:
                                                      size_t num_changesets,
                                                      util::Logger* replay_logger,
                                                      std::function<SyncTransactCallback>& callback) = 0;
+
+    /// Get the persisted upload/download progress in bytes.
+    virtual void get_upload_download_bytes(uint_fast64_t& downloaded_bytes,
+                                           uint_fast64_t& downloadable_bytes,
+                                           uint_fast64_t& uploaded_bytes,
+                                           uint_fast64_t& uploadable_bytes) = 0;
 };
 
 

@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)addObjectNonGeneric:(RLMObject *)object;
 
-- (NSArray<RLMObject *> *)allObjects;
+- (NSArray<__kindof RLMObject *> *)allObjects;
 
 @end
 

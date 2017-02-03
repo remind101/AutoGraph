@@ -26,6 +26,7 @@
 #include <map>
 
 #include <realm/util/logger.hpp>
+#include <realm/util/http.hpp>
 
 
 namespace realm {
@@ -60,7 +61,7 @@ public:
     /// websocket_handshake_completion_handler() is called when the websocket is connected, .i.e.
     /// after the handshake is done. It is not allowed to send messages on the socket before the
     /// handshake is done. No message_received callbacks will be called before the handshake is done.
-    virtual void websocket_handshake_completion_handler() = 0;
+    virtual void websocket_handshake_completion_handler(const HTTPHeaders&) = 0;
 
     //@{
     /// websocket_read_error_handler() and websocket_write_error_handler() are called when an
@@ -105,8 +106,6 @@ enum class Opcode {
 
 class Socket {
 public:
-    using HTTPHeaders = std::map<std::string, std::string>;
-
     Socket(Config&);
     Socket(Socket&&) noexcept;
     ~Socket() noexcept;

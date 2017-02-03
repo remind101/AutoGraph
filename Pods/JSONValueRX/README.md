@@ -100,6 +100,7 @@ Double
 Bool
 Int
 Date
+NSDate
 Array
 String
 Dictionary
