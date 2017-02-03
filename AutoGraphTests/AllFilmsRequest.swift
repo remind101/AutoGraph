@@ -43,22 +43,6 @@ class AllFilmsRequest: Request {
     var mapping: Spec<FilmMapping> {
         return Spec.mapping("data.allFilms.films", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
     }
-    /*
-    var mapping: AllFilmsMapping {
-        let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-        return AllFilmsMapping(adaptor: adaptor)
-    }
- */
-}
-
-class AllFilmsFilmMapping: FilmMapping {
-    override var keyPath: String { return "" }
-}
-
-class AllFilmsMapping: ArrayMapping<Film, RealmAdaptor, AllFilmsFilmMapping> {
-    open override var keyPath: Keypath {
-        return "data.allFilms.films"
-    }
 }
 
 class AllFilmsStub: Stub {
