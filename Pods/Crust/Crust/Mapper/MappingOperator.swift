@@ -377,9 +377,9 @@ public func mapFromJsonToSequence<T, U: Mapping, C: MappingContext>(
         return (newObjects, map.context)
 }
 
-private func generateNewValues<T, U: Mapping>(
+private func generateNewValues<T, U: Mapping, S: Sequence>(
     fromJsonArray json: JSONValue,
-    with updatePolicy: CollectionUpdatePolicy<U.SequenceKind>,
+    with updatePolicy: CollectionUpdatePolicy<S>,
     using mapping: U,
     fieldContains: (T) -> Bool,
     context: MappingContext)
