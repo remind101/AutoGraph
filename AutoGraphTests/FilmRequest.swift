@@ -32,8 +32,8 @@ class FilmRequest: Request {
                           fragments: nil,
                           arguments: nil)
     
-    var mapping: FilmMapping {
-        return FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default()))
+    var mapping: Spec<FilmMapping> {
+        return Spec.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
     }
 }
 
@@ -50,7 +50,7 @@ class FilmMapping: RealmMapping, ArraySubMapping {
         self.adaptor = adaptor
     }
     
-    open var keyPath: String { return "data.film." }
+    open var keyPath: String { return "" }
     
     public func mapping(tomap: inout Film, context: MappingContext) {
         // TODO: Need to add key path at a global scope...

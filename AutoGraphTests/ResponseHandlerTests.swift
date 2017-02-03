@@ -26,7 +26,7 @@ class ResponseHandlerTests: XCTestCase {
         
         super.tearDown()
     }
-    
+    /*
     func testErrorsJsonReturnsGraphQLError() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18
@@ -103,10 +103,10 @@ class ResponseHandlerTests: XCTestCase {
     
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
-            override var mapping: AllFilmsMapping {
+            /*override var mapping: AllFilmsMapping {
                 let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
                 return AllFilmsBadMapping(adaptor: adaptor)
-            }
+            }*/
         }
         
         class AllFilmsBadMapping: AllFilmsMapping {
@@ -136,4 +136,5 @@ class ResponseHandlerTests: XCTestCase {
         
         XCTAssertTrue(called)
     }
+ */
 }

@@ -33,21 +33,20 @@ class VoidMapping: AnyMapping {
 public enum ResultSpec<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
 where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
     
-    case object(mapping: () -> M, completion: RequestCompletion<M.MappedObject>)
-    case collection(mapping: () -> CM, completion: RequestCompletion<C>)
+    case object(mappingSpec: () -> Spec<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingSpec: () -> Spec<CM>, completion: RequestCompletion<C>)
 }
 
-func specCheck<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(spec: ResultSpec<M, CM, C>) {
+private func specCheck<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(spec: ResultSpec<M, CM, C>) {
     switch spec {
-    case .object(let mapping, let completion):
+    case .object(mappingSpec: let mapping, completion: let completion):
         let mapper = Mapper<M>()
         let result = try! mapper.map(from: JSONValue.null(), using: mapping())
         completion(.success(result))
         
-    case .collection(mapping: let mapping, completion: let completion):
+    case .collection(mappingSpec: let mapping, completion: let completion):
         let mapper = Mapper<CM>()
-        let spec = Spec.mapping("", mapping())
-        let result: C = try! mapper.map(from: JSONValue.null(), using: spec)
+        let result: C = try! mapper.map(from: JSONValue.null(), using: mapping())
         completion(.success(result))
     }
 }
@@ -73,7 +72,25 @@ public protocol Request {
     ///
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
     /// across threads unless it inherits from `ThreadUnsafe`. 
-    var mapping: Mapping { get }
+    var mapping: Spec<Mapping> { get }
+}
+
+extension Request
+    where Result: RangeReplaceableCollection,
+    Result.Iterator.Element == Mapping.MappedObject,
+    Mapping.MappedObject: Equatable,
+    Mapping.SequenceKind == Result {
+    
+    func generateSpec(completion: @escaping RequestCompletion<Result>) -> ResultSpec<Mapping, Mapping, Result> {
+        return ResultSpec<Mapping, Mapping, Result>.collection(mappingSpec: { self.mapping }, completion: completion)
+    }
+}
+
+extension Request {
+    
+    func generateSpec(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultSpec<Mapping, VoidMapping, Array<Int>> {
+        return ResultSpec<Mapping, VoidMapping, Array<Int>>.object(mappingSpec: { self.mapping }, completion: completion)
+    }
 }
 
 public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
@@ -131,13 +148,12 @@ public class AutoGraph {
     T.Mapping.MappedObject: Equatable,
     T.Mapping.SequenceKind == T.Result {
         
-        let spec = ResultSpec<T.Mapping, T.Mapping, T.Result>.collection(mapping: { request.mapping }, completion: completion)
-        self.dispatcher.send(request: request, resultSpec: spec)
+        self.dispatcher.send(request: request, resultSpec: request.generateSpec(completion: completion))
     }
     
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>) {
-        let spec = ResultSpec<T.Mapping, VoidMapping, Array<Int>>.object(mapping: { request.mapping }, completion: completion)
-        self.dispatcher.send(request: request, resultSpec: spec)
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
+    where T.Result == T.Mapping.MappedObject {
+        self.dispatcher.send(request: request, resultSpec: request.generateSpec(completion: completion))
     }
     
     /*

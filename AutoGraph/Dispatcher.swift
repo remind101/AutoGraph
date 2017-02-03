@@ -64,7 +64,7 @@ class Dispatcher {
         
         self.send(sendable: sendable)
     }
-    
+    /*
     public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping.MappedObject>) {
         
         let sendable: Sendable = (query: request.query, completion: { [weak self] response in
@@ -92,7 +92,7 @@ class Dispatcher {
         
         self.send(sendable: sendable)
     }
-    
+    */
     func send(sendable: Sendable) {
         self.requestSender.sendRequest(url: self.url, parameters: ["query" : sendable.query.graphQLString], completion: sendable.completion)
     }

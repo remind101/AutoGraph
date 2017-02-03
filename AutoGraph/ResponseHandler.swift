@@ -61,7 +61,7 @@ class ResponseHandler {
     }
     
     // MARK: - Handle single objects.
-    
+    /*
     func handle<Mapping: Crust.Mapping>(
         response: DataResponse<Any>,
         mapping: @escaping () -> Mapping,
@@ -81,13 +81,13 @@ class ResponseHandler {
             }
         }
         catch let e {
-            self.fail(error: e, mapping: mapping, completion: completion)
+            self.fail(error: e, completion: completion)
         }
     }
     
     func handle<Mapping: Crust.Mapping>(
         response: DataResponse<Any>,
-        mapping: @escaping () -> Mapping,
+        mapping: @escaping () -> Spec<Mapping>,
         completion: @escaping RequestCompletion<Mapping.MappedObject>) {
         
         do {
@@ -103,10 +103,10 @@ class ResponseHandler {
             }
         }
         catch let e {
-            self.fail(error: e, mapping: mapping, completion: completion)
+            self.fail(error: e, completion: completion)
         }
     }
-    
+    */
     // MARK: - Handle RangeReplaceableCollection.
     // TODO:
     
@@ -139,32 +139,31 @@ class ResponseHandler {
             
             do {
                 switch resultSpec {
-                case .object(let mapping, let completion):
+                case .object(let spec, let completion):
                     let mapper = Mapper<M>()
-                    let result = try mapper.map(from: json, using: mapping())
+                    let result = try mapper.map(from: json, using: spec())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
+                    self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
                     
-                case .collection(mapping: let mapping, completion: let completion):
+                case .collection(let spec, let completion):
                     let mapper = Mapper<CM>()
-                    let spec = Spec.mapping("", mapping())
-                    let result: C = try mapper.map(from: json, using: spec)
+                    let result: C = try mapper.map(from: json, using: spec())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
+                    self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
                 }
             }
             catch let e {
                 switch resultSpec {
-                case .object(let mapping, let completion):
-                    self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
-                case .collection(mapping: let mapping, completion: let completion):
-                    self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+                case .object(_, let completion):
+                    self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
+                case .collection(_, let completion):
+                    self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
                 }
             }
     }
     
     // MARK: - Map single objects.
-    
+    /*
     private func map<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe>(
         json: JSONValue,
         mapping: @escaping () -> Mapping,
@@ -179,13 +178,13 @@ class ResponseHandler {
             self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
         }
         catch let e {
-            self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+            self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
         }
     }
     
     private func map<Mapping: Crust.Mapping>(
         json: JSONValue,
-        mapping: @escaping () -> Mapping,
+        mapping: @escaping () -> Spec<Mapping>,
         completion: @escaping RequestCompletion<Mapping.MappedObject>) {
         
         do {
@@ -196,12 +195,12 @@ class ResponseHandler {
             self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
         }
         catch let e {
-            self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+            self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
         }
     }
-    
+    */
     // MARK: - Map RangeReplaceableCollection.
-    
+    /*
     private func map<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe, Result: RangeReplaceableCollection>(
         json: JSONValue,
         mapping: @escaping () -> Mapping,
@@ -217,13 +216,13 @@ class ResponseHandler {
                 self.refetchAndComplete(result: result, json: json, mapping: mapping, completion: completion)
             }
             catch let e {
-                self.fail(error: AutoGraphError.mapping(error: e), mapping: mapping, completion: completion)
+                self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
             }
     }
-    
+    */
     // MARK: - Post mapping.
     
-    private func fail<Mapping: Crust.Mapping, R>(error: Error, mapping: () -> Mapping, completion: @escaping RequestCompletion<R>) {
+    private func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
         self.callbackQueue.addOperation {
             completion(.failure(error))
         }
@@ -231,18 +230,19 @@ class ResponseHandler {
     
     private func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultSpec: ResultSpec<M, CM, C>) {
         switch resultSpec {
-        case .object(let mapping, let completion):
-            self.fail(error: AutoGraphError.mapping(error: error), mapping: mapping, completion: completion)
-        case .collection(mapping: let mapping, completion: let completion):
-            self.fail(error: AutoGraphError.mapping(error: error), mapping: mapping, completion: completion)
+        case .object(mappingSpec: _, completion: let completion):
+            self.fail(error: AutoGraphError.mapping(error: error), completion: completion)
+        case .collection(mappingSpec: _, completion: let completion):
+            self.fail(error: AutoGraphError.mapping(error: error), completion: completion)
         }
     }
 
     private func refetchAndComplete<Mapping: Crust.Mapping, Result>
         (result: Result,
          json: JSONValue,
-         mapping: @escaping () -> Mapping,
-         completion: @escaping RequestCompletion<Result>) {
+         mapping: @escaping () -> Spec<Mapping>,
+         completion: @escaping RequestCompletion<Result>)
+        where Result == Mapping.MappedObject {
         
         guard case let unsafe as ThreadUnsafe = result else {
             self.callbackQueue.addOperation {
@@ -260,15 +260,51 @@ class ResponseHandler {
         }()
         
         self.callbackQueue.addOperation {
-            let map = mapping()
-            guard let finalResult = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false)?.first else {
-                self.fail(error: AutoGraphError.refetching, mapping: mapping, completion: completion)
+            let map = mapping().mapping
+            guard case let finalResult as Result = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false)?.first else {
+                
+                self.fail(error: AutoGraphError.refetching, completion: completion)
                 return
             }
-            completion(.success(finalResult as! Result))
+            completion(.success(finalResult))
         }
     }
     
+    private func refetchAndComplete<Mapping: Crust.Mapping, Result: RangeReplaceableCollection>
+        (result: Result,
+         json: JSONValue,
+         mapping: @escaping () -> Spec<Mapping>,
+         completion: @escaping RequestCompletion<Result>)
+        where Result.Iterator.Element == Mapping.MappedObject, Mapping.SequenceKind == Result, Mapping.MappedObject: Equatable {
+    
+        guard case let UnsafeType as ThreadUnsafe.Type = Mapping.MappedObject.self else {
+            self.callbackQueue.addOperation {
+                completion(.success(result))
+            }
+            return
+        }
+            
+        let primaryKey = UnsafeType.primaryKey()!
+            
+        let primaryKeys: [[String : CVarArg]] = result.flatMap {
+            guard case let value as CVarArg = ($0 as! ThreadUnsafe).value(forKeyPath: primaryKey) else {
+                return nil
+            }
+            return [primaryKey : value]
+        }
+        
+        self.callbackQueue.addOperation {
+            let map = mapping().mapping
+            guard let results = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false) else {
+                
+                self.fail(error: AutoGraphError.refetching, completion: completion)
+                return
+            }
+            let mappedResults = Result(results.map { $0 as! Mapping.MappedObject })
+            completion(.success(mappedResults))
+        }
+    }
+    /*
     private func refetchAndComplete<Mapping: Crust.Mapping, MappedObject: ThreadUnsafe>
         (result: MappedObject,
          json: JSONValue,
@@ -287,13 +323,13 @@ class ResponseHandler {
             self.callbackQueue.addOperation {
                 let map = mapping()
                 guard let finalResult = map.adaptor.fetchObjects(type: MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false)?.first else {
-                    self.fail(error: AutoGraphError.refetching, mapping: mapping, completion: completion)
+                    self.fail(error: AutoGraphError.refetching, completion: completion)
                     return
                 }
                 completion(.success(finalResult as! MappedObject))
             }
     }
-    
+    */
     /*
     private func refetchAndComplete<M: Crust.Mapping, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
         (result: M.MappedObject,
@@ -317,15 +353,15 @@ class ResponseHandler {
         self.callbackQueue.addOperation {
             let map = mapping()
             guard let results = map.adaptor.fetchObjects(type: SubType.self as! SubAdaptor.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false) else {
-                completion(.success([]))
+                //completion(.success([]))
                 return
             }
             let mappedResults = results.map { $0 }
             let type = type(of: map).MappedObject.self
             // Note: as! M.MappedObject leads to "Ambiguous type name" bug for some weird reason.
             let success = Result.success(typeCoercion(type: type, obj: mappedResults))
-            completion(success)
+            //completion(success)
         }
     }
-    */
+ */
 }

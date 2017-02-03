@@ -17,6 +17,8 @@ class AllFilmsRequest: Request {
      "}"
      */
     
+    typealias Result = [FilmMapping.MappedObject]
+    
     let query = Operation(type: .query,
                           name: "filmRequest",
                           fields: [
@@ -38,10 +40,15 @@ class AllFilmsRequest: Request {
                           fragments: nil,
                           arguments: nil)
     
+    var mapping: Spec<FilmMapping> {
+        return Spec.mapping("data.allFilms.films", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+    }
+    /*
     var mapping: AllFilmsMapping {
         let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
         return AllFilmsMapping(adaptor: adaptor)
     }
+ */
 }
 
 class AllFilmsFilmMapping: FilmMapping {

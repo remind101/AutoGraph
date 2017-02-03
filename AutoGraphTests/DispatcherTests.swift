@@ -31,7 +31,7 @@ class DispatcherTests: XCTestCase {
         self.mockRequestSender = nil
         super.tearDown()
     }
-    
+    /*
     func testForwardsRequestToSender() {
         let request = AllFilmsRequest()
         
@@ -81,4 +81,5 @@ class DispatcherTests: XCTestCase {
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
+ */
 }
