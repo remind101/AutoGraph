@@ -37,20 +37,6 @@ where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObje
     case collection(mappingSpec: () -> Spec<CM>, completion: RequestCompletion<C>)
 }
 
-private func specCheck<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(spec: ResultSpec<M, CM, C>) {
-    switch spec {
-    case .object(mappingSpec: let mapping, completion: let completion):
-        let mapper = Mapper<M>()
-        let result = try! mapper.map(from: JSONValue.null(), using: mapping())
-        completion(.success(result))
-        
-    case .collection(mappingSpec: let mapping, completion: let completion):
-        let mapper = Mapper<CM>()
-        let result: C = try! mapper.map(from: JSONValue.null(), using: mapping())
-        completion(.success(result))
-    }
-}
-
 public protocol Request {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
     /// `Mapping.MappedObject`.
