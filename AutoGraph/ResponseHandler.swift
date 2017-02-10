@@ -43,13 +43,13 @@ class ResponseHandler {
             do {
                 switch resultSpec {
                 case .object(let spec, let completion):
-                    let mapper = Mapper<M>()
-                    let result = try mapper.map(from: json, using: spec())
+                    let mapper = Mapper()
+                    let result: M.MappedObject = try mapper.map(from: json, using: spec())
                     
                     self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
                     
                 case .collection(let spec, let completion):
-                    let mapper = Mapper<CM>()
+                    let mapper = Mapper()
                     let result: C = try mapper.map(from: json, using: spec())
                     
                     self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
@@ -85,7 +85,7 @@ class ResponseHandler {
     private func refetchAndComplete<Mapping: Crust.Mapping, Result>
         (result: Result,
          json: JSONValue,
-         mapping: @escaping () -> Spec<Mapping>,
+         mapping: @escaping () -> Binding<Mapping>,
          completion: @escaping RequestCompletion<Result>)
         where Result == Mapping.MappedObject {
         
@@ -118,7 +118,7 @@ class ResponseHandler {
     private func refetchAndComplete<Mapping: Crust.Mapping, Result: RangeReplaceableCollection>
         (result: Result,
          json: JSONValue,
-         mapping: @escaping () -> Spec<Mapping>,
+         mapping: @escaping () -> Binding<Mapping>,
          completion: @escaping RequestCompletion<Result>)
         where Result.Iterator.Element == Mapping.MappedObject, Mapping.SequenceKind == Result, Mapping.MappedObject: Equatable {
     

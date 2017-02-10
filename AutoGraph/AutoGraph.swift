@@ -33,8 +33,8 @@ class VoidMapping: AnyMapping {
 public enum ResultSpec<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
 where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
     
-    case object(mappingSpec: () -> Spec<M>, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingSpec: () -> Spec<CM>, completion: RequestCompletion<C>)
+    case object(mappingSpec: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingSpec: () -> Binding<CM>, completion: RequestCompletion<C>)
 }
 
 public protocol Request {
@@ -58,7 +58,7 @@ public protocol Request {
     ///
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
     /// across threads unless it inherits from `ThreadUnsafe`. 
-    var mapping: Spec<Mapping> { get }
+    var mapping: Binding<Mapping> { get }
 }
 
 extension Request
