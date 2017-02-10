@@ -51,7 +51,6 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        //self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
         self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
             called = true
             
@@ -85,7 +84,6 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        //self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
         self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
             called = true
             
