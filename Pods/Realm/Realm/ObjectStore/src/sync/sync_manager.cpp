@@ -88,6 +88,18 @@ void SyncManager::configure_file_system(const std::string& base_file_path,
         }
 
         REALM_ASSERT(m_metadata_manager);
+        // Perform any necessary file actions.
+        std::vector<SyncFileActionMetadata> completed_actions;
+        SyncFileActionMetadataResults file_actions = m_metadata_manager->all_pending_actions();
+        for (size_t i = 0; i < file_actions.size(); i++) {
+            auto file_action = file_actions.get(i);
+            if (run_file_action(file_action)) {
+                completed_actions.emplace_back(std::move(file_action));
+            }
+        }
+        for (auto& action : completed_actions) {
+            action.remove();
+        }
         // Load persisted users into the users map.
         SyncUserMetadataResults users = m_metadata_manager->all_unmarked_users();
         for (size_t i = 0; i < users.size(); i++) {
@@ -128,6 +140,48 @@ void SyncManager::configure_file_system(const std::string& base_file_path,
                                                                             user_data.server_url) });
         }
     }
+}
+
+bool SyncManager::immediately_run_file_actions(const std::string& realm_path)
+{
+    if (!m_metadata_manager) {
+        return false;
+    }
+    auto metadata = SyncFileActionMetadata::metadata_for_path(realm_path, *m_metadata_manager);
+    if (!metadata) {
+        return false;
+    }
+    if (run_file_action(*metadata)) {
+        metadata->remove();
+        return true;
+    }
+    return false;
+}
+
+// Perform a file action. Returns whether or not the file action can be removed.
+bool SyncManager::run_file_action(const SyncFileActionMetadata& md)
+{
+    switch (md.action()) {
+        case SyncFileActionMetadata::Action::DeleteRealm:
+            // Delete all the files for the given Realm.
+            m_file_manager->remove_realm(md.original_name());
+            return true;
+        case SyncFileActionMetadata::Action::HandleRealmForClientReset:
+            // Copy the primary Realm file to the recovery dir, and then delete the Realm.
+            auto new_name = md.new_name();
+            auto original_name = md.original_name();
+            if (!util::File::exists(original_name)) {
+                // The Realm file doesn't exist anymore.
+                return true;
+            } 
+            if (new_name && !util::File::exists(*new_name) && m_file_manager->copy_realm_file(original_name, *new_name)) {
+                // We successfully copied the Realm file to the recovery directory.
+                m_file_manager->remove_realm(original_name);
+                return true;
+            }
+            return false;
+    }
+    return false;
 }
 
 void SyncManager::reset_for_testing()
@@ -304,6 +358,13 @@ std::string SyncManager::path_for_realm(const std::string& user_identity, const 
     std::lock_guard<std::mutex> lock(m_file_system_mutex);
     REALM_ASSERT(m_file_manager);
     return m_file_manager->path(user_identity, raw_realm_url);
+}
+
+std::string SyncManager::recovery_directory_path() const
+{
+    std::lock_guard<std::mutex> lock(m_file_system_mutex);
+    REALM_ASSERT(m_file_manager);
+    return m_file_manager->recovery_directory_path();        
 }
 
 std::shared_ptr<SyncSession> SyncManager::get_existing_active_session(const std::string& path) const

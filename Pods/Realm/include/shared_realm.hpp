@@ -23,7 +23,6 @@
 #include "schema.hpp"
 
 #include <realm/util/optional.hpp>
-#include <realm/version_id.hpp>
 #include <realm/binary_data.hpp>
 
 #if REALM_ENABLE_SYNC
@@ -33,17 +32,19 @@
 #include <memory>
 
 namespace realm {
-class BinaryData;
 class BindingContext;
 class Group;
 class Realm;
 class Replication;
 class SharedGroup;
 class StringData;
+class Table;
 struct SyncConfig;
 class ThreadSafeReferenceBase;
 template <typename T> class ThreadSafeReference;
 struct VersionID;
+template<typename Table> class BasicRow;
+typedef BasicRow<Table> Row;
 typedef std::shared_ptr<Realm> SharedRealm;
 typedef std::weak_ptr<Realm> WeakRealm;
 
@@ -57,6 +58,7 @@ namespace _impl {
     class AnyHandover;
     class CollectionNotifier;
     class ListNotifier;
+    class ObjectNotifier;
     class RealmCoordinator;
     class ResultsNotifier;
     class RealmFriend;
@@ -137,7 +139,7 @@ public:
         BinaryData realm_data;
         // User-supplied encryption key. Must be either empty or 64 bytes.
         std::vector<char> encryption_key;
-        
+
 
         bool in_memory = false;
         SchemaMode schema_mode = SchemaMode::Automatic;
@@ -256,14 +258,13 @@ public:
     // Expose some internal functionality to other parts of the ObjectStore
     // without making it public to everyone
     class Internal {
-        friend class AnyThreadConfined;
-        friend class GlobalNotifier;
         friend class _impl::CollectionNotifier;
         friend class _impl::ListNotifier;
+        friend class _impl::ObjectNotifier;
         friend class _impl::RealmCoordinator;
         friend class _impl::ResultsNotifier;
-        friend class _impl::AnyHandover;
         friend class ThreadSafeReferenceBase;
+        friend class GlobalNotifier;
 
         // ResultsNotifier and ListNotifier need access to the SharedGroup
         // to be able to call the handover functions, which are not very wrappable
@@ -306,6 +307,8 @@ private:
     // File format versions populated when a file format upgrade takes place during realm opening
     int upgrade_initial_version = 0, upgrade_final_version = 0;
 
+    // True while sending the notifications caused by advancing the read
+    // transaction version, to avoid recursive notifications where possible
     bool m_is_sending_notifications = false;
 
     void set_schema(Schema schema, uint64_t version);

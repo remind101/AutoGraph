@@ -15,7 +15,7 @@ public extension AnyMapping {
         return AnyAdaptorImp<MappedObject>()
     }
     
-    var primaryKeys: [String : Keypath]? {
+    var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
         return nil
     }
 }

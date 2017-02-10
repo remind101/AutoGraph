@@ -23,6 +23,8 @@
 #import "RLMRealmConfiguration+Sync.h"
 #import "RLMRealmConfiguration_Private.hpp"
 #import "RLMSyncPermissionChange.h"
+#import "RLMSyncPermissionOffer.h"
+#import "RLMSyncPermissionOfferResponse.h"
 
 @implementation RLMRealmConfiguration (RealmSync)
 + (instancetype)managementConfigurationForUser:(RLMSyncUser *)user {
@@ -37,7 +39,7 @@
     RLMSyncConfiguration *syncConfig = [[RLMSyncConfiguration alloc] initWithUser:user realmURL:managementRealmURL];
     RLMRealmConfiguration *config = [RLMRealmConfiguration new];
     config.syncConfiguration = syncConfig;
-    config.objectClasses = @[RLMSyncPermissionChange.class];
+    config.objectClasses = @[RLMSyncPermissionChange.class, RLMSyncPermissionOffer.class, RLMSyncPermissionOfferResponse.class];
     return config;
 }
 @end
@@ -45,6 +47,9 @@
 RLMIdentityProvider const RLMIdentityProviderAccessToken = @"_access_token";
 
 NSString *const RLMSyncErrorDomain = @"io.realm.sync";
+
+NSString *const kRLMSyncPathOfRealmBackupCopyKey            = @"recovered_realm_location_path";
+NSString *const kRLMSyncInitiateClientResetBlockKey         = @"initiate_client_reset_block";
 
 NSString *const kRLMSyncAppIDKey                = @"app_id";
 NSString *const kRLMSyncDataKey                 = @"data";
@@ -78,4 +83,14 @@ RLMSyncStopPolicy translateStopPolicy(SyncSessionStopPolicy stop_policy)
     REALM_UNREACHABLE();
 }
 
+}
+
+RLMSyncManagementObjectStatus RLMMakeSyncManagementObjectStatus(NSNumber<RLMInt> *statusCode) {
+    if (!statusCode) {
+        return RLMSyncManagementObjectStatusNotProcessed;
+    }
+    if (statusCode.integerValue == 0) {
+        return RLMSyncManagementObjectStatusSuccess;
+    }
+    return RLMSyncManagementObjectStatusError;
 }

@@ -7,10 +7,10 @@ use_frameworks!
 target 'AutoGraph' do
   pod 'Alamofire', '~> 4'
   pod 'Crust'
-  pod 'Realm'
     
   target 'AutoGraphTests' do
     inherit! :complete
+    pod 'RealmSwift'
     pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
 end

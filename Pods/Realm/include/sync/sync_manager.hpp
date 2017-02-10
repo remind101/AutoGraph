@@ -36,6 +36,7 @@ class SyncSession;
 class SyncUser;
 class SyncFileManager;
 class SyncMetadataManager;
+class SyncFileActionMetadata;
 
 namespace _impl {
 struct SyncClient;
@@ -68,6 +69,12 @@ public:
                                MetadataMode metadata_mode=MetadataMode::Encryption,
                                util::Optional<std::vector<char>> custom_encryption_key=none,
                                bool reset_metadata_on_error=false);
+
+    // Immediately run file actions for a single Realm at a given original path.
+    // Returns whether or not a file action was successfully executed for the specified Realm.
+    // Preconditions: all references to the Realm at the given path must have already been invalidated.
+    // The metadata and file management subsystems must also have already been configured.
+    bool immediately_run_file_actions(const std::string& original_name);
 
     void set_log_level(util::Logger::Level) noexcept;
     void set_logger_factory(SyncLoggerFactory&) noexcept;
@@ -104,6 +111,9 @@ public:
     // Get the default path for a Realm for the given user and absolute unresolved URL.
     std::string path_for_realm(const std::string& user_identity, const std::string& raw_realm_url) const;
 
+    // Get the path of the recovery directory for backed-up or recovered Realms.
+    std::string recovery_directory_path() const;
+
     // Reset the singleton state for testing purposes. DO NOT CALL OUTSIDE OF TESTING CODE.
     // Precondition: any synced Realms or `SyncSession`s must be closed or rendered inactive prior to
     // calling this method.
@@ -135,6 +145,8 @@ private:
     SyncLoggerFactory* m_logger_factory = nullptr;
     ReconnectMode m_client_reconnect_mode = ReconnectMode::normal;
     bool m_client_validate_ssl = true;
+
+    bool run_file_action(const SyncFileActionMetadata&);
 
     // Protects m_users
     mutable std::mutex m_user_mutex;

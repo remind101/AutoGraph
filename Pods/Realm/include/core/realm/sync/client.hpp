@@ -110,9 +110,9 @@ public:
         /// Create a separate connection for each session. For testing purposes
         /// only.
         ///
-        // FIXME: This setting is ignored for now, due to limitations in the
-        // load balancer.
-        bool one_connection_per_session = false;
+        // FIXME: This setting defaults to true now, due to limitations in the
+        // load balancer. Do not set it to false in production.
+        bool one_connection_per_session = true;
 
         /// Do not access the local file system. Sessions will act as if
         /// initiated on behalf of an empty (or nonexisting) local Realm
@@ -186,6 +186,8 @@ public:
     using port_type = util::network::Endpoint::port_type;
     using version_type = _impl::History::version_type;
     using SyncTransactCallback = void(VersionID old_version, VersionID new_version);
+    using ProgressHandler = void(uint_fast64_t downloaded_bytes, uint_fast64_t downloadable_bytes,
+                                 uint_fast64_t uploaded_bytes, uint_fast64_t uploadable_bytes);
     using WaitOperCompletionHandler = std::function<void(std::error_code)>;
 
     /// \brief Start a new session for the specified client-side Realm.
@@ -227,9 +229,83 @@ public:
     /// the session object is destroyed. The application must pass a handler
     /// that can be safely called, and can safely continue to execute from the
     /// point in time where bind() starts executing, and up until the point in
-    /// time where the last invocation of `clint.run()` returns. Here, `client`
+    /// time where the last invocation of `client.run()` returns. Here, `client`
     /// refers to the associated Client object.
     void set_sync_transact_callback(std::function<SyncTransactCallback>);
+
+    /// \brief Set a handler to monitor the state of download and upload
+    /// progress.
+    ///
+    /// The handler must have signature
+    ///
+    ///     void(uint_fast64_t downloaded_bytes, uint_fast64_t downloadable_bytes,
+    ///          uint_fast64_t uploaded_bytes, uint_fast64_t uploadable_bytes);
+    ///
+    /// downloaded_bytes is the size in bytes of all downloaded changesets.
+    /// downloadable_bytes is the size in bytes of the part of the server
+    /// history that do not originate from this client.
+    ///
+    /// uploaded_bytes is the size in bytes of all locally produced changesets
+    /// that have been received and acknowledged by the server.
+    /// uploadable_bytes is the size in bytes of all locally produced changesets.
+    ///
+    /// Due to the nature of the merge rules, it is possible that the size of an
+    /// uploaded changeset uploaded from one client is not equal to the size of
+    /// the changesets that other clients will download.
+    ///
+    /// Typical uses of this function:
+    ///
+    /// Upload completion can be checked by
+    ///
+    ///    bool upload_complete = (uploaded_bytes == uploadable_bytes);
+    ///
+    /// Download completion could be checked by
+    ///
+    ///     bool download_complete = (downloaded_bytes == downloadable_bytes);
+    ///
+    /// However, download completion might never be reached because the server
+    /// can receive new changesets from other clients.
+    /// An alternative strategy is to cache downloadable_bytes from the callback,
+    /// and use the cached value as the threshold.
+    ///
+    ///     bool download_complete = (downloaded_bytes == cached_downloadable_bytes);
+    ///
+    /// Upload progress can be calculated by caching an initial value of
+    /// uploaded_bytes from the last, or next, callback. Then
+    ///
+    ///     double upload_progress =
+    ///        (uploaded_bytes - initial_uploaded_bytes)
+    ///       -------------------------------------------
+    ///       (uploadable_bytes - initial_uploaded_bytes)
+    ///
+    /// Download progress can be calculates similarly:
+    ///
+    ///     double download_progress =
+    ///        (downloaded_bytes - initial_downloaded_bytes)
+    ///       -----------------------------------------------
+    ///       (downloadable_bytes - initial_downloaded_bytes)
+    ///
+    /// The handler is called on the event loop thread.
+    /// The handler is called after or during set_progress_handler(),
+    /// after bind(), after each DOWNLOAD message, and after each local
+    /// transaction (nonsync_transact_notify).
+    ///
+    /// set_progress_handler() is not thread safe and it must be called before
+    /// bind() is called. Subsequent calls to set_progress_handler() overwrite
+    /// the previous calls. Typically, this function is called once per session.
+    ///
+    /// The progress handler is also posted to the event loop during the
+    /// execution of set_progress_handler().
+    ///
+    /// CAUTION: The specified callback function may be called before the call
+    /// to set_progress_handler() returns, and it may be called
+    /// (or continue to execute) after the session object is destroyed.
+    /// The application must pass a handler that can be safely called, and can
+    /// execute from the point in time where set_progress_handler() is called,
+    /// and up until the point in time where the last invocation of
+    /// `client.run()` returns. Here, `client` refers to the associated
+    /// Client object.
+    void set_progress_handler(std::function<ProgressHandler>);
 
     /// \brief Signature of an error handler.
     ///
@@ -281,7 +357,7 @@ public:
     /// the session object is destroyed. The application must pass a handler
     /// that can be safely called, and can safely continue to execute from the
     /// point in time where bind() starts executing, and up until the point in
-    /// time where the last invocation of `clint.run()` returns. Here, `client`
+    /// time where the last invocation of `client.run()` returns. Here, `client`
     /// refers to the associated Client object.
     void set_error_handler(std::function<ErrorHandler>);
 
@@ -514,7 +590,8 @@ enum class Client::Error {
     bad_server_version          = 111, ///< Bad server version in changeset header (DOWNLOAD)
     bad_changeset               = 112, ///< Bad changeset (DOWNLOAD)
     bad_request_ident           = 113, ///< Bad request identifier (MARK)
-    bad_error_code              = 114, ///< Bad error code (ERROR)
+    bad_error_code              = 114, ///< Bad error code (ERROR),
+    bad_compression             = 115, ///< Bad compression (DOWNLOAD)
 };
 
 const std::error_category& client_error_category() noexcept;
