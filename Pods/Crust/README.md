@@ -58,7 +58,7 @@ By design Crust is built with [separation of concerns](https://en.wikipedia.org/
 
 Crust has 2 basic protocols:
 - `Mapping`
-	- How to map JSON to and from a particular model - (model is set by the `typealias MappedObject`).
+	- How to map JSON to and from a particular model - (model is set by the `associatedtype MappedObject` if mapping to an sequence of objects set `associatedtype SequenceKind`).
 	- May include primary key(s) and nested mapping(s).
 - `Adaptor`
 	- How to store and retrieve model objects used for mapping from a backing store (e.g. Core Data, Realm, etc.).
@@ -83,8 +83,9 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
     class EmployeeMapping: Mapping {
     
         var adaptor: CoreDataAdaptor
-        var primaryKeys: [String, Keypath]? {
-            return [ "uuid" : "data.uuid" ]    // Key == attribute on the model, Value == keypath in the JSON blob.
+        var primaryKeys: [PrimaryKeyDescriptor]? {
+            // property == attribute on the model, keyPath == keypath in the JSON blob, transform == tranform to apply to data from JSON blob.
+            return [ (property: "uuid", keyPath: "data.uuid", transform: nil) ]
         }
 
         required init(adaptor: CoreDataAdaptor) {
@@ -94,9 +95,9 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
         func mapping(tomap: inout Employee, context: MappingContext) {
             // Company must be transformed into something Core Data can use in this case.
             let companyMapping = CompanyTransformableMapping()
-        
+            
+            // No need to map the primary key here.
             tomap.employer              <- .mapping("company", companyMapping) >*<
-            tomap.uuid                  <- "data.uuid" >*<
             tomap.name                  <- "data.name" >*<
             context
         }
@@ -123,7 +124,7 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
 
 2. Create your Crust Mapper.
     ```swift
-    let mapper = Mapper<CompanyMapping>()
+    let mapper = Mapper()
     ```
 
 3. Use the mapper to convert to and from `JSONValue` objects
@@ -144,7 +145,11 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
                 "data.founding_date" : NSDate().toISOString(),
             ]
     )
-    let company = try! mapper.map(from: json, using: CompanyMapping())
+
+    let company: Company = try! mapper.map(from: json, using: CompanyMapping())
+
+    // Or if json is an array.
+    let company: [Company] = try! mapper.map(from: json, using: CompanyMapping())
     ```
 
 NOTE:
@@ -157,10 +162,42 @@ E.g. from above
 func mapping(inout tomap: Company, context: MappingContext) {
     let employeeMapping = EmployeeMapping(adaptor: CoreDataAdaptor())
     
-    tomap.employees <- Spec.mapping("employees", employeeMapping) >*<
+    tomap.employees <- Binding.mapping("employees", employeeMapping) >*<
     context
 }
 ```
+
+###Binding and collections
+
+`Binding` provides specialized directives when mapping collections. Use the `.collectionMapping` case to inform the mapper of these directives. They include
+* replace and/or delete objects
+* append objects to the collection
+* unique objects in collection (remove duplicates)
+
+By default using `.mapping` will `(insert: .append, unique: true)`.
+
+```swift
+public enum CollectionInsertionMethod<Container: Sequence> {
+    case append
+    case replace(delete: ((_ orphansToDelete: Container) -> Container)?)
+}
+
+public typealias CollectionUpdatePolicy<Container: Sequence> =
+    (insert: CollectionInsertionMethod<Container>, unique: Bool)
+
+public enum Binding<M: Mapping>: Keypath {
+    case mapping(Keypath, M)
+    case collectionMapping(Keypath, M, CollectionUpdatePolicy<M.SequenceKind>)
+}
+```
+
+Usage:
+```swift
+let employeeMapping = EmployeeMapping(adaptor: CoreDataAdaptor())
+let binding = Binding.collectionMapping("", employeeMapping, (.replace(delete: nil), true))
+tomap.employees <- (binding, context)
+```
+Look in ./Mapper/MappingProtocols.swift for more.
 
 ###Mapping Context
 Every `mapping` passes through a `context: MappingContext` which must be included during the mapping. The `context` includes error information that is propagated back from the mapping to the caller and contextual information about the json and object being mapped to/from.
@@ -214,10 +251,11 @@ class CompanyMappingWithNameUUIDReversed: AnyMapping {
     }
 }
 ```
-Just use two different mappers.
+Just use two different mappings.
 ```swift
-let mapper1 = Mapper<CompanyMapping>()
-let mapper2 = Mapper<CompanyMappingWithNameUUIDReversed>()
+let mapper = Mapper()
+let company1 = try! mapper.map(from: json, using: CompanyMapping())
+let company2 = try! mapper.map(from: json, using: CompanyMappingWithNameUUIDReversed())
 ```
 
 #Storage Adaptor
@@ -226,7 +264,8 @@ Follow the `Adaptor` protocol to create a storage adaptor to Core Data, Realm, e
 The object conforming to `Adaptor` must include two `associatedtype`s:
 - `BaseType` - the top level class for this storage systems model objects.
   - Core Data this would be `NSManagedObject`.
-  - Realm this would be `Object`.
+  - Realm this would be `RLMObject`.
+  - RealmSwift this would be `Object`.
 - `ResultsType: Collection` - Used for object lookups. Should return a collection of `BaseType`s.
 
 The `Mapping` must then set it's `associatedtype AdaptorKind = <Your Adaptor>` to use it during mapping.
@@ -239,7 +278,7 @@ https://github.com/rexmas/RealmCrust
 
 #Contributing
 
-We love pull requests and solving bugs.
+Pull requests are welcome!
 
 - Open an issue if you run into any problems.
 - Fork the project and submit a pull request to contribute. Please include tests for new code.

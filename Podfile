@@ -6,7 +6,7 @@ use_frameworks!
 
 target 'AutoGraph' do
   pod 'Alamofire', '~> 4'
-  pod 'Crust', :git => 'https://github.com/rexmas/Crust.git', :branch => 'array-insertions'
+  pod 'Crust'
   pod 'Realm'
     
   target 'AutoGraphTests' do
