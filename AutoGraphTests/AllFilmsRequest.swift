@@ -40,8 +40,8 @@ class AllFilmsRequest: Request {
                           fragments: nil,
                           arguments: nil)
     
-    var mapping: Spec<FilmMapping> {
-        return Spec.mapping("data.allFilms.films", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+    var mapping: Binding<FilmMapping> {
+        return Binding.mapping("data.allFilms.films", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
     }
 }
 

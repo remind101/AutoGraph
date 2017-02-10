@@ -32,18 +32,19 @@ class FilmRequest: Request {
                           fragments: nil,
                           arguments: nil)
     
-    var mapping: Spec<FilmMapping> {
-        return Spec.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+    var mapping: Binding<FilmMapping> {
+        return Binding.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
     }
 }
 
 extension Film: ThreadUnsafe { }
 
 class FilmMapping: RealmMapping {
+    
     public var adaptor: RealmAdaptor
     
-    public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : "id" ]
+    public var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
+        return [ ("remoteId", "id", nil) ]
     }
     
     public required init(adaptor: RealmAdaptor) {
@@ -51,7 +52,6 @@ class FilmMapping: RealmMapping {
     }
     
     public func mapping(tomap: inout Film, context: MappingContext) {
-        tomap.remoteId      <- ("id", context)
         tomap.title         <- ("title", context)
         tomap.episode       <- ("episodeID", context)
         tomap.openingCrawl  <- ("openingCrawl", context)
