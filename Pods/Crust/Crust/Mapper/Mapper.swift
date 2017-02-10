@@ -50,8 +50,8 @@ public struct Mapper {
         // TODO: Figure out better ways to represent `nil` keyPaths than `""`.
         let baseJson = json[binding.keyPath] ?? json
         
-        var object = try binding.mapping.fetchOrCreateObject(from: json)
-        let context = MappingContext(withObject: object, json: baseJson, direction: MappingDirection.fromJSON)
+        var object = try binding.mapping.fetchOrCreateObject(from: baseJson)
+        let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
         context.parent = parentContext
         try self.perform(binding, on: &object, with: context)
         
