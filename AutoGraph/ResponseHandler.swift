@@ -96,17 +96,11 @@ class ResponseHandler {
             return
         }
         
-        let primaryKey = type(of: unsafe).primaryKey()!
-        let primaryKeys: [[String : CVarArg]] = {
-            guard case let value as CVarArg = unsafe.value(forKeyPath: primaryKey) else {
-                return []
-            }
-            return [[primaryKey : value]]
-        }()
+        let primaryKeyValues = self.primaryKeyValues(for: unsafe)
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard case let finalResult as Result = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false)?.first else {
+            guard case let finalResult as Result = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return
@@ -122,25 +116,22 @@ class ResponseHandler {
          completion: @escaping RequestCompletion<Result>)
         where Result.Iterator.Element == Mapping.MappedObject, Mapping.SequenceKind == Result, Mapping.MappedObject: Equatable {
     
-        guard case let UnsafeType as ThreadUnsafe.Type = Mapping.MappedObject.self else {
+        guard
+            case let unsafeResults as [ThreadUnsafe] = result
+        else {
             self.callbackQueue.addOperation {
                 completion(.success(result))
             }
             return
         }
-            
-        let primaryKey = UnsafeType.primaryKey()!
-            
-        let primaryKeys: [[String : CVarArg]] = result.flatMap {
-            guard case let value as CVarArg = ($0 as! ThreadUnsafe).value(forKeyPath: primaryKey) else {
-                return nil
-            }
-            return [primaryKey : value]
+        
+        let primaryKeyValues: [[String : CVarArg]] = unsafeResults.flatMap { unsafe in
+            self.primaryKeyValues(for: unsafe)
         }
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard let results = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeys, isMapping: false) else {
+            guard let results = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return
@@ -148,5 +139,23 @@ class ResponseHandler {
             let mappedResults = Result(results.map { $0 as! Mapping.MappedObject })
             completion(.success(mappedResults))
         }
+    }
+    
+    private func primaryKeyValues(for unsafe: ThreadUnsafe) -> [String : CVarArg] {
+        let primaryKeys = type(of: unsafe).primaryKeys
+        let primaryKeyValuePairs: [(String, CVarArg)] = primaryKeys.flatMap {
+            guard case let value as CVarArg = unsafe.value(forKeyPath: $0) else {
+                return nil
+            }
+            return ($0, value)
+        }
+        
+        let primaryKeyValues: [String : CVarArg] = {
+            var dict = [String : CVarArg]()
+            primaryKeyValuePairs.forEach { dict[$0.0] = $0.1 }
+            return dict
+        }()
+        
+        return primaryKeyValues
     }
 }

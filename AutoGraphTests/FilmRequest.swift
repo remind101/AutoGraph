@@ -37,7 +37,14 @@ class FilmRequest: Request {
     }
 }
 
-extension Film: ThreadUnsafe { }
+extension RLMObject: ThreadUnsafe {
+    public static var primaryKeys: [String] {
+        guard let primaryKey = self.primaryKey() else {
+            fatalError("Must provide a primary key")
+        }
+        return [primaryKey]
+    }
+ }
 
 class FilmMapping: RealmMapping {
     
