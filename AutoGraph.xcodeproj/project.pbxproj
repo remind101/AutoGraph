@@ -42,6 +42,7 @@
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
+		CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -118,6 +119,7 @@
 		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDE3C7241E00D23400AB4EB1 /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
+		CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMArrayBridge.swift; sourceTree = "<group>"; };
 		D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -182,6 +184,7 @@
 			children = (
 				CD3BFF341E22D270008CE41A /* Models.h */,
 				CD3BFF351E22D270008CE41A /* Models.m */,
+				CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */,
 				CD3BFF361E22D270008CE41A /* RealmMappings.swift */,
 				CD3BFF371E22D270008CE41A /* RLMArray+Utilities.h */,
 				CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */,
@@ -652,6 +655,7 @@
 				CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */,
 				CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */,
 				CD3BFF3B1E22D270008CE41A /* RealmMappings.swift in Sources */,
+				CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */,
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */,
