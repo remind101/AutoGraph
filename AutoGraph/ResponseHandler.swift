@@ -17,7 +17,7 @@ class ResponseHandler {
     
     func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         response: DataResponse<Any>,
-        resultSpec: ResultSpec<M, CM, C>) {
+        resultBinding: ResultBinding<M, CM, C>) {
             
             do {
                 let value = try response.extractValue()
@@ -28,35 +28,35 @@ class ResponseHandler {
                 }
                 
                 self.queue.addOperation { [weak self] in
-                    self?.map(json: json, resultSpec: resultSpec)
+                    self?.map(json: json, resultBinding: resultBinding)
                 }
             }
             catch let e {
-                self.fail(error: e, resultSpec: resultSpec)
+                self.fail(error: e, resultBinding: resultBinding)
             }
     }
     
     private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         json: JSONValue,
-        resultSpec: ResultSpec<M, CM, C>) {
+        resultBinding: ResultBinding<M, CM, C>) {
             
             do {
-                switch resultSpec {
-                case .object(let spec, let completion):
+                switch resultBinding {
+                case .object(let binding, let completion):
                     let mapper = Mapper()
-                    let result: M.MappedObject = try mapper.map(from: json, using: spec())
+                    let result: M.MappedObject = try mapper.map(from: json, using: binding())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
+                    self.refetchAndComplete(result: result, json: json, mapping: binding, completion: completion)
                     
-                case .collection(let spec, let completion):
+                case .collection(let binding, let completion):
                     let mapper = Mapper()
-                    let result: C = try mapper.map(from: json, using: spec())
+                    let result: C = try mapper.map(from: json, using: binding())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: spec, completion: completion)
+                    self.refetchAndComplete(result: result, json: json, mapping: binding, completion: completion)
                 }
             }
             catch let e {
-                switch resultSpec {
+                switch resultBinding {
                 case .object(_, let completion):
                     self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
                 case .collection(_, let completion):
@@ -73,11 +73,11 @@ class ResponseHandler {
         }
     }
     
-    private func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultSpec: ResultSpec<M, CM, C>) {
-        switch resultSpec {
-        case .object(mappingSpec: _, completion: let completion):
+    private func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
+        switch resultBinding {
+        case .object(mappingBinding: _, completion: let completion):
             self.fail(error: error, completion: completion)
-        case .collection(mappingSpec: _, completion: let completion):
+        case .collection(mappingBinding: _, completion: let completion):
             self.fail(error: error, completion: completion)
         }
     }

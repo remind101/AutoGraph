@@ -30,11 +30,11 @@ class VoidMapping: AnyMapping {
 }
 
 // TODO: We should support non-equatable collections.
-public enum ResultSpec<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
 where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
     
-    case object(mappingSpec: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingSpec: () -> Binding<CM>, completion: RequestCompletion<C>)
+    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
 }
 
 public protocol Request {
@@ -67,15 +67,15 @@ extension Request
     Mapping.MappedObject: Equatable,
     Mapping.SequenceKind == Result {
     
-    func generateSpec(completion: @escaping RequestCompletion<Result>) -> ResultSpec<Mapping, Mapping, Result> {
-        return ResultSpec<Mapping, Mapping, Result>.collection(mappingSpec: { self.mapping }, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
+        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: completion)
     }
 }
 
 extension Request {
     
-    func generateSpec(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultSpec<Mapping, VoidMapping, Array<Int>> {
-        return ResultSpec<Mapping, VoidMapping, Array<Int>>.object(mappingSpec: { self.mapping }, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
+        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion)
     }
 }
 
@@ -124,12 +124,12 @@ public class AutoGraph {
     T.Mapping.MappedObject: Equatable,
     T.Mapping.SequenceKind == T.Result {
         
-        self.dispatcher.send(request: request, resultSpec: request.generateSpec(completion: completion))
+        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
     where T.Result == T.Mapping.MappedObject {
-        self.dispatcher.send(request: request, resultSpec: request.generateSpec(completion: completion))
+        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
     public func cancelAll() {

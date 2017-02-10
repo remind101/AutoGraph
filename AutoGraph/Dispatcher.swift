@@ -33,10 +33,10 @@ class Dispatcher {
     }
     
     public func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
-    (request: T, resultSpec: ResultSpec<M, CM, C>) {
+    (request: T, resultBinding: ResultBinding<M, CM, C>) {
         
         let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, resultSpec: resultSpec)
+            self?.responseHandler.handle(response: response, resultBinding: resultBinding)
         })
         
         guard !self.paused else {

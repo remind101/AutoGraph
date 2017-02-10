@@ -51,7 +51,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -84,7 +84,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultSpec: AllFilmsRequest().generateSpec { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -113,7 +113,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultSpec: AllFilmsBadRequest().generateSpec { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsBadRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
