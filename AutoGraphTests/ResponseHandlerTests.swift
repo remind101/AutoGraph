@@ -51,7 +51,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -60,7 +60,7 @@ class ResponseHandlerTests: XCTestCase {
             }
             
             guard case .graphQL(errors: let errors) = error else {
-                XCTFail("`error` should be an `.mapping` error")
+                XCTFail("`error` should be an `.graphQL` error")
                 return
             }
             
@@ -73,7 +73,7 @@ class ResponseHandlerTests: XCTestCase {
             let location = gqlError.locations[0]
             XCTAssertEqual(location.line, line)
             XCTAssertEqual(location.column, column)
-        }
+        })
         
         XCTAssertTrue(called)
     }
@@ -84,7 +84,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: { AllFilmsRequest().mapping }) { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -96,22 +96,15 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.network` error")
                 return
             }
-        }
+        })
         
         XCTAssertTrue(called)
     }
     
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
-            override var mapping: AllFilmsMapping {
-                let adaptor = RealmArrayAdaptor<Film>(realm: RLMRealm.default())
-                return AllFilmsBadMapping(adaptor: adaptor)
-            }
-        }
-        
-        class AllFilmsBadMapping: AllFilmsMapping {
-            open override var keyPath: Keypath {
-                return "bad_path"
+            override var mapping: Binding<FilmMapping> {
+                return Binding.mapping("bad_path", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
             }
         }
         
@@ -120,7 +113,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, mapping: { AllFilmsBadRequest().mapping }) { result in
+        self.subject.handle(response: response, resultBinding: AllFilmsBadRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -132,7 +125,7 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.mapping` error")
                 return
             }
-        }
+        })
         
         XCTAssertTrue(called)
     }

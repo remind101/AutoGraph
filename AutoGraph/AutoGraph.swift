@@ -18,12 +18,33 @@ public protocol Client: RequestSender, Cancellable {
 /// Before returning `Result` to the caller, a `ThreadUnsafe` object will be refetched
 /// on the main thread using `primaryKey`.
 public protocol ThreadUnsafe: class {
-    static func primaryKey() -> String?
+    static var primaryKeys: [String] { get }
     func value(forKeyPath keyPath: String) -> Any?
 }
 
+extension Int: AnyMappable { }
+class VoidMapping: AnyMapping {
+    typealias AdaptorKind = AnyAdaptorImp<MappedObject>
+    typealias MappedObject = Int
+    func mapping(tomap: inout Int, context: MappingContext) { }
+}
+
+// TODO: We should support non-equatable collections.
+public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
+    
+    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
+}
+
 public protocol Request {
+    /// The `Mapping` used to map from the returned JSON payload to a concrete type
+    /// `Mapping.MappedObject`.
     associatedtype Mapping: Crust.Mapping
+    
+    /// The returned type for the request.
+    /// E.g if the requests returns an array then change to `[Mapping.MappedObject]`.
+    associatedtype Result = Mapping.MappedObject
     
     /// The query to be sent to GraphQL.
     var query: Operation { get }
@@ -36,12 +57,29 @@ public protocol Request {
     /// used by `mapping` establishes it's own connection to the DB from within `mapping`.
     ///
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
-    /// across threads if no `primaryKeys` are provided by `mapping`. If `primaryKeys` are provided
-    /// then the resulting mapped objects will be refetched upon returning to the main thread. 
-    var mapping: Mapping { get }
+    /// across threads unless it inherits from `ThreadUnsafe`. 
+    var mapping: Binding<Mapping> { get }
 }
 
-public typealias RequestCompletion<M: Crust.Mapping> = (_ result: Result<M.MappedObject>) -> ()
+extension Request
+    where Result: RangeReplaceableCollection,
+    Result.Iterator.Element == Mapping.MappedObject,
+    Mapping.MappedObject: Equatable,
+    Mapping.SequenceKind == Result {
+    
+    func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
+        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: completion)
+    }
+}
+
+extension Request {
+    
+    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
+        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion)
+    }
+}
+
+public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
 
 public class AutoGraph {
     public var baseUrl: String {
@@ -79,20 +117,19 @@ public class AutoGraph {
         self.client.authHandler?.delegate = self
     }
     
-    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
-        (_ request: T, completion: @escaping RequestCompletion<T.Mapping>)
-        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
-        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
-    
-            self.dispatcher.send(request: request, completion: completion)
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
+    where
+    T.Result: RangeReplaceableCollection,
+    T.Result.Iterator.Element == T.Mapping.MappedObject,
+    T.Mapping.MappedObject: Equatable,
+    T.Mapping.SequenceKind == T.Result {
+        
+        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) where T.Mapping.MappedObject: ThreadUnsafe {
-        self.dispatcher.send(request: request, completion: completion)
-    }
-    
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Mapping>) {
-        self.dispatcher.send(request: request, completion: completion)
+    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
+    where T.Result == T.Mapping.MappedObject {
+        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
     public func cancelAll() {
