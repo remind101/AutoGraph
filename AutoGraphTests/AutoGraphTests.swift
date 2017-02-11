@@ -3,7 +3,7 @@ import Alamofire
 import Crust
 import JSONValueRX
 import Realm
-@testable import AutoGraph
+@testable import AutoGraphQL
 
 class AutoGraphTests: XCTestCase {
     

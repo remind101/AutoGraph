@@ -24,7 +24,7 @@
 		CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */; };
 		CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF391E22D270008CE41A /* RLMSupport.swift */; };
 		CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */; };
-		CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraph.framework */; };
+		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDA62C241DB69ADE004BA66D /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
@@ -87,7 +87,7 @@
 		CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RLMArray+Utilities.m"; sourceTree = "<group>"; };
 		CD3BFF391E22D270008CE41A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = RLMSupport.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClient.swift; sourceTree = "<group>"; };
-		CDA62BF91DB16998004BA66D /* AutoGraph.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraph.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CDA62C021DB16999004BA66D /* AutoGraphTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoGraphTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -136,7 +136,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */,
+				CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */,
 				631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -196,7 +196,7 @@
 		CDA62BEF1DB16998004BA66D = {
 			isa = PBXGroup;
 			children = (
-				CDA62BFB1DB16998004BA66D /* AutoGraph */,
+				CDA62BFB1DB16998004BA66D /* AutoGraphQL */,
 				CDA62C061DB16999004BA66D /* AutoGraphTests */,
 				CDA62C1C1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C271DB69ADE004BA66D /* QueryBuilderTests */,
@@ -209,7 +209,7 @@
 		CDA62BFA1DB16998004BA66D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CDA62BF91DB16998004BA66D /* AutoGraph.framework */,
+				CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */,
 				CDA62C021DB16999004BA66D /* AutoGraphTests.xctest */,
 				CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */,
 				CDA62C231DB69ADE004BA66D /* QueryBuilderTests.xctest */,
@@ -217,7 +217,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		CDA62BFB1DB16998004BA66D /* AutoGraph */ = {
+		CDA62BFB1DB16998004BA66D /* AutoGraphQL */ = {
 			isa = PBXGroup;
 			children = (
 				CDA62BFC1DB16998004BA66D /* AutoGraph.h */,
@@ -230,6 +230,7 @@
 				CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
 			);
+			name = AutoGraphQL;
 			path = AutoGraph;
 			sourceTree = "<group>";
 		};
@@ -311,9 +312,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		CDA62BF81DB16998004BA66D /* AutoGraph */ = {
+		CDA62BF81DB16998004BA66D /* AutoGraphQL */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraph" */;
+			buildConfigurationList = CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraphQL" */;
 			buildPhases = (
 				013EF3B7BEB1A0D531FA3239 /* [CP] Check Pods Manifest.lock */,
 				CDA62BF41DB16998004BA66D /* Sources */,
@@ -326,9 +327,9 @@
 			);
 			dependencies = (
 			);
-			name = AutoGraph;
+			name = AutoGraphQL;
 			productName = AutoGraph;
-			productReference = CDA62BF91DB16998004BA66D /* AutoGraph.framework */;
+			productReference = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		CDA62C011DB16999004BA66D /* AutoGraphTests */ = {
@@ -437,7 +438,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CDA62BF81DB16998004BA66D /* AutoGraph */,
+				CDA62BF81DB16998004BA66D /* AutoGraphQL */,
 				CDA62C011DB16999004BA66D /* AutoGraphTests */,
 				CDA62C1A1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C221DB69ADE004BA66D /* QueryBuilderTests */,
@@ -691,7 +692,7 @@
 /* Begin PBXTargetDependency section */
 		CDA62C051DB16999004BA66D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CDA62BF81DB16998004BA66D /* AutoGraph */;
+			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
 			targetProxy = CDA62C041DB16999004BA66D /* PBXContainerItemProxy */;
 		};
 		CDA62C261DB69ADE004BA66D /* PBXTargetDependency */ = {
@@ -982,7 +983,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraph" */ = {
+		CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraphQL" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CDA62C0E1DB16999004BA66D /* Debug */,
