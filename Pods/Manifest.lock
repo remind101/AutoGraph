@@ -1,8 +1,8 @@
 PODS:
   - Alamofire (4.3.0)
-  - Crust (0.2.1):
+  - Crust (0.2.2):
     - JSONValueRX
-  - JSONValueRX (1.4)
+  - JSONValueRX (1.5)
   - OHHTTPStubs (5.2.3):
     - OHHTTPStubs/Default (= 5.2.3)
   - OHHTTPStubs/Core (5.2.3)
@@ -39,12 +39,12 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Alamofire: 856a113053a7bc9cbe5d6367a555d773fc5cfef7
-  Crust: be6021a2e5bc093472dc9f77a2d75cca9acfa338
-  JSONValueRX: 5d6b5805a704a43b7b3ca481e8d0ce71d3823f18
+  Crust: 971c8f5d2fc52971a45acd27f50e41854ffc1968
+  JSONValueRX: 3634641f5db523f926f40f16939ebaf5d1c7fc34
   OHHTTPStubs: ab1dbe01565b50926b639f423bb0ce7ca11f9f00
   Realm: d27b758e12d62a3371879a065d4c40aa212c5a54
   RealmSwift: 9556c0fe0f0cfecacfb755ae9e68ff379fc6bead
 
-PODFILE CHECKSUM: 1614b648ac0fffbf0d75a31c59c465800bf80c9f
+PODFILE CHECKSUM: bb73337b8ef88e1bed6675abc28ed98fd2a6ec59
 
 COCOAPODS: 1.2.0

@@ -11,6 +11,6 @@
 #endif
 
 
-FOUNDATION_EXPORT double Pods_AutoGraphVersionNumber;
-FOUNDATION_EXPORT const unsigned char Pods_AutoGraphVersionString[];
+FOUNDATION_EXPORT double Pods_AutoGraphQLVersionNumber;
+FOUNDATION_EXPORT const unsigned char Pods_AutoGraphQLVersionString[];
 
