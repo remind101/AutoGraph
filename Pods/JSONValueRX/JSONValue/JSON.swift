@@ -114,6 +114,31 @@ public enum JSONValue: CustomStringConvertible {
         return try JSONSerialization.data(withJSONObject: self.values(), options: JSONSerialization.WritingOptions(rawValue: 0))
     }
     
+    public func encodeAsString(_ prettyPrinted: Bool = false) throws -> String {
+        let options = prettyPrinted ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions(rawValue: 0)
+        let (object, isWrapped): (AnyObject, Bool) = {
+            let values = self.values()
+            guard JSONSerialization.isValidJSONObject(values) else {
+                return ([values] as AnyObject, true)
+            }
+            return (values, false)
+        }()
+        let data = try JSONSerialization.data(withJSONObject: object, options: options)
+        guard var string = String(data: data, encoding: .utf8) else {
+            let userInfo = [ NSLocalizedFailureReasonErrorKey : "\(self) cannot be converted to JSON string" ]
+            throw NSError(domain: "JSONValueErrorDomain", code: -1000, userInfo: userInfo)
+        }
+        
+        if isWrapped {
+            let start = string.index(string.startIndex, offsetBy: 1)
+            let end = string.index(string.endIndex, offsetBy: -1)
+            let range = start..<end
+            string = string.substring(with: range)
+        }
+        
+        return string
+    }
+    
     public static func decode(_ data: Data) throws -> JSONValue {
         let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions(rawValue: 0))
         return try JSONValue(object: json)
@@ -319,10 +344,28 @@ extension String: JSONKeypath {
     public var keyPath: String {
         return self
     }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.string(self).encodeAsString()
+    }
 }
 
 extension Int: JSONKeypath {
     public var keyPath: String {
         return String(self)
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(Double(self)).encodeAsString()
+    }
+}
+
+extension Double: JSONKeypath {
+    public var keyPath: String {
+        return String(self)
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(self).encodeAsString()
     }
 }

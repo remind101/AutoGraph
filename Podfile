@@ -4,7 +4,7 @@ platform :ios, '8.0'
 inhibit_all_warnings!
 use_frameworks!
 
-target 'AutoGraph' do
+target 'AutoGraphQL' do
   pod 'Alamofire', '~> 4'
   pod 'Crust'
     
