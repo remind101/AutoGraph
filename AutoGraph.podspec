@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "AutoGraph"
-  s.version          = "0.1"
+  s.version          = "0.1.2"
   s.summary          = "Swift GraphQL Client and Mapping library with Realm support"
 
 # This description is used to generate tags and improve search results.
