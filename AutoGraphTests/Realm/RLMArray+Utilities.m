@@ -116,12 +116,28 @@ NS_ASSUME_NONNULL_BEGIN
 
 @implementation RLMArray (Utilities)
 
++ (instancetype)createInstanceWithClass:(Class)class
+{
+    // TODO exception
+    return [[RLMArray alloc] initWithObjectClassName:NSStringFromClass(class)];
+}
+
 - (void)addObjectNonGeneric:(RLMObject *)object
 {
     [self addObject:object];
 }
 
-- (NSArray<RLMObject *> *)allObjects
+- (nullable NSNumber *)indexOfObjectNonGeneric:(RLMObject *)object
+{
+    NSUInteger index = [self indexOfObject:object];
+    if (index == NSNotFound)
+    {
+        return nil;
+    }
+    return @(index);
+}
+
+- (NSArray<__kindof RLMObject *> *)allObjects
 {
     NSMutableArray *objects = [NSMutableArray array];
     

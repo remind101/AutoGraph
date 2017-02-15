@@ -1,7 +1,7 @@
 import XCTest
 import Alamofire
 import Crust
-@testable import AutoGraph
+@testable import AutoGraphQL
 
 class DispatcherTests: XCTestCase {
     
@@ -19,11 +19,17 @@ class DispatcherTests: XCTestCase {
         }
     }
     
+    class MockQueue: OperationQueue {
+        override func addOperation(_ op: Foundation.Operation) {
+            op.start()
+        }
+    }
+    
     override func setUp() {
         super.setUp()
         
         self.mockRequestSender = MockRequestSender()
-        self.subject = Dispatcher(url: "localhost", requestSender: self.mockRequestSender, responseHandler: ResponseHandler())
+        self.subject = Dispatcher(url: "localhost", requestSender: self.mockRequestSender, responseHandler: ResponseHandler(queue: MockQueue(), callbackQueue: MockQueue()))
     }
     
     override func tearDown() {
@@ -36,11 +42,11 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
@@ -49,7 +55,7 @@ class DispatcherTests: XCTestCase {
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
     }
     
@@ -57,7 +63,7 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         self.subject.cancelAll()
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
@@ -67,11 +73,11 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
         }
         
         self.subject.paused = true
-        self.subject.send(request: request, completion: { _ in })
+        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
         
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -80,5 +86,34 @@ class DispatcherTests: XCTestCase {
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         XCTAssertTrue(self.mockRequestSender.expectation)
+    }
+    
+    class BadRequest: AutoGraphQL.Request {
+        struct BadQuery: GraphQLQuery {
+            func graphQLString() throws -> String {
+                throw NSError(domain: "error", code: -1, userInfo: nil)
+            }
+        }
+        
+        let query = BadQuery()
+        
+        var mapping: Binding<FilmMapping> {
+            return Binding.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+        }
+    }
+    
+    func testFailureReturnsToCaller() {
+        let request = BadRequest ()
+        var called = false
+        let resultBinding = request.generateBinding { result in
+            guard case .failure(_) = result else {
+                XCTFail()
+                return
+            }
+            called = true
+        }
+        
+        self.subject.send(request: BadRequest(), resultBinding: resultBinding)
+        XCTAssertTrue(called)
     }
 }

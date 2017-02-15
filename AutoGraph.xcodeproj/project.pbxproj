@@ -8,9 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		1D48198A7582496B9B5BE891 /* Pods_QueryBuilder_QueryBuilderTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05AB136B7EDCE8041A2B970E /* Pods_QueryBuilder_QueryBuilderTests.framework */; };
-		631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */; };
-		86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */; };
+		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
+		CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */; };
 		CD2014221E30831C00D16F14 /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD2014211E30831C00D16F14 /* FilmRequest.swift */; };
 		CD2014261E308CB600D16F14 /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CD2014251E308CB600D16F14 /* Film.json */; };
 		CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
@@ -24,7 +24,7 @@
 		CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */; };
 		CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF391E22D270008CE41A /* RLMSupport.swift */; };
 		CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */; };
-		CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraph.framework */; };
+		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDA62C241DB69ADE004BA66D /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
@@ -42,6 +42,7 @@
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
+		CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,29 +65,35 @@
 /* Begin PBXFileReference section */
 		0264D743B7EDB3CFDEBEC994 /* Pods-QueryBuilder-QueryBuilderTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.release.xcconfig"; sourceTree = "<group>"; };
 		05AB136B7EDCE8041A2B970E /* Pods_QueryBuilder_QueryBuilderTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_QueryBuilder_QueryBuilderTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C9100F88ADBF578533F392F /* Pods-AutoGraphQL-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_QueryBuilder.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		46C4864E0BB6D37C684EF1B7 /* Pods-AutoGraph.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph/Pods-AutoGraph.debug.xcconfig"; sourceTree = "<group>"; };
 		4F0E467203B1F2B77F41B678 /* Pods-AutoGraph.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph/Pods-AutoGraph.release.xcconfig"; sourceTree = "<group>"; };
 		5420221E40BA8E3E4804AC27 /* Pods-AutoGraph-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
 		68BA57291B4A9A6EDAC19E5D /* Pods-QueryBuilder.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.debug.xcconfig"; sourceTree = "<group>"; };
 		713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		719B779D48913BB08BA56AAD /* Pods-AutoGraphQL.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.release.xcconfig"; sourceTree = "<group>"; };
+		812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraphQL_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
+		9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.debug.xcconfig"; sourceTree = "<group>"; };
+		A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
 		B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.release.xcconfig"; sourceTree = "<group>"; };
 		C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		CD2014211E30831C00D16F14 /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
+		CD2014211E30831C00D16F14 /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = FilmRequest.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD2014251E308CB600D16F14 /* Film.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film.json; sourceTree = "<group>"; };
-		CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Dispatcher.swift; sourceTree = "<group>"; };
+		CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Dispatcher.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandler.swift; sourceTree = "<group>"; };
-		CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseHandler.swift; sourceTree = "<group>"; };
-		CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseHandlerTests.swift; sourceTree = "<group>"; };
+		CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ResponseHandler.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = ResponseHandlerTests.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF341E22D270008CE41A /* Models.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Models.h; sourceTree = "<group>"; };
 		CD3BFF351E22D270008CE41A /* Models.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Models.m; sourceTree = "<group>"; };
 		CD3BFF361E22D270008CE41A /* RealmMappings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmMappings.swift; sourceTree = "<group>"; };
 		CD3BFF371E22D270008CE41A /* RLMArray+Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RLMArray+Utilities.h"; sourceTree = "<group>"; };
 		CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RLMArray+Utilities.m"; sourceTree = "<group>"; };
-		CD3BFF391E22D270008CE41A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMSupport.swift; sourceTree = "<group>"; };
+		CD3BFF391E22D270008CE41A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = RLMSupport.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClient.swift; sourceTree = "<group>"; };
-		CDA62BF91DB16998004BA66D /* AutoGraph.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraph.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CDA62C021DB16999004BA66D /* AutoGraphTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoGraphTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -110,14 +117,15 @@
 		CDBEBEA71E01E92A0029909A /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OHHTTPStubs.framework; path = "Pods/../build/Debug-iphoneos/OHHTTPStubs/OHHTTPStubs.framework"; sourceTree = "<group>"; };
 		CDBEBEA91E1CB1400029909A /* Errors.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		CDBEBEAB1E1CB5E80029909A /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
-		CDBEBEAD1E1D97E60029909A /* AllFilmsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
+		CDBEBEAD1E1D97E60029909A /* AllFilmsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AllFilmsRequest.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClientTests.swift; sourceTree = "<group>"; };
 		CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AuthHandlerTests.swift; sourceTree = "<group>"; };
-		CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatcherTests.swift; sourceTree = "<group>"; };
-		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraph.swift; sourceTree = "<group>"; };
+		CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = DispatcherTests.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
+		CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AutoGraph.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AutoGraphTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDE3C7241E00D23400AB4EB1 /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
+		CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMArrayBridge.swift; sourceTree = "<group>"; };
 		D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -126,7 +134,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				86A7DB4D79406D82583E8E31 /* Pods_AutoGraph.framework in Frameworks */,
+				226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,8 +142,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CDA62C031DB16999004BA66D /* AutoGraph.framework in Frameworks */,
-				631BCCC785AE9C71BC6DAAD3 /* Pods_AutoGraph_AutoGraphTests.framework in Frameworks */,
+				CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */,
+				CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +181,8 @@
 				C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */,
 				2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */,
 				05AB136B7EDCE8041A2B970E /* Pods_QueryBuilder_QueryBuilderTests.framework */,
+				2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */,
+				812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -182,6 +192,7 @@
 			children = (
 				CD3BFF341E22D270008CE41A /* Models.h */,
 				CD3BFF351E22D270008CE41A /* Models.m */,
+				CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */,
 				CD3BFF361E22D270008CE41A /* RealmMappings.swift */,
 				CD3BFF371E22D270008CE41A /* RLMArray+Utilities.h */,
 				CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */,
@@ -193,7 +204,7 @@
 		CDA62BEF1DB16998004BA66D = {
 			isa = PBXGroup;
 			children = (
-				CDA62BFB1DB16998004BA66D /* AutoGraph */,
+				CDA62BFB1DB16998004BA66D /* AutoGraphQL */,
 				CDA62C061DB16999004BA66D /* AutoGraphTests */,
 				CDA62C1C1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C271DB69ADE004BA66D /* QueryBuilderTests */,
@@ -206,7 +217,7 @@
 		CDA62BFA1DB16998004BA66D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CDA62BF91DB16998004BA66D /* AutoGraph.framework */,
+				CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */,
 				CDA62C021DB16999004BA66D /* AutoGraphTests.xctest */,
 				CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */,
 				CDA62C231DB69ADE004BA66D /* QueryBuilderTests.xctest */,
@@ -214,7 +225,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		CDA62BFB1DB16998004BA66D /* AutoGraph */ = {
+		CDA62BFB1DB16998004BA66D /* AutoGraphQL */ = {
 			isa = PBXGroup;
 			children = (
 				CDA62BFC1DB16998004BA66D /* AutoGraph.h */,
@@ -227,6 +238,7 @@
 				CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
 			);
+			name = AutoGraphQL;
 			path = AutoGraph;
 			sourceTree = "<group>";
 		};
@@ -282,6 +294,10 @@
 				B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */,
 				D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */,
 				0264D743B7EDB3CFDEBEC994 /* Pods-QueryBuilder-QueryBuilderTests.release.xcconfig */,
+				9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */,
+				719B779D48913BB08BA56AAD /* Pods-AutoGraphQL.release.xcconfig */,
+				A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */,
+				1C9100F88ADBF578533F392F /* Pods-AutoGraphQL-AutoGraphTests.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -308,9 +324,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		CDA62BF81DB16998004BA66D /* AutoGraph */ = {
+		CDA62BF81DB16998004BA66D /* AutoGraphQL */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraph" */;
+			buildConfigurationList = CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraphQL" */;
 			buildPhases = (
 				013EF3B7BEB1A0D531FA3239 /* [CP] Check Pods Manifest.lock */,
 				CDA62BF41DB16998004BA66D /* Sources */,
@@ -323,9 +339,9 @@
 			);
 			dependencies = (
 			);
-			name = AutoGraph;
+			name = AutoGraphQL;
 			productName = AutoGraph;
-			productReference = CDA62BF91DB16998004BA66D /* AutoGraph.framework */;
+			productReference = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 		CDA62C011DB16999004BA66D /* AutoGraphTests */ = {
@@ -434,7 +450,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CDA62BF81DB16998004BA66D /* AutoGraph */,
+				CDA62BF81DB16998004BA66D /* AutoGraphQL */,
 				CDA62C011DB16999004BA66D /* AutoGraphTests */,
 				CDA62C1A1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C221DB69ADE004BA66D /* QueryBuilderTests */,
@@ -503,7 +519,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		0E1B49F86A0FC193ABCEEA63 /* [CP] Check Pods Manifest.lock */ = {
@@ -533,7 +549,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		354F213F5D985B807AD8ABCE /* [CP] Copy Pods Resources */ = {
@@ -593,7 +609,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraph/Pods-AutoGraph-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		7B1AEEC26433BAF327C93B9B /* [CP] Embed Pods Frameworks */ = {
@@ -652,6 +668,7 @@
 				CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */,
 				CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */,
 				CD3BFF3B1E22D270008CE41A /* RealmMappings.swift in Sources */,
+				CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */,
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */,
@@ -687,7 +704,7 @@
 /* Begin PBXTargetDependency section */
 		CDA62C051DB16999004BA66D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CDA62BF81DB16998004BA66D /* AutoGraph */;
+			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
 			targetProxy = CDA62C041DB16999004BA66D /* PBXContainerItemProxy */;
 		};
 		CDA62C261DB69ADE004BA66D /* PBXTargetDependency */ = {
@@ -801,7 +818,7 @@
 		};
 		CDA62C0E1DB16999004BA66D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 46C4864E0BB6D37C684EF1B7 /* Pods-AutoGraph.debug.xcconfig */;
+			baseConfigurationReference = 9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CLANG_ENABLE_MODULES = YES;
@@ -825,7 +842,7 @@
 		};
 		CDA62C0F1DB16999004BA66D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4F0E467203B1F2B77F41B678 /* Pods-AutoGraph.release.xcconfig */;
+			baseConfigurationReference = 719B779D48913BB08BA56AAD /* Pods-AutoGraphQL.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CLANG_ENABLE_MODULES = YES;
@@ -848,7 +865,7 @@
 		};
 		CDA62C111DB16999004BA66D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5420221E40BA8E3E4804AC27 /* Pods-AutoGraph-AutoGraphTests.debug.xcconfig */;
+			baseConfigurationReference = A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CLANG_ENABLE_MODULES = YES;
@@ -874,7 +891,7 @@
 		};
 		CDA62C121DB16999004BA66D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */;
+			baseConfigurationReference = 1C9100F88ADBF578533F392F /* Pods-AutoGraphQL-AutoGraphTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				CLANG_ENABLE_MODULES = YES;
@@ -978,7 +995,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraph" */ = {
+		CDA62C0D1DB16999004BA66D /* Build configuration list for PBXNativeTarget "AutoGraphQL" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CDA62C0E1DB16999004BA66D /* Debug */,

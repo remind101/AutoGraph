@@ -12,7 +12,7 @@ class Dispatcher {
     let responseHandler: ResponseHandler
     let requestSender: RequestSender
     
-    internal typealias Sendable = (query: Operation, completion: (DataResponse<Any>) -> ())
+    internal typealias Sendable = (query: GraphQLQuery, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
     internal(set) var pendingRequests = [ Sendable ]()
     
     internal var paused = false {
@@ -32,42 +32,18 @@ class Dispatcher {
         self.responseHandler = responseHandler
     }
     
-    public func send<T: Request, SubType: Equatable, SubAdaptor: Adaptor, SubMapping: ArraySubMapping>
-        (request: T, completion: @escaping RequestCompletion<T.Mapping>)
-        where T.Mapping: ArrayMapping<SubType, SubAdaptor, SubMapping>,
-        SubMapping.AdaptorKind == SubAdaptor, SubMapping.MappedObject == SubType, SubType: ThreadUnsafe {
-    
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
+    public func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+    (request: T, resultBinding: ResultBinding<M, CM, C>) {
         
-        guard !self.paused else {
-            self.pendingRequests.append(sendable)
-            return
+        let completion: (DataResponse<Any>) -> () = { [weak self] response in
+            self?.responseHandler.handle(response: response, resultBinding: resultBinding)
         }
         
-        self.send(sendable: sendable)
-    }
-    
-    public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping>) where T.Mapping.MappedObject: ThreadUnsafe {
-        
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
-        
-        guard !self.paused else {
-            self.pendingRequests.append(sendable)
-            return
+        let earlyFailure: (Error) -> () = { [weak self] e in
+            self?.responseHandler.fail(error: e, resultBinding: resultBinding)
         }
         
-        self.send(sendable: sendable)
-    }
-    
-    public func send<T: Request>(request: T, completion: @escaping RequestCompletion<T.Mapping>) {
-        
-        let sendable: Sendable = (query: request.query, completion: { [weak self] response in
-            self?.responseHandler.handle(response: response, mapping: { request.mapping }, completion: completion)
-        })
+        let sendable: Sendable = (query: request.query, completion: completion, earlyFailure: earlyFailure)
         
         guard !self.paused else {
             self.pendingRequests.append(sendable)
@@ -78,7 +54,12 @@ class Dispatcher {
     }
     
     func send(sendable: Sendable) {
-        self.requestSender.sendRequest(url: self.url, parameters: ["query" : sendable.query.graphQLString], completion: sendable.completion)
+        do {
+            self.requestSender.sendRequest(url: self.url, parameters: ["query" : try sendable.query.graphQLString()], completion: sendable.completion)
+        }
+        catch let e {
+            sendable.earlyFailure(e)
+        }
     }
     
     func cancelAll() {

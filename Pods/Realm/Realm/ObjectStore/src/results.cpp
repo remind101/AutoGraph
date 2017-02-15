@@ -367,7 +367,7 @@ util::Optional<Mixed> Results::aggregate(size_t column,
 
 util::Optional<Mixed> Results::max(size_t column)
 {
-    size_t return_ndx;
+    size_t return_ndx = npos;
     auto results = aggregate(column, "max",
                              [&](auto const& table) { return table.maximum_int(column, &return_ndx); },
                              [&](auto const& table) { return table.maximum_float(column, &return_ndx); },
@@ -378,7 +378,7 @@ util::Optional<Mixed> Results::max(size_t column)
 
 util::Optional<Mixed> Results::min(size_t column)
 {
-    size_t return_ndx;
+    size_t return_ndx = npos;
     auto results = aggregate(column, "min",
                              [&](auto const& table) { return table.minimum_int(column, &return_ndx); },
                              [&](auto const& table) { return table.minimum_float(column, &return_ndx); },
@@ -573,7 +573,7 @@ NotificationToken Results::async(std::function<void (std::exception_ptr)> target
     return {m_notifier, m_notifier->add_callback(wrap)};
 }
 
-NotificationToken Results::add_notification_callback(CollectionChangeCallback cb)
+NotificationToken Results::add_notification_callback(CollectionChangeCallback cb) &
 {
     prepare_async();
     return {m_notifier, m_notifier->add_callback(std::move(cb))};

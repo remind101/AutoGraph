@@ -45,7 +45,7 @@ import Realm
         }
     }
     
-    public final class RLMIterator: IteratorProtocol {
+    public final class RLMArrayIterator: IteratorProtocol {
         private let iteratorBase: NSFastEnumerationIterator
         
         internal init(collection: RLMCollection) {
@@ -64,8 +64,8 @@ import Realm
     
     extension RLMCollection {
         // Support Sequence-style enumeration
-        public func makeIterator() -> RLMIterator {
-            return RLMIterator(collection: self)
+        public func makeIterator() -> RLMArrayIterator {
+            return RLMArrayIterator(collection: self)
         }
     }
     

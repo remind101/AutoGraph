@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CDA62BF81DB16998004BA66D"
-               BuildableName = "AutoGraph.framework"
-               BlueprintName = "AutoGraph"
+               BuildableName = "AutoGraphQL.framework"
+               BlueprintName = "AutoGraphQL"
                ReferencedContainer = "container:AutoGraph.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -54,8 +54,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CDA62BF81DB16998004BA66D"
-            BuildableName = "AutoGraph.framework"
-            BlueprintName = "AutoGraph"
+            BuildableName = "AutoGraphQL.framework"
+            BlueprintName = "AutoGraphQL"
             ReferencedContainer = "container:AutoGraph.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -76,8 +76,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CDA62BF81DB16998004BA66D"
-            BuildableName = "AutoGraph.framework"
-            BlueprintName = "AutoGraph"
+            BuildableName = "AutoGraphQL.framework"
+            BlueprintName = "AutoGraphQL"
             ReferencedContainer = "container:AutoGraph.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -94,8 +94,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CDA62BF81DB16998004BA66D"
-            BuildableName = "AutoGraph.framework"
-            BlueprintName = "AutoGraph"
+            BuildableName = "AutoGraphQL.framework"
+            BlueprintName = "AutoGraphQL"
             ReferencedContainer = "container:AutoGraph.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

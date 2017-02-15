@@ -1,22 +1,74 @@
 import Foundation
 import JSONValueRX
 
-public struct MappingOptions: OptionSet {
-    public let rawValue: UInt
-    public init(rawValue: UInt) {
-        self.rawValue = rawValue
+public enum CollectionInsertionMethod<Container: Sequence> {
+    case append
+    case replace(delete: ((_ orphansToDelete: Container) -> Container)?)
+}
+
+public typealias CollectionUpdatePolicy<Container: Sequence> =
+    (insert: CollectionInsertionMethod<Container>, unique: Bool)
+
+public enum Binding<M: Mapping>: Keypath {
+    
+    case mapping(Keypath, M)
+    case collectionMapping(Keypath, M, CollectionUpdatePolicy<M.SequenceKind>)
+    
+    public var keyPath: String {
+        switch self {
+        case .mapping(let keyPath, _):
+            return keyPath.keyPath
+        case .collectionMapping(let keyPath, _, _):
+            return keyPath.keyPath
+        }
     }
-    public static let None = MappingOptions(rawValue: 0)
-    public static let AllowDuplicatesInCollection = MappingOptions(rawValue: 1)
+    
+    public var mapping: M {
+        switch self {
+        case .mapping(_, let mapping):
+            return mapping
+        case .collectionMapping(_, let mapping, _):
+            return mapping
+        }
+    }
+    
+    public var collectionUpdatePolicy: CollectionUpdatePolicy<M.SequenceKind> {
+        switch self {
+        case .mapping(_, _):
+            return (.append, true)
+        case .collectionMapping(_, _, let method):
+            return method
+        }
+    }
 }
 
 public protocol Mapping {
+    /// The class, struct, enum type we are mapping to.
     associatedtype MappedObject
+    
+    /// If we're mapping to a sequence instead of a single object,
+    /// this is the type of sequence we're allowed to map to. Defaults to `Array`.
+    associatedtype SequenceKind: Sequence = [MappedObject]
+    
+    /// The DB adaptor type.
     associatedtype AdaptorKind: Adaptor
     
     var adaptor: AdaptorKind { get }
-    var primaryKeys: [String : Keypath]? { get }
     
+    /// Describes a primary key on the `MappedObject`.
+    /// - property: Primary key property name on `MappedObject`.
+    /// - keyPath: The key path into the JSON blob to retrieve the primary key's value.
+    ///             A `nil` value returns the whole JSON blob for this object.
+    /// - transform: Transform executed on the retrieved primary key's value before usage. The
+    ///             JSON returned from `keyPath` is passed into this transform. A `nil` value
+    ///             means the JSON value is not tranformed before beign used.
+    typealias PrimaryKeyDescriptor = (property: String, keyPath: Keypath?, transform: ((JSONValue) -> CVarArg)?)
+    
+    /// The primaryKeys on `MappedObject`. Primary keys are mapped separately from what is mapped in
+    /// `mapping(tomap:context:)` and are never remapped to objects fetched from the database.
+    var primaryKeys: [PrimaryKeyDescriptor]? { get }
+    
+    /// Override to perform mappings to properties.
     func mapping(tomap: inout MappedObject, context: MappingContext)
 }
 
@@ -87,45 +139,3 @@ public extension Transform {
     }
 }
 
-public enum Spec<T: Mapping>: Keypath {
-    case mapping(Keypath, T)
-    indirect case mappingOptions(Spec, MappingOptions)
-    
-    public var keyPath: String {
-        switch self {
-        case .mapping(let keyPath, _):
-            return keyPath.keyPath
-        case .mappingOptions(let keyPath, _):
-            return keyPath.keyPath
-        }
-    }
-    
-    public var options: MappingOptions {
-        switch self {
-        case .mappingOptions(_, let options):
-            return options
-        default:
-            return [ .None ]
-        }
-    }
-    
-    public var mapping: T {
-        switch self {
-        case .mapping(_, let mapping):
-            return mapping
-        case .mappingOptions(let mapping, _):
-            return mapping.mapping
-        }
-    }
-}
-
-// TODO: Move into JSONValue lib.
-extension NSDate: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> NSDate? {
-        return Date.fromJSON(x) as NSDate?
-    }
-    
-    public static func toJSON(_ x: NSDate) -> JSONValue {
-        return Date.toJSON(x as Date)
-    }
-}

@@ -1,7 +1,7 @@
 import JSONValueRX
 import Crust
 import Realm
-@testable import AutoGraph
+@testable import AutoGraphQL
 
 class FilmRequest: Request {
     /*
@@ -32,33 +32,37 @@ class FilmRequest: Request {
                           fragments: nil,
                           arguments: nil)
     
-    var mapping: FilmMapping {
-        return FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default()))
+    var mapping: Binding<FilmMapping> {
+        return Binding.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
     }
 }
 
-extension Film: ThreadUnsafe { }
+extension RLMObject: ThreadUnsafe {
+    public static var primaryKeys: [String] {
+        guard let primaryKey = self.primaryKey() else {
+            fatalError("Must provide a primary key")
+        }
+        return [primaryKey]
+    }
+ }
 
-class FilmMapping: RealmMapping, ArraySubMapping {
+class FilmMapping: RealmMapping {
+    
     public var adaptor: RealmAdaptor
     
-    public var primaryKeys: [String : Keypath]? {
-        return [ "remoteId" : keyPath + "id" ]
+    public var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
+        return [ ("remoteId", "id", nil) ]
     }
     
     public required init(adaptor: RealmAdaptor) {
         self.adaptor = adaptor
     }
     
-    open var keyPath: String { return "data.film." }
-    
     public func mapping(tomap: inout Film, context: MappingContext) {
-        // TODO: Need to add key path at a global scope...
-        tomap.remoteId      <- (keyPath + "id", context)
-        tomap.title         <- (keyPath + "title", context)
-        tomap.episode       <- (keyPath + "episodeID", context)
-        tomap.openingCrawl  <- (keyPath + "openingCrawl", context)
-        tomap.director      <- (keyPath + "director", context)
+        tomap.title         <- ("title", context)
+        tomap.episode       <- ("episodeID", context)
+        tomap.openingCrawl  <- ("openingCrawl", context)
+        tomap.director      <- ("director", context)
     }
 }
 
