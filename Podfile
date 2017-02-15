@@ -16,6 +16,7 @@ target 'AutoGraphQL' do
 end
 
 target 'QueryBuilder' do
+  pod 'JSONValueRX', '~> 1'
    
   target 'QueryBuilderTests' do
     inherit! :complete
