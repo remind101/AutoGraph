@@ -96,7 +96,7 @@ public class AutoGraph {
         }
     }
     
-    let client: Client
+    public let client: Client
     let dispatcher: Dispatcher
     
     private static let localHost = "http://localhost:8080/graphql"
