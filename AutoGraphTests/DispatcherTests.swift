@@ -36,7 +36,7 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -67,7 +67,7 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : request.query.graphQLString])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
         }
         
         self.subject.paused = true

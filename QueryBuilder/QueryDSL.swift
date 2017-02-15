@@ -1,17 +1,18 @@
 import Foundation
+import JSONValueRX
 
 public protocol QueryConvertible {
-    var graphQLString: String { get }
+    func graphQLString() throws -> String
 }
 
 public protocol Field: QueryConvertible {
     var name: String { get }
     var alias: String? { get }
-    var serializedAlias: String { get }
+    func serializedAlias() throws -> String
 }
 
 public extension Field {
-    var serializedAlias: String {
+    func serializedAlias() throws -> String {
         guard let alias = self.alias else {
             return ""
         }
@@ -21,16 +22,17 @@ public extension Field {
 
 public protocol AcceptsFields {
     var fields: [Field]? { get }
-    var serializedFields: String { get }
+    func serializedFields() throws -> String
 }
 
+// TODO: all serialization should be throwable. construction should not.
 public extension AcceptsFields {
-    var serializedFields: String {
+    func serializedFields() throws -> String {
         guard let fields = self.fields else {
             return ""
         }
         
-        let fieldsList = fields.map { $0.graphQLString }.joined(separator: "\n")
+        let fieldsList = try fields.map { try $0.graphQLString() }.joined(separator: "\n")
         return fieldsList
     }
 }
@@ -56,22 +58,22 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
         self.fragments = fragments
     }
     
-    public var graphQLString: String {
-        return "fragment \(self.name) on \(self.type)\(self.serializedSelectionSet)"
+    public func graphQLString() throws -> String {
+        return "fragment \(self.name) on \(self.type)\(try self.serializedSelectionSet())"
     }
 }
 
 public protocol AcceptsSelectionSet: AcceptsFields {
     var fields: [Field]? { get }
     var fragments: [Fragment]? { get }
-    var serializedFragments: String { get }
-    var serializedSelectionSet: String { get }
+    func serializedFragments() throws -> String
+    func serializedSelectionSet() throws -> String
 }
 
 public extension AcceptsSelectionSet {
-    var serializedSelectionSet: String {
-        let fields = self.serializedFields
-        let fragments = self.serializedFragments
+    public func serializedSelectionSet() throws -> String {
+        let fields = try self.serializedFields()
+        let fragments = try self.serializedFragments()
         let selectionSet = [fields, fragments].flatMap { selection -> String? in
             guard selection.characters.count > 0 else {
                 return nil
@@ -86,7 +88,7 @@ public extension AcceptsSelectionSet {
         return " {\n\(selectionSet)\n}"
     }
     
-    var serializedFragments: String {
+    public func serializedFragments() throws -> String {
         guard let fragments = self.fragments else {
             return ""
         }
@@ -97,22 +99,23 @@ public extension AcceptsSelectionSet {
 }
 
 public protocol Argument {
-    var graphQLArgument: String { get }
+    func graphQLArgument() throws -> String
 }
 
 public protocol AcceptsArguments {
     var arguments: [(key: String, value: Argument)]? { get }
-    var serializedArguments: String { get }
+    func serializedArguments() throws -> String
 }
 
 public extension AcceptsArguments {
-    var serializedArguments: String {
+    func serializedArguments() throws -> String {
+        
         guard let arguments = self.arguments else {
             return ""
         }
         
-        let argumentsList = arguments.map { (key, value) in
-            "\(key): \(value.graphQLArgument)"
+        let argumentsList = try arguments.map { (key, value) in
+            "\(key): \(try value.graphQLArgument())"
         }.joined(separator: ", ")
         
         return "(\(argumentsList))"
@@ -128,8 +131,8 @@ public struct Scalar: Field {
         self.alias = alias
     }
     
-    public var graphQLString: String {
-        return "\(self.serializedAlias)\(name)"
+    public func graphQLString() throws -> String {
+        return "\(try self.serializedAlias())\(name)"
     }
 }
 
@@ -150,8 +153,8 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
         self.arguments = arguments
     }
     
-    public var graphQLString: String {
-        return "\(self.serializedAlias)\(name)\(self.serializedArguments)\(self.serializedSelectionSet)"
+    public func graphQLString() throws -> String {
+        return "\(try self.serializedAlias())\(name)\(try self.serializedArguments())\(try self.serializedSelectionSet())"
     }
 }
 
@@ -160,7 +163,7 @@ public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments
         case query
         case mutation
         
-        public var graphQLString: String {
+        public func graphQLString() throws -> String {
             switch self {
             case .query:
                 return "query"
@@ -184,7 +187,7 @@ public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments
         self.arguments = arguments
     }
     
-    public var graphQLString: String {
-        return "\(self.type.graphQLString) \(self.name)\(self.serializedArguments)\(self.serializedSelectionSet)"
+    public func graphQLString() throws -> String {
+        return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedArguments())\(try self.serializedSelectionSet())"
     }
 }

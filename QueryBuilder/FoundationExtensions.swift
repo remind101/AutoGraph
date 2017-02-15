@@ -1,12 +1,8 @@
 import Foundation
 
 extension String: Argument {
-    public var graphQLArgument: String {
-        return self.quoted
-    }
-    
-    public var quoted: String {
-        return "\"\(self)\""
+    public func graphQLArgument() throws -> String {
+        return try self.jsonEncodedString()
     }
     
     // TODO: At somepoint we can "verifyNoWhitespace" and throw an error instead.
@@ -20,7 +16,7 @@ extension String: Argument {
 }
 
 extension Int: Argument {
-    public var graphQLArgument: String {
-        return String(self)
+    public func graphQLArgument() throws -> String {
+        return try self.jsonEncodedString()
     }
 }

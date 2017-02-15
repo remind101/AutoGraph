@@ -8,7 +8,7 @@ class FieldTests: XCTestCase {
             return "mock"
         }
         var alias: String?
-        var graphQLString: String {
+        func graphQLString() throws -> String {
             return "blah"
         }
     }
@@ -22,9 +22,9 @@ class FieldTests: XCTestCase {
     }
     
     func testSerializeAlias() {
-        XCTAssertEqual(self.subject.serializedAlias, "")
+        XCTAssertEqual(try! self.subject.serializedAlias(), "")
         self.subject.alias = "field"
-        XCTAssertEqual(self.subject.serializedAlias, "field: ")
+        XCTAssertEqual(try! self.subject.serializedAlias(), "field: ")
     }
 }
 
@@ -43,14 +43,14 @@ class AcceptsFieldsTests: XCTestCase {
     }
     
     func testSerializedFields() {
-        XCTAssertEqual(self.subject.serializedFields, "")
+        XCTAssertEqual(try! self.subject.serializedFields(), "")
         
         let scalar1 = Scalar(name: "scalar1", alias: nil)
         let scalar2 = Scalar(name: "scalar2", alias: "derp")
         let object = Object(name: "obj", alias: "cool", fields: [scalar2], fragments: nil, arguments: [("key", "value")])
         
         self.subject.fields = [ scalar1, object ]
-        XCTAssertEqual(self.subject.serializedFields, "scalar1\ncool: obj(key: \"value\") {\nderp: scalar2\n}")
+        XCTAssertEqual(try! self.subject.serializedFields(), "scalar1\ncool: obj(key: \"value\") {\nderp: scalar2\n}")
     }
 }
 
@@ -60,12 +60,12 @@ class ScalarTests: XCTestCase {
     
     func testGraphQLStringWithAlias() {
         self.subject = Scalar(name: "scalar", alias: "cool_alias")
-        XCTAssertEqual(self.subject.graphQLString, "cool_alias: scalar")
+        XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: scalar")
     }
     
     func testGraphQLStringWithoutAlias() {
         self.subject = Scalar(name: "scalar", alias: nil)
-        XCTAssertEqual(self.subject.graphQLString, "scalar")
+        XCTAssertEqual(try! self.subject.graphQLString(), "scalar")
     }
 }
 
@@ -75,12 +75,12 @@ class ObjectTests: XCTestCase {
     
     func testGraphQLStringWithAlias() {
         self.subject = Object(name: "obj", alias: "cool_alias", fields: nil, fragments: nil, arguments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "cool_alias: obj")
+        XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj")
     }
     
     func testGraphQLStringWithoutAlias() {
         self.subject = Object(name: "obj", alias: nil, fields: nil, fragments: nil, arguments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "obj")
+        XCTAssertEqual(try! self.subject.graphQLString(), "obj")
     }
     
     func testGraphQLStringWithScalarFields() {
@@ -88,7 +88,7 @@ class ObjectTests: XCTestCase {
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
         self.subject = Object(name: "obj", alias: "cool_alias", fields: [scalar1, scalar2], fragments: nil, arguments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "cool_alias: obj {\ncool_scalar: scalar1\nscalar2\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_scalar: scalar1\nscalar2\n}")
     }
     
     func testGraphQLStringWithObjectFields() {
@@ -97,7 +97,7 @@ class ObjectTests: XCTestCase {
         let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1], fragments: nil, arguments: nil)
         
         self.subject = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2], fragments: nil, arguments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
     }
 }
 
@@ -120,7 +120,7 @@ class FragmentTests: XCTestCase {
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
         self.subject = Fragment(name: "frag", type: "CoolType", fields: [scalar1, scalar2], fragments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "fragment frag on CoolType {\ncool_scalar: scalar1\nscalar2\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\ncool_scalar: scalar1\nscalar2\n}")
     }
     
     func testGraphQLStringWithObjectFields() {
@@ -129,7 +129,7 @@ class FragmentTests: XCTestCase {
         let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1], fragments: nil, arguments: nil)
         
         self.subject = Fragment(name: "frag", type: "CoolType", fields: [subobj, scalar2], fragments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "fragment frag on CoolType {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
     }
     
     func testGraphQLStringWithFragments() {
@@ -139,7 +139,7 @@ class FragmentTests: XCTestCase {
         let fragment2 = Fragment(name: "frag2", type: "Freggie", fields: [scalar2], fragments: nil)!
         
         self.subject = Fragment(name: "frag", type: "CoolType", fields: nil, fragments: [fragment1, fragment2])
-        XCTAssertEqual(self.subject.graphQLString, "fragment frag on CoolType {\n...frag1\n...frag2\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\n...frag1\n...frag2\n}")
     }
 }
 
@@ -150,13 +150,13 @@ class OperationTests: XCTestCase {
         
         let scalar = Scalar(name: "name", alias: nil)
         self.subject = QueryBuilder.Operation(type: .query, name: "Bullshit", fields: [scalar], fragments: nil, arguments: nil)
-        XCTAssertEqual(self.subject.graphQLString, "query Bullshit {\nname\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "query Bullshit {\nname\n}")
     }
     
     func testMutationForms() {
         
         let scalar = Scalar(name: "name", alias: nil)
         self.subject = QueryBuilder.Operation(type: .mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: [("name", "olga")])
-        XCTAssertEqual(self.subject.graphQLString, "mutation Bullshit(name: \"olga\") {\nname\n}")
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Bullshit(name: \"olga\") {\nname\n}")
     }
 }

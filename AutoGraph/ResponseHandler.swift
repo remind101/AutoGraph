@@ -67,13 +67,13 @@ class ResponseHandler {
     
     // MARK: - Post mapping.
     
-    private func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
+    func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
         self.callbackQueue.addOperation {
             completion(.failure(error))
         }
     }
     
-    private func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
+    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
         switch resultBinding {
         case .object(mappingBinding: _, completion: let completion):
             self.fail(error: error, completion: completion)
