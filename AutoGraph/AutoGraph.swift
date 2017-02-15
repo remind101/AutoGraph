@@ -9,7 +9,7 @@ public protocol Cancellable {
 
 public protocol Client: RequestSender, Cancellable {
     var baseUrl: String { get }
-    var authHandler: AuthHandler? { get }
+    var authHandler: AuthHandler { get }
 }
 
 /// Declare a Mapped type as `ThreadUnsafe` if the object being mapped cannot be safely
@@ -96,7 +96,7 @@ public class AutoGraph {
         }
     }
     
-    let client: Client
+    public let client: Client
     let dispatcher: Dispatcher
     
     private static let localHost = "http://localhost:8080/graphql"
@@ -104,7 +104,7 @@ public class AutoGraph {
     public required init(client: Client = AlamofireClient(baseUrl: localHost)) {
         self.client = client
         self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        self.client.authHandler?.delegate = self
+        self.client.authHandler.delegate = self
     }
     
     internal convenience init() {
@@ -116,7 +116,7 @@ public class AutoGraph {
     internal init(client: Client, dispatcher: Dispatcher) {
         self.client = client
         self.dispatcher = dispatcher
-        self.client.authHandler?.delegate = self
+        self.client.authHandler.delegate = self
     }
     
     public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
