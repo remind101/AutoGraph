@@ -158,7 +158,9 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     }
 }
 
-public struct Operation: AcceptsSelectionSet, QueryConvertible, AcceptsArguments {
+public protocol GraphQLQuery: QueryConvertible { }
+
+public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
     public enum OperationType: QueryConvertible {
         case query
         case mutation

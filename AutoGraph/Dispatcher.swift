@@ -12,7 +12,7 @@ class Dispatcher {
     let responseHandler: ResponseHandler
     let requestSender: RequestSender
     
-    internal typealias Sendable = (query: Operation, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
+    internal typealias Sendable = (query: GraphQLQuery, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
     internal(set) var pendingRequests = [ Sendable ]()
     
     internal var paused = false {

@@ -46,8 +46,10 @@ public protocol Request {
     /// E.g if the requests returns an array then change to `[Mapping.MappedObject]`.
     associatedtype Result = Mapping.MappedObject
     
+    associatedtype Query: GraphQLQuery
+    
     /// The query to be sent to GraphQL.
-    var query: Operation { get }
+    var query: Query { get }
     
     /// The mapping to use when mapping JSON into the a concrete type.
     ///
@@ -105,13 +107,13 @@ public class AutoGraph {
         self.client.authHandler?.delegate = self
     }
     
-    convenience init() {
+    internal convenience init() {
         let client = AlamofireClient(baseUrl: AutoGraph.localHost)
         let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
         self.init(client: client, dispatcher: dispatcher)
     }
     
-    init(client: Client, dispatcher: Dispatcher) {
+    internal init(client: Client, dispatcher: Dispatcher) {
         self.client = client
         self.dispatcher = dispatcher
         self.client.authHandler?.delegate = self
