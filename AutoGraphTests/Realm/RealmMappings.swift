@@ -66,7 +66,8 @@ public class RealmAdaptor: Adaptor {
         }
         if self.realm.inWriteTransaction {
             try saveBlock()
-        } else {
+        }
+        else {
             self.realm.beginWriteTransaction()
             try saveBlock()
             try self.realm.commitWriteTransaction()
@@ -80,7 +81,8 @@ public class RealmAdaptor: Adaptor {
         }
         if self.realm.inWriteTransaction {
             deleteBlock()
-        } else {
+        }
+        else {
             self.realm.beginWriteTransaction()
             deleteBlock()
             try self.realm.commitWriteTransaction()

@@ -23,7 +23,17 @@ class AlamofireClientTests: XCTestCase {
     
     func testSetsRetrierAndAdaptorOnSession() {
         let sessionManager = Alamofire.SessionManager.default
-        let authHandler = self.subject.authHandler!
+        let authHandler = self.subject.authHandler
+        XCTAssertEqual(ObjectIdentifier(sessionManager.retrier! as! AuthHandler), ObjectIdentifier(authHandler))
+        XCTAssertEqual(ObjectIdentifier(sessionManager.adapter! as! AuthHandler), ObjectIdentifier(authHandler))
+    }
+    
+    func testUpdatesRetrierAndAdaptorWithNewAuthHandler() {
+        let sessionManager = Alamofire.SessionManager.default
+        let authHandler = AuthHandler(baseUrl: "localhost",
+                                      accessToken: nil,
+                                      refreshToken: nil)
+        self.subject.authHandler = authHandler
         XCTAssertEqual(ObjectIdentifier(sessionManager.retrier! as! AuthHandler), ObjectIdentifier(authHandler))
         XCTAssertEqual(ObjectIdentifier(sessionManager.adapter! as! AuthHandler), ObjectIdentifier(authHandler))
     }

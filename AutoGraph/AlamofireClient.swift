@@ -8,7 +8,12 @@ public class AlamofireClient: Client {
     private let sessionManager: SessionManager
     
     public let baseUrl: String
-    public var authHandler: AuthHandler?
+    public var authHandler: AuthHandler {
+        didSet {
+            self.sessionManager.adapter = self.authHandler
+            self.sessionManager.retrier = self.authHandler
+        }
+    }
     
     public var tokens: AuthTokens {
         set {
@@ -17,8 +22,8 @@ public class AlamofireClient: Client {
                                            refreshToken: newValue.refreshToken)
         }
         get {
-            return (accessToken: self.authHandler?.accessToken,
-                    refreshToken: self.authHandler?.refreshToken)
+            return (accessToken: self.authHandler.accessToken,
+                    refreshToken: self.authHandler.refreshToken)
         }
     }
     
@@ -31,8 +36,8 @@ public class AlamofireClient: Client {
         self.baseUrl = baseUrl
         self.authHandler = AuthHandler(baseUrl: baseUrl, accessToken: accessToken, refreshToken: refreshToken)
         
-        sessionManager.adapter = self.authHandler
-        sessionManager.retrier = self.authHandler
+        self.sessionManager.adapter = self.authHandler
+        self.sessionManager.retrier = self.authHandler
     }
     
     public func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ()) {

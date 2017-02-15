@@ -15,7 +15,7 @@ class AutoGraphTests: XCTestCase {
     }
     
     class MockClient: Client {
-        public var authHandler: AuthHandler? = nil
+        public var authHandler: AuthHandler = AuthHandler(baseUrl: "localhost", accessToken: nil, refreshToken: nil)
         public var baseUrl: String = ""
 
         var cancelCalled = false
