@@ -7,9 +7,13 @@ public protocol Cancellable {
     func cancelAll()
 }
 
+public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
+
 public protocol Client: RequestSender, Cancellable {
     var baseUrl: String { get }
     var authHandler: AuthHandler { get }
+    var sessionConfiguration: URLSessionConfiguration { get }
+    var tokens: AuthTokens { get set }
 }
 
 /// Declare a Mapped type as `ThreadUnsafe` if the object being mapped cannot be safely

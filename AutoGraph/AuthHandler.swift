@@ -20,17 +20,9 @@ public class AuthHandler {
     internal weak var delegate: AuthHandlerDelegate?
     public weak var reauthenticationDelegate: ReauthenticationDelegate?
     
-    fileprivate let sessionManager: SessionManager = {
-        let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
-        
-        return SessionManager(configuration: configuration)
-    }()
-    
     public let baseUrl: String
     public fileprivate(set) var accessToken: String?
     public fileprivate(set) var refreshToken: String?
-    
     public fileprivate(set) var isRefreshing = false
     
     fileprivate let lock = NSLock()

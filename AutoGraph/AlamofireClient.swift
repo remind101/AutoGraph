@@ -1,18 +1,19 @@
 import Foundation
 import Alamofire
 
-public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
-
 public class AlamofireClient: Client {
     
-    private let sessionManager: SessionManager
-    
+    public let sessionManager: SessionManager
     public let baseUrl: String
     public var authHandler: AuthHandler {
         didSet {
             self.sessionManager.adapter = self.authHandler
             self.sessionManager.retrier = self.authHandler
         }
+    }
+    
+    public var sessionConfiguration: URLSessionConfiguration {
+        return self.sessionManager.session.configuration
     }
     
     public var tokens: AuthTokens {
@@ -27,10 +28,10 @@ public class AlamofireClient: Client {
         }
     }
     
-    public init(baseUrl: String,
-                accessToken: String? = nil,
-                refreshToken: String? = nil,
-                sessionManager: SessionManager = Alamofire.SessionManager.default) {
+    public required init(baseUrl: String,
+                         accessToken: String? = nil,
+                         refreshToken: String? = nil,
+                         sessionManager: SessionManager = Alamofire.SessionManager.default) {
         
         self.sessionManager = sessionManager
         self.baseUrl = baseUrl
