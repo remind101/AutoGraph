@@ -16,7 +16,7 @@ class AutoGraphTests: XCTestCase {
     
     class MockClient: Client {
         public var sessionConfiguration: URLSessionConfiguration = URLSessionConfiguration.default
-        public var tokens: AuthTokens = ("", "")
+        public var authTokens: AuthTokens = ("", "")
         public var authHandler: AuthHandler = AuthHandler(baseUrl: "localhost", accessToken: nil, refreshToken: nil)
         public var baseUrl: String = ""
 
