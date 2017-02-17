@@ -87,14 +87,14 @@ extension Request {
 
 public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
 
-public class AutoGraph {
+open class AutoGraph {
     public var baseUrl: String {
         get {
             return self.client.baseUrl
         }
     }
     
-    public var authHandler: AuthHandler? {
+    public var authHandler: AuthHandler {
         get {
             return self.client.authHandler
         }
@@ -138,9 +138,18 @@ public class AutoGraph {
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
+    public func triggerReauthentication() {
+        self.authHandler.reauthenticate()
+    }
+    
     public func cancelAll() {
         self.dispatcher.cancelAll()
         self.client.cancelAll()
+    }
+    
+    open func reset() {
+        self.cancelAll()
+        self.dispatcher.paused = false
     }
 }
 

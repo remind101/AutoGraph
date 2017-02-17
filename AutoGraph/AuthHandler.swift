@@ -80,6 +80,15 @@ extension AuthHandler: RequestRetrier {
         
         self.requestsToRetry.append(completion)
         
+        self.reauthenticate()
+    }
+    
+    func reauthenticate() {
+        self.lock.lock()
+        defer {
+            self.lock.unlock()
+        }
+        
         guard !self.isRefreshing else {
             return
         }

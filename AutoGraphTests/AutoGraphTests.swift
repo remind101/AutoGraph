@@ -118,6 +118,13 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(mockDispatcher.cancelCalled)
     }
     
+    func testTriggeringReauthenticationPausesSystem() {
+        self.subject.triggerReauthentication()
+        self.waitFor(delay: 0.01)
+        XCTAssertTrue(self.subject.dispatcher.paused)
+        XCTAssertTrue(self.subject.authHandler.isRefreshing)
+    }
+    
     func waitFor(delay: TimeInterval) {
         let expectation = self.expectation(description: "wait")
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
