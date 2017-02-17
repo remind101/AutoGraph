@@ -25,7 +25,7 @@ public class AuthHandler {
     public fileprivate(set) var refreshToken: String?
     public fileprivate(set) var isRefreshing = false
     
-    fileprivate let lock = NSLock()
+    fileprivate let lock = NSRecursiveLock()
     fileprivate let callbackQueue: DispatchQueue
     fileprivate var requestsToRetry: [RequestRetryCompletion] = []
     
