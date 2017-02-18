@@ -56,9 +56,10 @@ class Stub {
                 return false
             }
             
-            let queryItems = URLComponents(string: url.absoluteString)?.queryItems
-            let query = queryItems?.filter({ $0.name == "query" }).first
-            guard query?.value?.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
+            let body = (request as NSURLRequest).ohhttpStubs_HTTPBody()!
+            let jsonBody = try? JSONSerialization.jsonObject(with: body, options: JSONSerialization.ReadingOptions(rawValue: 0))
+            let query = (jsonBody as! [String : String])["query"]
+            guard query?.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
                     return false
             }
             

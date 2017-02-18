@@ -15,6 +15,8 @@ class AutoGraphTests: XCTestCase {
     }
     
     class MockClient: Client {
+        public var sessionConfiguration: URLSessionConfiguration = URLSessionConfiguration.default
+        public var authTokens: AuthTokens = ("", "")
         public var authHandler: AuthHandler = AuthHandler(baseUrl: "localhost", accessToken: nil, refreshToken: nil)
         public var baseUrl: String = ""
 
@@ -22,6 +24,7 @@ class AutoGraphTests: XCTestCase {
         func cancelAll() {
             cancelCalled = true
         }
+        
         func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ()) { }
     }
     
@@ -113,6 +116,13 @@ class AutoGraphTests: XCTestCase {
         
         XCTAssertTrue(mockClient.cancelCalled)
         XCTAssertTrue(mockDispatcher.cancelCalled)
+    }
+    
+    func testTriggeringReauthenticationPausesSystem() {
+        self.subject.triggerReauthentication()
+        self.waitFor(delay: 0.01)
+        XCTAssertTrue(self.subject.dispatcher.paused)
+        XCTAssertTrue(self.subject.authHandler.isRefreshing)
     }
     
     func waitFor(delay: TimeInterval) {

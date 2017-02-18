@@ -20,20 +20,12 @@ public class AuthHandler {
     internal weak var delegate: AuthHandlerDelegate?
     public weak var reauthenticationDelegate: ReauthenticationDelegate?
     
-    fileprivate let sessionManager: SessionManager = {
-        let configuration = URLSessionConfiguration.default
-        configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
-        
-        return SessionManager(configuration: configuration)
-    }()
-    
     public let baseUrl: String
     public fileprivate(set) var accessToken: String?
     public fileprivate(set) var refreshToken: String?
-    
     public fileprivate(set) var isRefreshing = false
     
-    fileprivate let lock = NSLock()
+    fileprivate let lock = NSRecursiveLock()
     fileprivate let callbackQueue: DispatchQueue
     fileprivate var requestsToRetry: [RequestRetryCompletion] = []
     
@@ -88,6 +80,15 @@ extension AuthHandler: RequestRetrier {
         
         self.requestsToRetry.append(completion)
         
+        self.reauthenticate()
+    }
+    
+    func reauthenticate() {
+        self.lock.lock()
+        defer {
+            self.lock.unlock()
+        }
+        
         guard !self.isRefreshing else {
             return
         }
@@ -102,12 +103,12 @@ extension AuthHandler: RequestRetrier {
             strongSelf.reauthenticationDelegate?.autoGraphRequiresReauthentication(accessToken: strongSelf.accessToken, refreshToken: strongSelf.refreshToken) {
                 [weak self] succeeded, accessToken, refreshToken in
                 
-                self?.reauthenticated(succuss: succeeded, accessToken: accessToken, refreshToken: refreshToken)
+                self?.reauthenticated(success: succeeded, accessToken: accessToken, refreshToken: refreshToken)
             }
         }
     }
     
-    func reauthenticated(succuss: Bool, accessToken: String?, refreshToken: String?) -> Void {
+    func reauthenticated(success: Bool, accessToken: String?, refreshToken: String?) -> Void {
         self.lock.lock()
         defer {
             self.lock.unlock()
@@ -118,10 +119,14 @@ extension AuthHandler: RequestRetrier {
             self.refreshToken = refreshToken
         }
         
-        self.requestsToRetry.forEach { $0(succuss, 0.0) }
+        self.requestsToRetry.forEach { $0(success, 0.0) }
         self.requestsToRetry.removeAll()
         
+        guard self.isRefreshing else {
+            return
+        }
+        
         self.isRefreshing = false
-        self.delegate?.authHandler(self, reauthenticatedSuccessfully: succuss)
+        self.delegate?.authHandler(self, reauthenticatedSuccessfully: success)
     }
 }
