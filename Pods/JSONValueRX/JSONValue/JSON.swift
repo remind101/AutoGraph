@@ -163,6 +163,8 @@ public enum JSONValue: CustomStringConvertible {
                 default:
                     return self[index.keyPath]
                 }
+            case .null():
+                return .null()
             default:
                 return nil
             }
@@ -195,7 +197,8 @@ public enum JSONValue: CustomStringConvertible {
             let components = index.components(separatedBy: ".")
             if let result = self[components] {
                 return result
-            } else {
+            }
+            else {
                 return self[[index]]
             }
         }
@@ -216,11 +219,14 @@ public enum JSONValue: CustomStringConvertible {
             case .object(let obj):
                 if let next = obj[key] {
                     return next[Array(keys)]
-                } else {
+                }
+                else {
                     return nil
                 }
             case .array(let arr):
                 return .array(arr.flatMap { $0[index] })
+            case .null():
+                return .null()
             default:
                 return nil
             }
@@ -235,7 +241,8 @@ public enum JSONValue: CustomStringConvertible {
                 case .object(var obj):
                     if (newValue != nil) {
                         obj.updateValue(newValue!, forKey: key)
-                    } else {
+                    }
+                    else {
                         obj.removeValue(forKey: key)
                     }
                     self = .object(obj)
