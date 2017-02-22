@@ -114,9 +114,13 @@ extension AuthHandler: RequestRetrier {
             self.lock.unlock()
         }
         
-        if let accessToken = accessToken, let refreshToken = refreshToken {
+        if success {
             self.accessToken = accessToken
             self.refreshToken = refreshToken
+        }
+        else {
+            self.accessToken = nil
+            self.refreshToken = nil
         }
         
         self.requestsToRetry.forEach { $0(success, 0.0) }
