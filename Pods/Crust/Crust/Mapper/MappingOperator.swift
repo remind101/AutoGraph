@@ -72,7 +72,7 @@ public func map<T: JSONable, C: MappingContext>(to field: inout T, via keyPath:(
                 try map(from: baseJSON, to: &field)
             }
             else {
-                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Could not find value in JSON \(keyPath.context.json) from keyPath \(keyPath.key)" ]
+                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Could not find value in JSON \(keyPath.context.json.values()) from keyPath \(keyPath.key)" ]
                 throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         }
@@ -101,7 +101,7 @@ public func map<T: JSONable, C: MappingContext>(to field: inout T?, via keyPath:
                 try map(from: baseJSON, to: &field)
             }
             else {
-                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Value not present in JSON \(keyPath.context.json) from keyPath \(keyPath.key)" ]
+                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Value not present in JSON \(keyPath.context.json.values()) from keyPath \(keyPath.key)" ]
                 throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
             }
         }
@@ -225,7 +225,7 @@ private func map<T: JSONable>(from json: JSONValue, to field: inout T) throws wh
         field = fromJson
     }
     else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json) to type \(T.self) failed" ]
+        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json.values()) to type \(T.self) failed" ]
         throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
     }
 }
@@ -241,7 +241,7 @@ private func map<T: JSONable>(from json: JSONValue, to field: inout T?) throws w
         field = fromJson
     }
     else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json) to type \(T.self) failed" ]
+        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json.values()) to type \(T.self) failed" ]
         throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
     }
 }

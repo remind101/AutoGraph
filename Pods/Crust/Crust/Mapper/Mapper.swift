@@ -124,7 +124,7 @@ public extension Mapping {
             let key = keyPath?.keyPath
             let baseJson = key != nil ? json[key!] : json
             if let val = baseJson {
-                keyValues[primaryKey] = transform?(val) ?? val.valuesAsNSObjects()
+                keyValues[primaryKey] = try transform?(val) ?? val.valuesAsNSObjects()
             }
             else {
                 let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(keyPath) does not exist in JSON but is expected from mapping \(Self.self)" ]

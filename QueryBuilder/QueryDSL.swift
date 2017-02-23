@@ -25,7 +25,6 @@ public protocol AcceptsFields {
     func serializedFields() throws -> String
 }
 
-// TODO: all serialization should be throwable. construction should not.
 public extension AcceptsFields {
     func serializedFields() throws -> String {
         guard let fields = self.fields else {

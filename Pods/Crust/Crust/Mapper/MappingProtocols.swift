@@ -60,9 +60,10 @@ public protocol Mapping {
     /// - keyPath: The key path into the JSON blob to retrieve the primary key's value.
     ///             A `nil` value returns the whole JSON blob for this object.
     /// - transform: Transform executed on the retrieved primary key's value before usage. The
-    ///             JSON returned from `keyPath` is passed into this transform. A `nil` value
-    ///             means the JSON value is not tranformed before beign used.
-    typealias PrimaryKeyDescriptor = (property: String, keyPath: Keypath?, transform: ((JSONValue) -> CVarArg)?)
+    ///             JSON returned from `keyPath` is passed into this transform. A `nil` 
+    ///             or `nil` returned value means the JSON value is not tranformed before
+    ///             being used. Can `throw` an error which stops mapping and return the error to the caller.
+    typealias PrimaryKeyDescriptor = (property: String, keyPath: Keypath?, transform: ((JSONValue) throws -> CVarArg?)?)
     
     /// The primaryKeys on `MappedObject`. Primary keys are mapped separately from what is mapped in
     /// `mapping(tomap:context:)` and are never remapped to objects fetched from the database.
