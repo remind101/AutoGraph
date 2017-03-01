@@ -43,14 +43,7 @@ public class Dispatcher {
             self?.responseHandler.fail(error: e, resultBinding: resultBinding)
         }
         
-        let willSend: (() throws -> ())? = {
-            guard let lifeCycle = request.lifeCycle else {
-                return nil
-            }
-            return { try lifeCycle.willSend(request: request as! T.T) }
-        }()
-        
-        let sendable: Sendable = (query: request.query, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
+        let sendable: Sendable = (query: request.query, willSend: request.willSend, completion: completion, earlyFailure: earlyFailure)
         
         guard !self.paused else {
             self.pendingRequests.append(sendable)

@@ -56,7 +56,7 @@ open class GlobalLifeCycle {
     open func didFinish<R: Request>(result: Result<R.Result>) throws { }
 }
 
-public protocol Request: LifeCycleRequest {
+public protocol Request {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
     /// `Mapping.MappedObject`.
     associatedtype Mapping: Crust.Mapping
@@ -68,8 +68,8 @@ public protocol Request: LifeCycleRequest {
     associatedtype Query: GraphQLQuery
     
     /// Hooks for the life cycle of the request.
-    associatedtype T: LifeCycleRequest = Self
-    var lifeCycle: LifeCycle<T>? { get }
+    func willSend() throws
+    func didFinish(result: AutoGraphQL.Result<Result>) throws
     
     /// The query to be sent to GraphQL.
     var query: Query { get }
@@ -86,10 +86,9 @@ public protocol Request: LifeCycleRequest {
     var mapping: Binding<Mapping> { get }
 }
 
-public extension Request {
-    var lifeCycle: LifeCycle<T>? {
-        return nil
-    }
+extension Request {
+    func willSend() throws { }
+    func didFinish(result: AutoGraphQL.Result<Result>) throws { }
 }
 
 extension Request
@@ -98,10 +97,10 @@ extension Request
     Mapping.MappedObject: Equatable {
     
     func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
-        let didFinish = self.lifeCycle?.didFinish
+        let didFinish = self.didFinish
         let lifeCycleCompletion: RequestCompletion<Result> = { result in
             do {
-                try didFinish?(result.map { $0 as! Self.T.Result })
+                try didFinish(result)
                 completion(result)
             }
             catch let e {
@@ -115,10 +114,10 @@ extension Request
 
 extension Request where Result == Mapping.MappedObject {
     func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
-        let didFinish = self.lifeCycle?.didFinish
+        let didFinish = self.didFinish
         let lifeCycleCompletion: RequestCompletion<Result> = { result in
             do {
-                try didFinish?(result.map { $0 as! Self.T.Result })
+                try didFinish(result)
                 completion(result)
             }
             catch let e {
