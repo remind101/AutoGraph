@@ -114,7 +114,7 @@ public class ResponseHandler {
          json: JSONValue,
          mapping: @escaping () -> Binding<Mapping>,
          completion: @escaping RequestCompletion<Result>)
-        where Result.Iterator.Element == Mapping.MappedObject, Mapping.SequenceKind == Result, Mapping.MappedObject: Equatable {
+        where Result.Iterator.Element == Mapping.MappedObject, Mapping.MappedObject: Equatable {
     
         guard
             case let unsafeResults as [ThreadUnsafe] = result

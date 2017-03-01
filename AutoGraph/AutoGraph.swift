@@ -36,7 +36,7 @@ class VoidMapping: AnyMapping {
 // TODO: We should support non-equatable collections.
 // TOOD: We should better apply currying and futures to clean some of this up.
 public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
-where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
+where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
     
     case object(
         mappingBinding: () -> Binding<M>,
@@ -97,8 +97,7 @@ public extension Request {
 extension Request
     where Result: RangeReplaceableCollection,
     Result.Iterator.Element == Mapping.MappedObject,
-    Mapping.MappedObject: Equatable,
-    Mapping.SequenceKind == Result {
+    Mapping.MappedObject: Equatable {
     
     func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
         let didFinish = self.lifeCycle?.didFinish
@@ -155,8 +154,7 @@ open class AutoGraph {
     where
     R.Result: RangeReplaceableCollection,
     R.Result.Iterator.Element == R.Mapping.MappedObject,
-    R.Mapping.MappedObject: Equatable,
-    R.Mapping.SequenceKind == R.Result {
+    R.Mapping.MappedObject: Equatable {
         
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
