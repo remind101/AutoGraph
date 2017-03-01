@@ -47,7 +47,7 @@ public class Dispatcher {
             guard let lifeCycle = request.lifeCycle else {
                 return nil
             }
-            return { try lifeCycle.willSend(request: request) }
+            return { try lifeCycle.willSend(request: request as! T.T) }
         }()
         
         let sendable: Sendable = (query: request.query, willSend: willSend, completion: completion, earlyFailure: earlyFailure)

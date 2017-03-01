@@ -40,26 +40,28 @@ where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
     
     case object(
         mappingBinding: () -> Binding<M>,
-        completion: RequestCompletion<M.MappedObject>,
-        didFinish: ((HTTPURLResponse, Result<M.MappedObject>) throws -> ())?)
+        completion: RequestCompletion<M.MappedObject>)
     
     case collection(
         mappingBinding: () -> Binding<CM>,
-        completion: RequestCompletion<C>,
-        didFinish: ((HTTPURLResponse, Result<C>) throws -> ())?)
+        completion: RequestCompletion<C>)
 }
 
-open class LifeCycle<R: Request> {
+public protocol LifeCycleRequest {
+    associatedtype Result
+}
+
+open class LifeCycle<R: LifeCycleRequest> {
     open func willSend(request: R) throws { }
-    open func didFinish(response: HTTPURLResponse, result: Result<R.Result>) throws { }
+    open func didFinish(result: Result<R.Result>) throws { }
 }
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
-    open func didFinish<R: Request>(response: HTTPURLResponse, result: Result<R.Result>) throws { }
+    open func didFinish<R: Request>(result: Result<R.Result>) throws { }
 }
 
-public protocol Request {
+public protocol Request: LifeCycleRequest {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
     /// `Mapping.MappedObject`.
     associatedtype Mapping: Crust.Mapping
@@ -71,7 +73,8 @@ public protocol Request {
     associatedtype Query: GraphQLQuery
     
     /// Hooks for the life cycle of the request.
-    var lifeCycle: LifeCycle<Self>? { get }
+    associatedtype T: LifeCycleRequest = Self
+    var lifeCycle: LifeCycle<T>? { get }
     
     /// The query to be sent to GraphQL.
     var query: Query { get }
@@ -89,7 +92,7 @@ public protocol Request {
 }
 
 public extension Request {
-    var lifeCycle: LifeCycle<Self>? {
+    var lifeCycle: LifeCycle<T>? {
         return nil
     }
 }
@@ -101,14 +104,34 @@ extension Request
     
     func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
         let didFinish = self.lifeCycle?.didFinish
-        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: completion, didFinish: didFinish)
+        let lifeCycleCompletion: RequestCompletion<Result> = { result in
+            do {
+                try didFinish?(result.map { $0 as! Self.T.Result })
+                completion(result)
+            }
+            catch let e {
+                completion(.failure(e))
+            }
+        }
+        
+        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
     }
 }
 
 extension Request where Result == Mapping.MappedObject {
     func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
         let didFinish = self.lifeCycle?.didFinish
-        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion, didFinish: didFinish)
+        let lifeCycleCompletion: RequestCompletion<Result> = { result in
+            do {
+                try didFinish?(result.map { $0 as! Self.T.Result })
+                completion(result)
+            }
+            catch let e {
+                completion(.failure(e))
+            }
+        }
+        
+        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
     }
 }
 
