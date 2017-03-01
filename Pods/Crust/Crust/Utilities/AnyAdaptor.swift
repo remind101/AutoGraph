@@ -42,6 +42,10 @@ public extension AnyAdaptor {
     func mappingEnded() throws { }
     func mappingErrored(_ error: Error) { }
     
+    func sanitize(primaryKeyProperty property: String, forValue value: CVarArg, ofType type: Self.BaseType.Type) -> CVarArg? {
+        return nil
+    }
+    
     func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> [BaseType]? {
         return nil
     }

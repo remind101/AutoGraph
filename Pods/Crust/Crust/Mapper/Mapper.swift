@@ -33,7 +33,7 @@ public struct Mapper {
     public init() { }
     
     public func map<M: Mapping, C: RangeReplaceableCollection>(from json: JSONValue, using binding: Binding<M>) throws -> C
-    where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, M.SequenceKind == C {
+    where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
         
         var collection = C()
         let context = MappingContext(withObject: collection, json: json, direction: MappingDirection.fromJSON)
@@ -119,15 +119,22 @@ public extension Mapping {
             return nil
         }
         
+        try self.checkForAdaptorBaseTypeConformance()
+        
         var keyValues = [String : CVarArg]()
         try primaryKeys.forEach { (primaryKey, keyPath, transform) in
             let key = keyPath?.keyPath
             let baseJson = key != nil ? json[key!] : json
             if let val = baseJson {
-                keyValues[primaryKey] = try transform?(val) ?? val.valuesAsNSObjects()
+                let transformedVal: CVarArg = try transform?(val) ?? val.valuesAsNSObjects()
+                let sanitizedVal = self.adaptor.sanitize(primaryKeyProperty: primaryKey,
+                                                         forValue: transformedVal,
+                                                         ofType: MappedObject.self as! AdaptorKind.BaseType.Type)
+                
+                keyValues[primaryKey] = sanitizedVal ?? transformedVal
             }
             else {
-                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(keyPath) does not exist in JSON but is expected from mapping \(Self.self)" ]
+                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(String(describing: keyPath)) does not exist in JSON but is expected from mapping \(Self.self)" ]
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
         }
