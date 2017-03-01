@@ -38,13 +38,8 @@ class VoidMapping: AnyMapping {
 public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
 where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
     
-    case object(
-        mappingBinding: () -> Binding<M>,
-        completion: RequestCompletion<M.MappedObject>)
-    
-    case collection(
-        mappingBinding: () -> Binding<CM>,
-        completion: RequestCompletion<C>)
+    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
 }
 
 public protocol LifeCycleRequest {
