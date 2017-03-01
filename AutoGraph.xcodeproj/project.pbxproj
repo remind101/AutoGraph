@@ -43,6 +43,7 @@
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
 		CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */; };
+		CDFFEBC71E6788C100685110 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFFEBC61E6788C100685110 /* Request.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +127,7 @@
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDE3C7241E00D23400AB4EB1 /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
 		CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMArrayBridge.swift; sourceTree = "<group>"; };
+		CDFFEBC61E6788C100685110 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -235,6 +237,7 @@
 				CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */,
 				CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */,
 				CDBEBEA91E1CB1400029909A /* Errors.swift */,
+				CDFFEBC61E6788C100685110 /* Request.swift */,
 				CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
 			);
@@ -656,6 +659,7 @@
 				CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */,
 				CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */,
 				CD3BFF301E22D0D8008CE41A /* ResponseHandler.swift in Sources */,
+				CDFFEBC71E6788C100685110 /* Request.swift in Sources */,
 				CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */,
 				CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */,
 			);
