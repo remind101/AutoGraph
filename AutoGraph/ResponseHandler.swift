@@ -3,7 +3,7 @@ import Crust
 import Foundation
 import JSONValueRX
 
-class ResponseHandler {
+public class ResponseHandler {
     
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue
@@ -57,9 +57,9 @@ class ResponseHandler {
             }
             catch let e {
                 switch resultBinding {
-                case .object(_, let completion):
+                case .object(_, let completion, _):
                     self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
-                case .collection(_, let completion):
+                case .collection(_, let completion, _):
                     self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
                 }
             }
@@ -75,9 +75,9 @@ class ResponseHandler {
     
     func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
         switch resultBinding {
-        case .object(mappingBinding: _, completion: let completion):
+        case .object(mappingBinding: _, completion: let completion, didFinish: _):
             self.fail(error: error, completion: completion)
-        case .collection(mappingBinding: _, completion: let completion):
+        case .collection(mappingBinding: _, completion: let completion, didFinish: _):
             self.fail(error: error, completion: completion)
         }
     }

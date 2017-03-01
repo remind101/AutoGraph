@@ -6,16 +6,16 @@ public protocol RequestSender {
     func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ())
 }
 
-class Dispatcher {
+public class Dispatcher {
         
-    let url: String
-    let responseHandler: ResponseHandler
-    let requestSender: RequestSender
+    public let url: String
+    public let responseHandler: ResponseHandler
+    public let requestSender: RequestSender
     
-    internal typealias Sendable = (query: GraphQLQuery, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
-    internal(set) var pendingRequests = [ Sendable ]()
+    public typealias Sendable = (query: GraphQLQuery, willSend: (() throws -> ())?, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
+    public internal(set) var pendingRequests = [Sendable]()
     
-    internal var paused = false {
+    public internal(set) var paused = false {
         didSet {
             if !self.paused {
                 self.pendingRequests.forEach { sendable in
@@ -26,13 +26,13 @@ class Dispatcher {
         }
     }
     
-    init(url: String, requestSender: RequestSender, responseHandler: ResponseHandler) {
+    public required init(url: String, requestSender: RequestSender, responseHandler: ResponseHandler) {
         self.url = url
         self.requestSender = requestSender
         self.responseHandler = responseHandler
     }
     
-    public func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+    func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
     (request: T, resultBinding: ResultBinding<M, CM, C>) {
         
         let completion: (DataResponse<Any>) -> () = { [weak self] response in
@@ -43,7 +43,14 @@ class Dispatcher {
             self?.responseHandler.fail(error: e, resultBinding: resultBinding)
         }
         
-        let sendable: Sendable = (query: request.query, completion: completion, earlyFailure: earlyFailure)
+        let willSend: (() throws -> ())? = {
+            guard let lifeCycle = request.lifeCycle else {
+                return nil
+            }
+            return { try lifeCycle.willSend(request: request) }
+        }()
+        
+        let sendable: Sendable = (query: request.query, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
         
         guard !self.paused else {
             self.pendingRequests.append(sendable)
@@ -53,8 +60,9 @@ class Dispatcher {
         self.send(sendable: sendable)
     }
     
-    func send(sendable: Sendable) {
+    open func send(sendable: Sendable) {
         do {
+            try sendable.willSend?()
             self.requestSender.sendRequest(url: self.url, parameters: ["query" : try sendable.query.graphQLString()], completion: sendable.completion)
         }
         catch let e {
@@ -62,7 +70,7 @@ class Dispatcher {
         }
     }
     
-    func cancelAll() {
+    open func cancelAll() {
         self.pendingRequests.removeAll()
     }
 }

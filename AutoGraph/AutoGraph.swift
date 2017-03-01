@@ -34,11 +34,29 @@ class VoidMapping: AnyMapping {
 }
 
 // TODO: We should support non-equatable collections.
+// TOOD: We should better apply currying and futures to clean some of this up.
 public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
 where C.Iterator.Element == CM.MappedObject, CM.SequenceKind == C, CM.MappedObject: Equatable {
     
-    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
+    case object(
+        mappingBinding: () -> Binding<M>,
+        completion: RequestCompletion<M.MappedObject>,
+        didFinish: ((HTTPURLResponse, Result<M.MappedObject>) throws -> ())?)
+    
+    case collection(
+        mappingBinding: () -> Binding<CM>,
+        completion: RequestCompletion<C>,
+        didFinish: ((HTTPURLResponse, Result<C>) throws -> ())?)
+}
+
+open class LifeCycle<R: Request> {
+    open func willSend(request: R) throws { }
+    open func didFinish(response: HTTPURLResponse, result: Result<R.Result>) throws { }
+}
+
+open class GlobalLifeCycle {
+    open func willSend<R: Request>(request: R) throws { }
+    open func didFinish<R: Request>(response: HTTPURLResponse, result: Result<R.Result>) throws { }
 }
 
 public protocol Request {
@@ -51,6 +69,9 @@ public protocol Request {
     associatedtype Result = Mapping.MappedObject
     
     associatedtype Query: GraphQLQuery
+    
+    /// Hooks for the life cycle of the request.
+    var lifeCycle: LifeCycle<Self>? { get }
     
     /// The query to be sent to GraphQL.
     var query: Query { get }
@@ -67,6 +88,12 @@ public protocol Request {
     var mapping: Binding<Mapping> { get }
 }
 
+public extension Request {
+    var lifeCycle: LifeCycle<Self>? {
+        return nil
+    }
+}
+
 extension Request
     where Result: RangeReplaceableCollection,
     Result.Iterator.Element == Mapping.MappedObject,
@@ -74,14 +101,15 @@ extension Request
     Mapping.SequenceKind == Result {
     
     func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
-        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: completion)
+        let didFinish = self.lifeCycle?.didFinish
+        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: completion, didFinish: didFinish)
     }
 }
 
-extension Request {
-    
+extension Request where Result == Mapping.MappedObject {
     func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
-        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion)
+        let didFinish = self.lifeCycle?.didFinish
+        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion, didFinish: didFinish)
     }
 }
 
@@ -123,18 +151,18 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
+    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.Result>)
     where
-    T.Result: RangeReplaceableCollection,
-    T.Result.Iterator.Element == T.Mapping.MappedObject,
-    T.Mapping.MappedObject: Equatable,
-    T.Mapping.SequenceKind == T.Result {
+    R.Result: RangeReplaceableCollection,
+    R.Result.Iterator.Element == R.Mapping.MappedObject,
+    R.Mapping.MappedObject: Equatable,
+    R.Mapping.SequenceKind == R.Result {
         
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
-    public func send<T: Request>(_ request: T, completion: @escaping RequestCompletion<T.Result>)
-    where T.Result == T.Mapping.MappedObject {
+    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.Result>)
+    where R.Result == R.Mapping.MappedObject {
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
