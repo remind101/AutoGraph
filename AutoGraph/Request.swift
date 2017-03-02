@@ -1,22 +1,6 @@
 import Crust
 import Foundation
 
-extension Int: AnyMappable { }
-class VoidMapping: AnyMapping {
-    typealias AdaptorKind = AnyAdaptorImp<MappedObject>
-    typealias MappedObject = Int
-    func mapping(tomap: inout Int, context: MappingContext) { }
-}
-
-// TODO: We should support non-equatable collections.
-// TOOD: We should better apply currying and futures to clean some of this up.
-public enum ResultBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
-where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
-    
-    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
-}
-
 public protocol Request {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
     /// `Mapping.MappedObject`.
@@ -49,40 +33,34 @@ public protocol Request {
     func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
 
+extension Int: AnyMappable { }
+class VoidMapping: AnyMapping {
+    typealias AdaptorKind = AnyAdaptorImp<MappedObject>
+    typealias MappedObject = Int
+    func mapping(tomap: inout Int, context: MappingContext) { }
+}
+
+// TODO: We should support non-equatable collections.
+// TOOD: We should better apply currying and futures to clean some of this up.
+public enum ObjectBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
+    
+    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
+}
+
 extension Request
     where SerializedObject: RangeReplaceableCollection,
     SerializedObject.Iterator.Element == Mapping.MappedObject,
     Mapping.MappedObject: Equatable {
     
-    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ResultBinding<Mapping, Mapping, SerializedObject> {
-        let didFinish = self.didFinish
-        let lifeCycleCompletion: RequestCompletion<SerializedObject> = { result in
-            do {
-                try didFinish(result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
-            }
-        }
-        
-        return ResultBinding<Mapping, Mapping, SerializedObject>.collection(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<Mapping, Mapping, SerializedObject> {
+        return ObjectBinding<Mapping, Mapping, SerializedObject>.collection(mappingBinding: { self.mapping }, completion: completion)
     }
 }
 
 extension Request where SerializedObject == Mapping.MappedObject {
-    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
-        let didFinish = self.didFinish
-        let lifeCycleCompletion: RequestCompletion<SerializedObject> = { result in
-            do {
-                try didFinish(result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
-            }
-        }
-        
-        return ResultBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
+    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ObjectBinding<Mapping, VoidMapping, Array<Int>> {
+        return ObjectBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion)
     }
 }

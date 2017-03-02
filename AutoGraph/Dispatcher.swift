@@ -32,18 +32,23 @@ public class Dispatcher {
         self.responseHandler = responseHandler
     }
     
-    func send<T: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
-    (request: T, resultBinding: ResultBinding<M, CM, C>) {
+    func send<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+    (request: R, objectBinding: ObjectBinding<M, CM, C>, globalWillSend: ((R) throws -> ())?) {
         
         let completion: (DataResponse<Any>) -> () = { [weak self] response in
-            self?.responseHandler.handle(response: response, resultBinding: resultBinding)
+            self?.responseHandler.handle(response: response, objectBinding: objectBinding)
         }
         
         let earlyFailure: (Error) -> () = { [weak self] e in
-            self?.responseHandler.fail(error: e, resultBinding: resultBinding)
+            self?.responseHandler.fail(error: e, objectBinding: objectBinding)
         }
         
-        let sendable: Sendable = (query: request.query, willSend: request.willSend, completion: completion, earlyFailure: earlyFailure)
+        let willSend: (() throws -> ())? = {
+            try globalWillSend?(request)
+            try request.willSend()
+        }
+        
+        let sendable: Sendable = (query: request.query, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
         
         guard !self.paused else {
             self.pendingRequests.append(sendable)

@@ -25,6 +25,11 @@ public protocol ThreadUnsafe: class {
 
 public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
 
+open class GlobalLifeCycle {
+    open func willSend<R: Request>(request: R) throws { }
+    open func didFinish<SerializedObject>(result: Result<SerializedObject>) throws { }
+}
+
 open class AutoGraph {
     public var baseUrl: String {
         get {
@@ -39,7 +44,8 @@ open class AutoGraph {
     }
     
     public let client: Client
-    let dispatcher: Dispatcher
+    public let dispatcher: Dispatcher
+    public var lifeCycle: GlobalLifeCycle?
     
     private static let localHost = "http://localhost:8080/graphql"
     
@@ -67,12 +73,39 @@ open class AutoGraph {
     R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
     R.Mapping.MappedObject: Equatable {
         
-        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
+        let objectBinding = request.generateBinding { [weak self] result in
+            do {
+                try request.didFinish(result: result)
+                try self?.lifeCycle?.didFinish(result: result)
+                completion(result)
+            }
+            catch let e {
+                completion(.failure(e))
+            }
+        }
+        
+        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+            try self?.lifeCycle?.willSend(request: request)
+        }
     }
     
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where R.SerializedObject == R.Mapping.MappedObject {
-        self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
+        
+        let objectBinding = request.generateBinding { [weak self] result in
+            do {
+                try request.didFinish(result: result)
+                try self?.lifeCycle?.didFinish(result: result)
+                completion(result)
+            }
+            catch let e {
+                completion(.failure(e))
+            }
+        }
+        
+        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+            try self?.lifeCycle?.willSend(request: request)
+        }
     }
     
     public func triggerReauthentication() {

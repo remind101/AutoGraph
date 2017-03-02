@@ -46,7 +46,7 @@ class DispatcherTests: XCTestCase {
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
-        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
+        self.subject.send(request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
@@ -55,7 +55,7 @@ class DispatcherTests: XCTestCase {
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         self.subject.paused = true
-        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
+        self.subject.send(request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
     }
     
@@ -63,7 +63,7 @@ class DispatcherTests: XCTestCase {
         let request = AllFilmsRequest()
         
         self.subject.paused = true
-        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
+        self.subject.send(request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         self.subject.cancelAll()
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
@@ -77,7 +77,7 @@ class DispatcherTests: XCTestCase {
         }
         
         self.subject.paused = true
-        self.subject.send(request: request, resultBinding: request.generateBinding(completion: { _ in }))
+        self.subject.send(request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
         
         XCTAssertEqual(self.subject.pendingRequests.count, 1)
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -105,7 +105,7 @@ class DispatcherTests: XCTestCase {
     func testFailureReturnsToCaller() {
         let request = BadRequest()
         var called = false
-        let resultBinding = request.generateBinding { result in
+        let objectBinding = request.generateBinding { result in
             guard case .failure(_) = result else {
                 XCTFail()
                 return
@@ -113,7 +113,7 @@ class DispatcherTests: XCTestCase {
             called = true
         }
         
-        self.subject.send(request: BadRequest(), resultBinding: resultBinding)
+        self.subject.send(request: BadRequest(), objectBinding: objectBinding, globalWillSend: { _ in })
         XCTAssertTrue(called)
     }
 }

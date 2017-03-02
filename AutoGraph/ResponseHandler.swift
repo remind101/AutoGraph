@@ -17,7 +17,7 @@ public class ResponseHandler {
     
     func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         response: DataResponse<Any>,
-        resultBinding: ResultBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C>) {
             
             do {
                 let value = try response.extractValue()
@@ -28,20 +28,20 @@ public class ResponseHandler {
                 }
                 
                 self.queue.addOperation { [weak self] in
-                    self?.map(json: json, resultBinding: resultBinding)
+                    self?.map(json: json, objectBinding: objectBinding)
                 }
             }
             catch let e {
-                self.fail(error: e, resultBinding: resultBinding)
+                self.fail(error: e, objectBinding: objectBinding)
             }
     }
     
     private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         json: JSONValue,
-        resultBinding: ResultBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C>) {
             
             do {
-                switch resultBinding {
+                switch objectBinding {
                 case .object(let binding, let completion):
                     let mapper = Mapper()
                     let result: M.MappedObject = try mapper.map(from: json, using: binding())
@@ -56,7 +56,7 @@ public class ResponseHandler {
                 }
             }
             catch let e {
-                self.fail(error: AutoGraphError.mapping(error: e), resultBinding: resultBinding)
+                self.fail(error: AutoGraphError.mapping(error: e), objectBinding: objectBinding)
             }
     }
     
@@ -68,8 +68,8 @@ public class ResponseHandler {
         }
     }
     
-    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
-        switch resultBinding {
+    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, objectBinding: ObjectBinding<M, CM, C>) {
+        switch objectBinding {
         case .object(mappingBinding: _, completion: let completion):
             self.fail(error: error, completion: completion)
         case .collection(mappingBinding: _, completion: let completion):
