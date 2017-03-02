@@ -109,6 +109,36 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(request.didFinishCalled)
     }
     
+    func testFunctionalGlobalLifeCycle() {
+        class GlobalLifeCycleMock: GlobalLifeCycle {
+            var willSendCalled = false
+            override func willSend<R : AutoGraphQL.Request>(request: R) throws {
+                willSendCalled = request is FilmRequest
+            }
+            
+            var didFinishCalled = false
+            override func didFinish<SerializedObject>(result: AutoGraphQL.Result<SerializedObject>) throws {
+                guard case .success(let value) = result else {
+                    return
+                }
+                didFinishCalled = value is Film
+            }
+        }
+        
+        let lifeCycle = GlobalLifeCycleMock()
+        self.subject.lifeCycle = lifeCycle
+        
+        let stub = FilmStub()
+        stub.registerStub()
+        
+        let request = FilmRequest()
+        self.subject.send(request, completion: { _ in })
+        
+        waitFor(delay: 1.0)
+        XCTAssertTrue(lifeCycle.willSendCalled)
+        XCTAssertTrue(lifeCycle.didFinishCalled)
+    }
+    
     func testCancelAllCancelsDispatcherAndClient() {
         let mockClient = MockClient()
         let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
