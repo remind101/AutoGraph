@@ -26,7 +26,7 @@ public protocol Request {
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<Mapping> { get }
     
-    /// Called at the moment before the request will be sent from the
+    /// Called at the moment before the request will be sent from the `Client`.
     func willSend() throws
     
     /// Called right before calling the completion handler for the sent request.
