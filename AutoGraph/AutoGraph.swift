@@ -61,17 +61,17 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
-    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.Result>)
+    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where
-    R.Result: RangeReplaceableCollection,
-    R.Result.Iterator.Element == R.Mapping.MappedObject,
+    R.SerializedObject: RangeReplaceableCollection,
+    R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
     R.Mapping.MappedObject: Equatable {
         
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     
-    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.Result>)
-    where R.Result == R.Mapping.MappedObject {
+    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
+    where R.SerializedObject == R.Mapping.MappedObject {
         self.dispatcher.send(request: request, resultBinding: request.generateBinding(completion: completion))
     }
     

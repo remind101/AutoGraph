@@ -103,7 +103,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testFailureReturnsToCaller() {
-        let request = BadRequest ()
+        let request = BadRequest()
         var called = false
         let resultBinding = request.generateBinding { result in
             guard case .failure(_) = result else {

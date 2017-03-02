@@ -5,6 +5,23 @@ import JSONValueRX
 import Realm
 @testable import AutoGraphQL
 
+public extension AutoGraphQL.Request {
+    func willSend() throws { }
+    func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws { }
+}
+
+class FilmRequestWithLifeCycle: FilmRequest {
+    var willSendCalled = false
+    override func willSend() throws {
+        willSendCalled = true
+    }
+    
+    var didFinishCalled = false
+    override func didFinish(result: AutoGraphQL.Result<FilmRequest.SerializedObject>) throws {
+        didFinishCalled = true
+    }
+}
+
 class AutoGraphTests: XCTestCase {
     
     class MockDispatcher: Dispatcher {
@@ -78,6 +95,18 @@ class AutoGraphTests: XCTestCase {
         
         waitFor(delay: 1.0)
         XCTAssertTrue(called)
+    }
+    
+    func testFunctionalLifeCycle() {
+        let stub = FilmStub()
+        stub.registerStub()
+        
+        let request = FilmRequestWithLifeCycle()
+        self.subject.send(request, completion: { _ in })
+        
+        waitFor(delay: 1.0)
+        XCTAssertTrue(request.willSendCalled)
+        XCTAssertTrue(request.didFinishCalled)
     }
     
     func testCancelAllCancelsDispatcherAndClient() {

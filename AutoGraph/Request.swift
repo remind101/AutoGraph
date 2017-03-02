@@ -24,7 +24,7 @@ public protocol Request {
     
     /// The returned type for the request.
     /// E.g if the requests returns an array then change to `[Mapping.MappedObject]`.
-    associatedtype Result = Mapping.MappedObject
+    associatedtype SerializedObject = Mapping.MappedObject
     
     associatedtype Query: GraphQLQuery
     
@@ -42,26 +42,21 @@ public protocol Request {
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<Mapping> { get }
     
-    /// Called at the moment before the request will be sent from the Client.
+    /// Called at the moment before the request will be sent from the
     func willSend() throws
     
     /// Called right before calling the completion handler for the sent request.
-    func didFinish(result: AutoGraphQL.Result<Result>) throws
-}
-
-extension Request {
-    func willSend() throws { }
-    func didFinish(result: AutoGraphQL.Result<Result>) throws { }
+    func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
 
 extension Request
-    where Result: RangeReplaceableCollection,
-    Result.Iterator.Element == Mapping.MappedObject,
-Mapping.MappedObject: Equatable {
+    where SerializedObject: RangeReplaceableCollection,
+    SerializedObject.Iterator.Element == Mapping.MappedObject,
+    Mapping.MappedObject: Equatable {
     
-    func generateBinding(completion: @escaping RequestCompletion<Result>) -> ResultBinding<Mapping, Mapping, Result> {
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ResultBinding<Mapping, Mapping, SerializedObject> {
         let didFinish = self.didFinish
-        let lifeCycleCompletion: RequestCompletion<Result> = { result in
+        let lifeCycleCompletion: RequestCompletion<SerializedObject> = { result in
             do {
                 try didFinish(result)
                 completion(result)
@@ -71,14 +66,14 @@ Mapping.MappedObject: Equatable {
             }
         }
         
-        return ResultBinding<Mapping, Mapping, Result>.collection(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
+        return ResultBinding<Mapping, Mapping, SerializedObject>.collection(mappingBinding: { self.mapping }, completion: lifeCycleCompletion)
     }
 }
 
-extension Request where Result == Mapping.MappedObject {
+extension Request where SerializedObject == Mapping.MappedObject {
     func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ResultBinding<Mapping, VoidMapping, Array<Int>> {
         let didFinish = self.didFinish
-        let lifeCycleCompletion: RequestCompletion<Result> = { result in
+        let lifeCycleCompletion: RequestCompletion<SerializedObject> = { result in
             do {
                 try didFinish(result)
                 completion(result)
