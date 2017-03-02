@@ -98,6 +98,8 @@ public class RealmAdaptor: Adaptor {
         return type.sanitizeValue(value, fromProperty: property, realm: self.realm)
     }
     
+    // TODO: This should throw and we should check that the primary key's type and value's sanitized type match.
+    // Otherwise we get an exception from Realm here.
     public func fetchObjects(type: RLMObject.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
         
         var totalPredicate = [NSPredicate]()

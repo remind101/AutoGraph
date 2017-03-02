@@ -17,7 +17,7 @@ class AllFilmsRequest: Request {
      "}"
      */
     
-    typealias Result = [FilmMapping.MappedObject]
+    typealias SerializedObject = [FilmMapping.MappedObject]
     
     let query = Operation(type: .query,
                           name: "filmRequest",
