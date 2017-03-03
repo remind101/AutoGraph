@@ -19,7 +19,7 @@ public protocol Request {
     ///
     /// **WARNING:**
     ///
-    /// `mapping` does NOT execute on the main thread. It's important that any `Adaptor`
+    /// `mapping` does NOT execute on the main thread. It's important that any `Adapter`
     /// used by `mapping` establishes it's own connection to the DB from within `mapping`.
     ///
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
@@ -35,7 +35,7 @@ public protocol Request {
 
 extension Int: AnyMappable { }
 class VoidMapping: AnyMapping {
-    typealias AdaptorKind = AnyAdaptorImp<MappedObject>
+    typealias AdapterKind = AnyAdapterImp<MappedObject>
     typealias MappedObject = Int
     func mapping(tomap: inout Int, context: MappingContext) { }
 }

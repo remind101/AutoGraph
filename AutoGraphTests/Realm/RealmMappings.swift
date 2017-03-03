@@ -1,4 +1,4 @@
-/// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdaptor` and map to `RLMObject` using `Crust`.
+/// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdapter` and map to `RLMObject` using `Crust`.
 
 import Foundation
 import Crust
@@ -6,9 +6,9 @@ import JSONValueRX
 import Realm
 import RealmSwift
 
-public let RealmAdaptorDomain = "RealmAdaptorDomain"
+public let RealmAdapterDomain = "RealmAdapterDomain"
 
-public class RealmAdaptor: Adaptor {
+public class RealmAdapter: Adapter {
     
     public typealias BaseType = RLMObject
     public typealias ResultsType = [BaseType]
@@ -59,8 +59,8 @@ public class RealmAdaptor: Adaptor {
                     self.realm.add(obj)
                 }
                 else {
-                    let userInfo = [ NSLocalizedFailureReasonErrorKey : "Adaptor requires primary keys but obj of type \(type(of: obj)) does not have one" ]
-                    throw NSError(domain: RealmAdaptorDomain, code: -1, userInfo: userInfo)
+                    let userInfo = [ NSLocalizedFailureReasonErrorKey : "Adapter requires primary keys but obj of type \(type(of: obj)) does not have one" ]
+                    throw NSError(domain: RealmAdapterDomain, code: -1, userInfo: userInfo)
                 }
             }
         }
@@ -124,9 +124,9 @@ public class RealmAdaptor: Adaptor {
         
         var objects = self.cache.filter {
             type(of: $0) == type
-        }
-        .filter {
-            predicate.evaluate(with: $0)
+            }
+            .filter {
+                predicate.evaluate(with: $0)
         }
         
         if objects.count > 0 {
@@ -142,8 +142,8 @@ public class RealmAdaptor: Adaptor {
 }
 
 public protocol RealmMapping: Mapping {
-    associatedtype AdaptorKind = RealmAdaptor
-    init(adaptor: AdaptorKind)
+    associatedtype AdapterKind = RealmAdapter
+    init(adapter: AdapterKind)
 }
 
 extension RLMArray {
@@ -175,51 +175,51 @@ extension RLMArray {
     }
 }
 
-public class RealmSwiftObjectAdaptorBridge<T>: Adaptor {
+public class RealmSwiftObjectAdapterBridge<T>: Adapter {
     public typealias BaseType = T
     public typealias ResultsType = [BaseType]
     
-    public let realmObjCAdaptor: RealmAdaptor
+    public let realmObjCAdapter: RealmAdapter
     public let rlmObjectType: RLMObject.Type
     
-    public init(realmObjCAdaptor: RealmAdaptor, rlmObjectType: RLMObject.Type) {
-        self.realmObjCAdaptor = realmObjCAdaptor
+    public init(realmObjCAdapter: RealmAdapter, rlmObjectType: RLMObject.Type) {
+        self.realmObjCAdapter = realmObjCAdapter
         self.rlmObjectType = rlmObjectType
     }
     
     public func mappingBegins() throws {
-        try self.realmObjCAdaptor.mappingBegins()
+        try self.realmObjCAdapter.mappingBegins()
     }
     
     public func mappingEnded() throws {
-        try self.realmObjCAdaptor.mappingEnded()
+        try self.realmObjCAdapter.mappingEnded()
     }
     
     public func mappingErrored(_ error: Error) {
-        self.realmObjCAdaptor.mappingErrored(error)
+        self.realmObjCAdapter.mappingErrored(error)
     }
     
     public func createObject(type: BaseType.Type) throws -> BaseType {
-        let obj = try self.realmObjCAdaptor.createObject(type: self.rlmObjectType)
+        let obj = try self.realmObjCAdapter.createObject(type: self.rlmObjectType)
         return unsafeBitCast(obj, to: BaseType.self)
     }
     
     public func save(objects: [BaseType]) throws {
-        let rlmObjs = objects.map { unsafeBitCast($0, to: type(of: self.realmObjCAdaptor).BaseType.self) }
-        try self.realmObjCAdaptor.save(objects: rlmObjs)
+        let rlmObjs = objects.map { unsafeBitCast($0, to: type(of: self.realmObjCAdapter).BaseType.self) }
+        try self.realmObjCAdapter.save(objects: rlmObjs)
     }
     
     public func deleteObject(_ obj: BaseType) throws {
-        let rlmObj = unsafeBitCast(obj, to: type(of: self.realmObjCAdaptor).BaseType.self)
-        try self.realmObjCAdaptor.deleteObject(rlmObj)
+        let rlmObj = unsafeBitCast(obj, to: type(of: self.realmObjCAdapter).BaseType.self)
+        try self.realmObjCAdapter.deleteObject(rlmObj)
     }
     
     public func sanitize(primaryKeyProperty property: String, forValue value: CVarArg, ofType type: BaseType.Type) -> CVarArg? {
-        return self.realmObjCAdaptor.sanitize(primaryKeyProperty: property, forValue: value, ofType: type as! RLMObject.Type)
+        return self.realmObjCAdapter.sanitize(primaryKeyProperty: property, forValue: value, ofType: type as! RLMObject.Type)
     }
     
     public func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
-        guard let rlmObjects = self.realmObjCAdaptor.fetchObjects(type: self.rlmObjectType,
+        guard let rlmObjects = self.realmObjCAdapter.fetchObjects(type: self.rlmObjectType,
                                                                   primaryKeyValues: primaryKeyValues,
                                                                   isMapping: isMapping)
             else {
@@ -234,13 +234,13 @@ public class RealmSwiftObjectAdaptorBridge<T>: Adaptor {
 public class RLMArrayMappingBridge<T: RLMObject>: Mapping {
     public typealias MappedObject = T
     
-    public let adaptor: RealmSwiftObjectAdaptorBridge<MappedObject>
+    public let adapter: RealmSwiftObjectAdapterBridge<MappedObject>
     public let primaryKeys: [Mapping.PrimaryKeyDescriptor]?
     public let rlmObjectMapping: (inout MappedObject, MappingContext) -> Void
     
     public required init<OGMapping: RealmMapping>(rlmObjectMapping: OGMapping) where OGMapping.MappedObject: RLMObject, OGMapping.MappedObject == T {
         
-        self.adaptor = RealmSwiftObjectAdaptorBridge(realmObjCAdaptor: rlmObjectMapping.adaptor as! RealmAdaptor,
+        self.adapter = RealmSwiftObjectAdapterBridge(realmObjCAdapter: rlmObjectMapping.adapter as! RealmAdapter,
                                                      rlmObjectType: OGMapping.MappedObject.self)
         self.primaryKeys = rlmObjectMapping.primaryKeys
         

@@ -95,7 +95,7 @@ public class ResponseHandler {
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard case let finalResult as Result = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
+            guard case let finalResult as Result = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return
@@ -126,7 +126,7 @@ public class ResponseHandler {
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard let results = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
+            guard let results = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return

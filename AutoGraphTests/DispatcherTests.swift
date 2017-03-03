@@ -98,7 +98,7 @@ class DispatcherTests: XCTestCase {
         let query = BadQuery()
         
         var mapping: Binding<FilmMapping> {
-            return Binding.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+            return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
         }
     }
     

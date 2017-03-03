@@ -33,7 +33,7 @@ class FilmRequest: Request {
                           arguments: nil)
     
     var mapping: Binding<FilmMapping> {
-        return Binding.mapping("data.film", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+        return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
     public func didFinish(result: Result<Film>) throws { }
@@ -51,14 +51,14 @@ extension RLMObject: ThreadUnsafe {
 
 class FilmMapping: RealmMapping {
     
-    public var adaptor: RealmAdaptor
+    public var adapter: RealmAdapter
     
     public var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
         return [ ("remoteId", "id", nil) ]
     }
     
-    public required init(adaptor: RealmAdaptor) {
-        self.adaptor = adaptor
+    public required init(adapter: RealmAdapter) {
+        self.adapter = adapter
     }
     
     public func mapping(tomap: inout Film, context: MappingContext) {

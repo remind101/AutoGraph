@@ -104,7 +104,7 @@ class ResponseHandlerTests: XCTestCase {
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
             override var mapping: Binding<FilmMapping> {
-                return Binding.mapping("bad_path", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+                return Binding.mapping("bad_path", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
             }
         }
         
