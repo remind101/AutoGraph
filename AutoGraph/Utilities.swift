@@ -7,6 +7,15 @@ public enum Result<Value> {
     case success(Value)
     case failure(Error)
     
+    public func map<U>(_ transform: (Value) -> U) -> Result<U> {
+        switch self {
+        case .success(let val):
+            return .success(transform(val))
+        case .failure(let e):
+            return .failure(e)
+        }
+    }
+    
     public func flatMap<U>(_ transform: (Value) -> Result<U>) -> Result<U> {
         switch self {
         case .success(let val):
@@ -38,7 +47,7 @@ extension DataResponse {
                 return AutoGraphError(graphQLResponseJSON: json)
             }()
             
-            throw AutoGraphError.network(error: e, underlying: gqlError)
+            throw AutoGraphError.network(error: e, response: self.response, underlying: gqlError)
         }
     }
 }

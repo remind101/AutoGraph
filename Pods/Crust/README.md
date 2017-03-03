@@ -13,7 +13,7 @@ A flexible Swift framework for converting classes and structs to and from JSON w
   - [Mapping Context](#mapping-context)
   - [Custom Transformations](#custom-transformations)
   - [Different Mappings for Same Model](#different-mappings-for-same-model)
-- [Storage Adaptor](#storage-adaptor)
+- [Storage Adapter](#storage-adapter)
 - [Realm](#realm)
 - Supports Optional Types and Collections.
 
@@ -60,16 +60,16 @@ Crust has 2 basic protocols:
 - `Mapping`
 	- How to map JSON to and from a particular model - (model is set by the `associatedtype MappedObject` if mapping to an sequence of objects set `associatedtype SequenceKind`).
 	- May include primary key(s) and nested mapping(s).
-- `Adaptor`
+- `Adapter`
 	- How to store and retrieve model objects used for mapping from a backing store (e.g. Core Data, Realm, etc.).
 
-And 2 additional protocols when no storage `Adaptor` is required:
+And 2 additional protocols when no storage `Adapter` is required:
 - `AnyMappable`
 	- Inherited by the model (class or struct) to be mapped to and from JSON.
 - `AnyMapping`
-	- A `Mapping` that does not require an `Adaptor`.
+	- A `Mapping` that does not require an `Adapter`.
 
-There are no limitations on the number of various `Mapping`s and `Adaptor`s one may create per model for different use cases.
+There are no limitations on the number of various `Mapping`s and `Adapter`s one may create per model for different use cases.
 
 #JSONValue for type safe JSON
 Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON encoding and decoding mechanism. It offers many benefits including type safety, subscripting, and extensibility through protocols.
@@ -78,18 +78,18 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
 
 1. Create your mappings for your model using `Mapping` if with storage or `AnyMapping` if without storage.
 
-    With storage (assume `CoreDataAdaptor` conforms to `Adaptor`)
+    With storage (assume `CoreDataAdapter` conforms to `Adapter`)
     ```swift
     class EmployeeMapping: Mapping {
     
-        var adaptor: CoreDataAdaptor
+        var adapter: CoreDataAdapter
         var primaryKeys: [PrimaryKeyDescriptor]? {
             // property == attribute on the model, keyPath == keypath in the JSON blob, transform == tranform to apply to data from JSON blob.
             return [ (property: "uuid", keyPath: "data.uuid", transform: nil) ]
         }
 
-        required init(adaptor: CoreDataAdaptor) {
-            self.adaptor = adaptor
+        required init(adapter: CoreDataAdapter) {
+            self.adapter = adapter
         }
     
         func mapping(tomap: inout Employee, context: MappingContext) {
@@ -109,7 +109,7 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
         // associatedtype MappedObject = Company is inferred by `tomap`
     
         func mapping(tomap: inout Company, context: MappingContext) {
-            let employeeMapping = EmployeeMapping(adaptor: CoreDataAdaptor())
+            let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
         
             tomap.employees             <- .mapping("employees", employeeMapping) >*<
             tomap.founder               <- .mapping("founder", employeeMapping) >*<
@@ -160,7 +160,7 @@ Crust supports nested mappings for nested models
 E.g. from above
 ```swift
 func mapping(inout tomap: Company, context: MappingContext) {
-    let employeeMapping = EmployeeMapping(adaptor: CoreDataAdaptor())
+    let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
     
     tomap.employees <- Binding.mapping("employees", employeeMapping) >*<
     context
@@ -193,7 +193,7 @@ public enum Binding<M: Mapping>: Keypath {
 
 Usage:
 ```swift
-let employeeMapping = EmployeeMapping(adaptor: CoreDataAdaptor())
+let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
 let binding = Binding.collectionMapping("", employeeMapping, (.replace(delete: nil), true))
 tomap.employees <- (binding, context)
 ```
@@ -258,17 +258,17 @@ let company1 = try! mapper.map(from: json, using: CompanyMapping())
 let company2 = try! mapper.map(from: json, using: CompanyMappingWithNameUUIDReversed())
 ```
 
-#Storage Adaptor
-Follow the `Adaptor` protocol to create a storage adaptor to Core Data, Realm, etc.
+#Storage Adapter
+Follow the `Adapter` protocol to create a storage adapter to Core Data, Realm, etc.
 
-The object conforming to `Adaptor` must include two `associatedtype`s:
+The object conforming to `Adapter` must include two `associatedtype`s:
 - `BaseType` - the top level class for this storage systems model objects.
   - Core Data this would be `NSManagedObject`.
   - Realm this would be `RLMObject`.
   - RealmSwift this would be `Object`.
 - `ResultsType: Collection` - Used for object lookups. Should return a collection of `BaseType`s.
 
-The `Mapping` must then set it's `associatedtype AdaptorKind = <Your Adaptor>` to use it during mapping.
+The `Mapping` must then set it's `associatedtype AdapterKind = <Your Adapter>` to use it during mapping.
 
 #Realm
 There are tests included in `./RealmCrustTests` that include examples of how to use Crust with realm-cocoa (Obj-C).

@@ -20,31 +20,31 @@ infix operator <- : AssignmentPrecedence
 // Map with a key path.
 
 @discardableResult
-public func <- <T: JSONable, C: MappingContext>(field: inout T, keyPath:(key: JSONKeypath, context: C)) -> C where T == T.ConversionType {
+public func <- <T: JSONable, MC: MappingContext>(field: inout T, keyPath:(key: JSONKeypath, context: MC)) -> MC where T == T.ConversionType {
     return map(to: &field, via: keyPath)
 }
 
 @discardableResult
-public func <- <T: JSONable, C: MappingContext>(field: inout T?, keyPath:(key: JSONKeypath, context: C)) -> C where T == T.ConversionType {
+public func <- <T: JSONable, MC: MappingContext>(field: inout T?, keyPath:(key: JSONKeypath, context: MC)) -> MC where T == T.ConversionType {
     return map(to: &field, via: keyPath)
 }
 
 // Map with a generic binding.
 
 @discardableResult
-public func <- <T, U: Mapping, C: MappingContext>(field: inout T, binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T {
+public func <- <T, M: Mapping, MC: MappingContext>(field: inout T, binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T, U: Mapping, C: MappingContext>(field: inout T?, binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T {
+public func <- <T, M: Mapping, MC: MappingContext>(field: inout T?, binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T {
     return map(to: &field, using: binding)
 }
 
 // Transform.
 
 @discardableResult
-public func <- <T: JSONable, U: Transform, C: MappingContext>(field: inout T, binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T, T == T.ConversionType {
+public func <- <T: JSONable, TF: Transform, MC: MappingContext>(field: inout T, binding:(key: Binding<TF>, context: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
     return map(to: &field, using: binding)
 }
 
@@ -85,7 +85,7 @@ public func map<T: JSONable, C: MappingContext>(to field: inout T, via keyPath:(
 }
 
 // Arbitrary Optional.
-public func map<T: JSONable, C: MappingContext>(to field: inout T?, via keyPath:(key: JSONKeypath, context: C)) -> C where T == T.ConversionType {
+public func map<T: JSONable, MC: MappingContext>(to field: inout T?, via keyPath:(key: JSONKeypath, context: MC)) -> MC where T == T.ConversionType {
     
     guard keyPath.context.error == nil else {
         return keyPath.context
@@ -114,7 +114,7 @@ public func map<T: JSONable, C: MappingContext>(to field: inout T?, via keyPath:
 }
 
 // Mappable.
-public func map<T, U: Mapping, C: MappingContext>(to field: inout T, using binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T {
+public func map<T, M: Mapping, MC: MappingContext>(to field: inout T, using binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T {
     
     guard binding.context.error == nil else {
         return binding.context
@@ -156,7 +156,7 @@ public func map<T, U: Mapping, C: MappingContext>(to field: inout T, using bindi
     return binding.context
 }
 
-public func map<T, U: Mapping, C: MappingContext>(to field: inout T?, using binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T {
+public func map<T, M: Mapping, MC: MappingContext>(to field: inout T?, using binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T {
     
     guard binding.context.error == nil else {
         return binding.context
@@ -205,7 +205,7 @@ private func map<T: JSONable>(to json: JSONValue, from field: T?, via key: JSONK
     return json
 }
 
-private func map<T, U: Mapping>(to json: JSONValue, from field: T?, via key: Keypath, using mapping: U) throws -> JSONValue where U.MappedObject == T {
+private func map<T, M: Mapping>(to json: JSONValue, from field: T?, via key: Keypath, using mapping: M) throws -> JSONValue where M.MappedObject == T {
     var json = json
     
     guard let field = field else {
@@ -246,13 +246,13 @@ private func map<T: JSONable>(from json: JSONValue, to field: inout T?) throws w
     }
 }
 
-private func map<T, U: Mapping>(from json: JSONValue, to field: inout T, using mapping: U, context: MappingContext) throws where U.MappedObject == T {
+private func map<T, M: Mapping>(from json: JSONValue, to field: inout T, using mapping: M, context: MappingContext) throws where M.MappedObject == T {
     
     let mapper = Mapper()
     field = try mapper.map(from: json, using: mapping, parentContext: context)
 }
 
-private func map<T, U: Mapping>(from json: JSONValue, to field: inout T?, using mapping: U, context: MappingContext) throws where U.MappedObject == T {
+private func map<T, M: Mapping>(from json: JSONValue, to field: inout T?, using mapping: M, context: MappingContext) throws where M.MappedObject == T {
     
     if case .null = json {
         field = nil
@@ -266,18 +266,18 @@ private func map<T, U: Mapping>(from json: JSONValue, to field: inout T?, using 
 // MARK: - RangeReplaceableCollectionType (Array and Realm List follow this protocol).
 
 @discardableResult
-public func <- <T, U: Mapping, C: MappingContext>(field: inout U.SequenceKind, binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T, U.SequenceKind: RangeReplaceableCollection, U.SequenceKind.Iterator.Element == U.MappedObject, T: Equatable {
+public func <- <T, M: Mapping, MC: MappingContext, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
     
     return map(toCollection: &field, using: binding)
 }
 
-private func map<T, U: Mapping, V: Sequence>(
+private func map<T, M: Mapping, S: Sequence>(
     to json: JSONValue,
-    from field: V,
+    from field: S,
     via key: Keypath,
-    using mapping: U)
+    using mapping: M)
     throws -> JSONValue
-    where U.MappedObject == T, V.Iterator.Element == T, U.SequenceKind.Iterator.Element == U.MappedObject {
+    where M.MappedObject == T, S.Iterator.Element == T {
         
         var json = json
         
@@ -290,7 +290,7 @@ private func map<T, U: Mapping, V: Sequence>(
 }
 
 @discardableResult
-public func map<T, U: Mapping, C: MappingContext>(toCollection field: inout U.SequenceKind, using binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T, U.SequenceKind: RangeReplaceableCollection, U.SequenceKind.Iterator.Element == U.MappedObject, T: Equatable {
+public func map<T, M: Mapping, MC: MappingContext, RRC: RangeReplaceableCollection>(toCollection field: inout RRC, using binding:(key: Binding<M>, context: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
     
     do {
         switch binding.context.dir {
@@ -309,16 +309,7 @@ public func map<T, U: Mapping, C: MappingContext>(toCollection field: inout U.Se
                 field.append(contentsOf: newObjects)
                 
             case .replace(delete: let deletionBlock):
-                var orphans = field
-                
-                // For reference types we have to create a new instance for orphans.
-                if
-                    case let objectOrphans as AnyObject = orphans,
-                    case let objectField as AnyObject = field,
-                    objectOrphans === objectField
-                {
-                    orphans = U.SequenceKind(field)
-                }
+                var orphans: RRC = field
                 
                 if let deletion = deletionBlock {
                     newObjects.forEach {
@@ -327,7 +318,10 @@ public func map<T, U: Mapping, C: MappingContext>(toCollection field: inout U.Se
                         }
                     }
                     
-                    try deletion(orphans).forEach {
+                    // Unfortunately `AnyCollection<U.MappedObject>(orphans)` gives us "type is ambiguous without more context".
+                    let arrayOrphans = Array(orphans)
+                    let shouldDelete = AnyCollection<M.MappedObject>(arrayOrphans)
+                    try deletion(shouldDelete).forEach {
                         try binding.key.mapping.delete(obj: $0)
                     }
                 }
@@ -345,11 +339,11 @@ public func map<T, U: Mapping, C: MappingContext>(toCollection field: inout U.Se
 }
 
 // Gets all newly mapped data and returns it in an array, caller can decide to append and what-not.
-private func mapFromJsonToSequence<T, U: Mapping, C: MappingContext>(
-    map:(key: Binding<U>, context: C),
+private func mapFromJsonToSequence<T, M: Mapping, MC: MappingContext>(
+    map:(key: Binding<M>, context: MC),
     fieldContains: (T) -> Bool)
-    throws -> (newObjects: [T], context: C)
-    where U.MappedObject == T, U.SequenceKind.Iterator.Element == U.MappedObject, T: Equatable {
+    throws -> (newObjects: [T], context: MC)
+    where M.MappedObject == T, T: Equatable {
     
         guard map.context.error == nil else {
             throw map.context.error!
@@ -385,17 +379,17 @@ private func mapFromJsonToSequence<T, U: Mapping, C: MappingContext>(
         return (newObjects, map.context)
 }
 
-private func generateNewValues<T, U: Mapping, S: Sequence>(
+private func generateNewValues<T, M: Mapping>(
     fromJsonArray json: JSONValue,
-    with updatePolicy: CollectionUpdatePolicy<S>,
-    using mapping: U,
+    with updatePolicy: CollectionUpdatePolicy<M.MappedObject>,
+    using mapping: M,
     fieldContains: (T) -> Bool,
     context: MappingContext)
     throws -> [T]
-    where U.MappedObject == T, T: Equatable, U.SequenceKind.Iterator.Element == U.MappedObject {
+    where M.MappedObject == T, T: Equatable {
     
         guard case .array(let jsonArray) = json else {
-            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Trying to map json of type \(type(of: json)) to \(U.SequenceKind.self)<\(T.self)>" ]
+            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Trying to map json of type \(type(of: json)) to Collection of <\(T.self)>" ]
             throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
         }
         

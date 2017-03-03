@@ -12,7 +12,7 @@ public protocol ReauthenticationDelegate: class {
     func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: RefreshCompletion)
 }
 
-// NOTE: Currently too coupled to Alamofire, will need to write an adaptor and
+// NOTE: Currently too coupled to Alamofire, will need to write an adapter and
 // move some of this into AlamofireClient eventually.
 
 public class AuthHandler {

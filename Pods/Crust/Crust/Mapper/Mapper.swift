@@ -33,7 +33,7 @@ public struct Mapper {
     public init() { }
     
     public func map<M: Mapping, C: RangeReplaceableCollection>(from json: JSONValue, using binding: Binding<M>) throws -> C
-    where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, M.SequenceKind == C {
+    where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
         
         var collection = C()
         let context = MappingContext(withObject: collection, json: json, direction: MappingDirection.fromJSON)
@@ -119,15 +119,22 @@ public extension Mapping {
             return nil
         }
         
+        try self.checkForAdapterBaseTypeConformance()
+        
         var keyValues = [String : CVarArg]()
         try primaryKeys.forEach { (primaryKey, keyPath, transform) in
             let key = keyPath?.keyPath
             let baseJson = key != nil ? json[key!] : json
             if let val = baseJson {
-                keyValues[primaryKey] = try transform?(val) ?? val.valuesAsNSObjects()
+                let transformedVal: CVarArg = try transform?(val) ?? val.valuesAsNSObjects()
+                let sanitizedVal = self.adapter.sanitize(primaryKeyProperty: primaryKey,
+                                                         forValue: transformedVal,
+                                                         ofType: MappedObject.self as! AdapterKind.BaseType.Type)
+                
+                keyValues[primaryKey] = sanitizedVal ?? transformedVal
             }
             else {
-                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(keyPath) does not exist in JSON but is expected from mapping \(Self.self)" ]
+                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(String(describing: keyPath)) does not exist in JSON but is expected from mapping \(Self.self)" ]
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
         }
@@ -136,13 +143,13 @@ public extension Mapping {
     
     func fetchExistingInstance(json: JSONValue, primaryKeyValues: [String : CVarArg]?) throws -> MappedObject? {
         
-        try self.checkForAdaptorBaseTypeConformance()
+        try self.checkForAdapterBaseTypeConformance()
         
         guard let keyValues = try (primaryKeyValues ?? self.primaryKeyValuePairs(from: json)) else {
             return nil
         }
         
-        guard let obj = self.adaptor.fetchObjects(type: MappedObject.self as! AdaptorKind.BaseType.Type, primaryKeyValues: [keyValues], isMapping: true)?.first else {
+        guard let obj = self.adapter.fetchObjects(type: MappedObject.self as! AdapterKind.BaseType.Type, primaryKeyValues: [keyValues], isMapping: true)?.first else {
             return nil
         }
         
@@ -151,40 +158,40 @@ public extension Mapping {
     
     func generateNewInstance() throws -> MappedObject {
         
-        try self.checkForAdaptorBaseTypeConformance()
+        try self.checkForAdapterBaseTypeConformance()
         
-        let obj = try self.adaptor.createObject(type: MappedObject.self as! AdaptorKind.BaseType.Type)
+        let obj = try self.adapter.createObject(type: MappedObject.self as! AdapterKind.BaseType.Type)
         return unsafeBitCast(obj, to: MappedObject.self)
     }
     
     func delete(obj: MappedObject) throws {
-        try self.checkForAdaptorBaseTypeConformance()
+        try self.checkForAdapterBaseTypeConformance()
         
-        try self.adaptor.deleteObject(obj as! AdaptorKind.BaseType)
+        try self.adapter.deleteObject(obj as! AdapterKind.BaseType)
     }
     
-    internal func checkForAdaptorBaseTypeConformance() throws {
-        // NOTE: This sux but `MappedObject: AdaptorKind.BaseType` as a type constraint throws a compiler error as of 7.1 Xcode
-        // and `MappedObject == AdaptorKind.BaseType` doesn't work with sub-types (i.e. expects MappedObject to be that exact type)
+    internal func checkForAdapterBaseTypeConformance() throws {
+        // NOTE: This sux but `MappedObject: AdapterKind.BaseType` as a type constraint throws a compiler error as of 7.1 Xcode
+        // and `MappedObject == AdapterKind.BaseType` doesn't work with sub-types (i.e. expects MappedObject to be that exact type)
         
-        guard MappedObject.self is AdaptorKind.BaseType.Type else {
-            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Type of object \(MappedObject.self) is not a subtype of \(AdaptorKind.BaseType.self)" ]
+        guard MappedObject.self is AdapterKind.BaseType.Type else {
+            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Type of object \(MappedObject.self) is not a subtype of \(AdapterKind.BaseType.self)" ]
             throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
         }
     }
     
     internal func start(context: MappingContext) throws {
-        try self.checkForAdaptorBaseTypeConformance()
+        try self.checkForAdapterBaseTypeConformance()
         
         if context.parent == nil {
             var underlyingError: NSError?
             do {
-                try self.adaptor.mappingBegins()
+                try self.adapter.mappingBegins()
             } catch let err as NSError {    // We can handle NSErrors higher up.
                 underlyingError = err
             } catch {
                 var userInfo = [AnyHashable : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingBegins for adaptor \(self.adaptor)"
+                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingBegins for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
@@ -195,12 +202,12 @@ public extension Mapping {
         if context.parent == nil {
             var underlyingError: NSError?
             do {
-                try self.adaptor.mappingEnded()
+                try self.adapter.mappingEnded()
             } catch let err as NSError {
                 underlyingError = err
             } catch {
                 var userInfo = [AnyHashable : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingEnded for adaptor \(self.adaptor)"
+                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingEnded for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
@@ -224,9 +231,9 @@ public extension Mapping {
     private func completeMapping<C: Sequence>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
         if context.error == nil {
             do {
-                try self.checkForAdaptorBaseTypeConformance()
-                let objects = objects.map { unsafeBitCast($0, to: AdaptorKind.BaseType.self) }
-                try self.adaptor.save(objects: objects)
+                try self.checkForAdapterBaseTypeConformance()
+                let objects = objects.map { unsafeBitCast($0, to: AdapterKind.BaseType.self) }
+                try self.adapter.save(objects: objects)
             } catch let error as NSError {
                 context.error = error
             }
@@ -234,7 +241,7 @@ public extension Mapping {
         
         if let error = context.error {
             if context.parent == nil {
-                self.adaptor.mappingErrored(error)
+                self.adapter.mappingErrored(error)
             }
             throw error
         }

@@ -17,7 +17,7 @@ class AllFilmsRequest: Request {
      "}"
      */
     
-    typealias Result = [FilmMapping.MappedObject]
+    typealias SerializedObject = [FilmMapping.MappedObject]
     
     let query = Operation(type: .query,
                           name: "filmRequest",
@@ -41,7 +41,7 @@ class AllFilmsRequest: Request {
                           arguments: nil)
     
     var mapping: Binding<FilmMapping> {
-        return Binding.mapping("data.allFilms.films", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+        return Binding.mapping("data.allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
 }
 

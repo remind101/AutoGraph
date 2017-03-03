@@ -1,6 +1,6 @@
 PODS:
-  - Alamofire (4.3.0)
-  - Crust (0.2.4):
+  - Alamofire (4.4.0)
+  - Crust (0.2.6):
     - JSONValueRX
   - JSONValueRX (1.5.1)
   - OHHTTPStubs (5.2.3):
@@ -39,8 +39,8 @@ CHECKOUT OPTIONS:
     :git: https://github.com/AliSoftware/OHHTTPStubs.git
 
 SPEC CHECKSUMS:
-  Alamofire: 856a113053a7bc9cbe5d6367a555d773fc5cfef7
-  Crust: 445f27b0ccabbd245aa6641658d421a234b23119
+  Alamofire: dc44b1600b800eb63da6a19039a0083d62a6a62d
+  Crust: a87246242fe1617e1a3afa156b9cf19e0b7ca761
   JSONValueRX: 3fcf3b19a249fd55373142cce069fc43c180df1d
   OHHTTPStubs: ab1dbe01565b50926b639f423bb0ce7ca11f9f00
   Realm: e08d60b0048ccccd3949c8c28a92c4db5712d7e9

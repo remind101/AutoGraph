@@ -3,16 +3,16 @@ public protocol AnyMappable {
     init()
 }
 
-/// A `Mapping` that does not require an adaptor of `typealias AdaptorKind`.
+/// A `Mapping` that does not require an adapter of `typealias AdapterKind`.
 /// Use for structs or classes that require no storage when mapping.
 public protocol AnyMapping: Mapping {
-    associatedtype AdaptorKind: AnyAdaptor = AnyAdaptorImp<MappedObject>
+    associatedtype AdapterKind: AnyAdapter = AnyAdapterImp<MappedObject>
     associatedtype MappedObject: AnyMappable
 }
 
 public extension AnyMapping {
-    var adaptor: AnyAdaptorImp<MappedObject> {
-        return AnyAdaptorImp<MappedObject>()
+    var adapter: AnyAdapterImp<MappedObject> {
+        return AnyAdapterImp<MappedObject>()
     }
     
     var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
@@ -21,26 +21,30 @@ public extension AnyMapping {
 }
 
 /// Used internally to remove the need for structures conforming to `AnyMapping`
-/// to specify a `typealias AdaptorKind`.
-public struct AnyAdaptorImp<T: AnyMappable>: AnyAdaptor {
+/// to specify a `typealias AdapterKind`.
+public struct AnyAdapterImp<T: AnyMappable>: AnyAdapter {
     public typealias BaseType = T
     public init() { }
 }
 
-/// A bare-bones `Adaptor`.
+/// A bare-bones `Adapter`.
 ///
-/// Conforming to `AnyAdaptor` automatically implements the requirements for `Adaptor`
+/// Conforming to `AnyAdapter` automatically implements the requirements for `Adapter`
 /// outside of specifying the `BaseType`.
-public protocol AnyAdaptor: Adaptor {
+public protocol AnyAdapter: Adapter {
     associatedtype BaseType: AnyMappable
     associatedtype ResultsType = [BaseType]
 }
 
-public extension AnyAdaptor {
+public extension AnyAdapter {
     
     func mappingBegins() throws { }
     func mappingEnded() throws { }
     func mappingErrored(_ error: Error) { }
+    
+    func sanitize(primaryKeyProperty property: String, forValue value: CVarArg, ofType type: Self.BaseType.Type) -> CVarArg? {
+        return nil
+    }
     
     func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> [BaseType]? {
         return nil

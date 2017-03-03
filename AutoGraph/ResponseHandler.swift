@@ -3,7 +3,7 @@ import Crust
 import Foundation
 import JSONValueRX
 
-class ResponseHandler {
+public class ResponseHandler {
     
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue
@@ -17,7 +17,7 @@ class ResponseHandler {
     
     func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         response: DataResponse<Any>,
-        resultBinding: ResultBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C>) {
             
             do {
                 let value = try response.extractValue()
@@ -28,20 +28,20 @@ class ResponseHandler {
                 }
                 
                 self.queue.addOperation { [weak self] in
-                    self?.map(json: json, resultBinding: resultBinding)
+                    self?.map(json: json, objectBinding: objectBinding)
                 }
             }
             catch let e {
-                self.fail(error: e, resultBinding: resultBinding)
+                self.fail(error: e, objectBinding: objectBinding)
             }
     }
     
     private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         json: JSONValue,
-        resultBinding: ResultBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C>) {
             
             do {
-                switch resultBinding {
+                switch objectBinding {
                 case .object(let binding, let completion):
                     let mapper = Mapper()
                     let result: M.MappedObject = try mapper.map(from: json, using: binding())
@@ -56,12 +56,7 @@ class ResponseHandler {
                 }
             }
             catch let e {
-                switch resultBinding {
-                case .object(_, let completion):
-                    self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
-                case .collection(_, let completion):
-                    self.fail(error: AutoGraphError.mapping(error: e), completion: completion)
-                }
+                self.fail(error: AutoGraphError.mapping(error: e), objectBinding: objectBinding)
             }
     }
     
@@ -73,8 +68,8 @@ class ResponseHandler {
         }
     }
     
-    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, resultBinding: ResultBinding<M, CM, C>) {
-        switch resultBinding {
+    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, objectBinding: ObjectBinding<M, CM, C>) {
+        switch objectBinding {
         case .object(mappingBinding: _, completion: let completion):
             self.fail(error: error, completion: completion)
         case .collection(mappingBinding: _, completion: let completion):
@@ -100,7 +95,7 @@ class ResponseHandler {
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard case let finalResult as Result = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
+            guard case let finalResult as Result = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return
@@ -114,7 +109,7 @@ class ResponseHandler {
          json: JSONValue,
          mapping: @escaping () -> Binding<Mapping>,
          completion: @escaping RequestCompletion<Result>)
-        where Result.Iterator.Element == Mapping.MappedObject, Mapping.SequenceKind == Result, Mapping.MappedObject: Equatable {
+        where Result.Iterator.Element == Mapping.MappedObject, Mapping.MappedObject: Equatable {
     
         guard
             case let unsafeResults as [ThreadUnsafe] = result
@@ -131,7 +126,7 @@ class ResponseHandler {
         
         self.callbackQueue.addOperation {
             let map = mapping().mapping
-            guard let results = map.adaptor.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdaptorKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
+            guard let results = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
                 
                 self.fail(error: AutoGraphError.refetching, completion: completion)
                 return

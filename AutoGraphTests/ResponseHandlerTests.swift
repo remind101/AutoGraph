@@ -51,7 +51,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -84,7 +84,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultBinding: AllFilmsRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: AllFilmsRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -104,7 +104,7 @@ class ResponseHandlerTests: XCTestCase {
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
             override var mapping: Binding<FilmMapping> {
-                return Binding.mapping("bad_path", FilmMapping(adaptor: RealmAdaptor(realm: RLMRealm.default())))
+                return Binding.mapping("bad_path", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
             }
         }
         
@@ -113,7 +113,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, resultBinding: AllFilmsBadRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: AllFilmsBadRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
