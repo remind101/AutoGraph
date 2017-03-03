@@ -46,10 +46,10 @@ public protocol Mapping {
     /// The class, struct, enum type we are mapping to.
     associatedtype MappedObject
     
-    /// The DB adaptor type.
-    associatedtype AdaptorKind: Adaptor
+    /// The DB adapter type.
+    associatedtype AdapterKind: Adapter
     
-    var adaptor: AdaptorKind { get }
+    var adapter: AdapterKind { get }
     
     /// Describes a primary key on the `MappedObject`.
     /// - property: Primary key property name on `MappedObject`.
@@ -69,8 +69,8 @@ public protocol Mapping {
     func mapping(tomap: inout MappedObject, context: MappingContext)
 }
 
-/// An Adaptor to use to write and read objects from a persistance layer.
-public protocol Adaptor {
+/// An Adapter to use to write and read objects from a persistance layer.
+public protocol Adapter {
     /// The type of object being mapped to. If Realm then RLMObject or Object. If Core Data then NSManagedObject.
     associatedtype BaseType
     
@@ -105,8 +105,8 @@ public protocol Adaptor {
     ///     Dict1Key0 == Dict1Val0 AND Dict1Key1 == Dict1Val1" etc. Where Dict0 is the first dictionary in the
     ///     array and contains all the primary key/value pairs to search for for a single object of type `type`.
     /// - parameter isMapping: Indicates whether or not we're in the process of mapping an object. If `true` then
-    ///     the `Adaptor` may need to avoid querying the store since the returned object's primary key may be written
-    ///     to if available. If this is the case, the `Adaptor` may need to return any objects cached in memory during the current
+    ///     the `Adapter` may need to avoid querying the store since the returned object's primary key may be written
+    ///     to if available. If this is the case, the `Adapter` may need to return any objects cached in memory during the current
     ///     mapping process, not query the persistance layer.
     /// - returns: Results of the query.
     func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType?
