@@ -97,12 +97,12 @@ public extension AcceptsSelectionSet {
     }
 }
 
-public protocol Argument {
-    func graphQLArgument() throws -> String
+public protocol InputValue {
+    func graphQLInputValue() throws -> String
 }
 
 public protocol AcceptsArguments {
-    var arguments: [(key: String, value: Argument)]? { get }
+    var arguments: [(key: String, value: InputValue)]? { get }
     func serializedArguments() throws -> String
 }
 
@@ -114,7 +114,7 @@ public extension AcceptsArguments {
         }
         
         let argumentsList = try arguments.map { (key, value) in
-            "\(key): \(try value.graphQLArgument())"
+            "\(key): \(try value.graphQLInputValue())"
         }.joined(separator: ", ")
         
         return "(\(argumentsList))"
@@ -140,11 +140,10 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     public let alias: String?
     public let fields: [Field]?
     public let fragments: [Fragment]?
-    public let arguments: [(key: String, value:
-    Argument)]?
+    public let arguments: [(key: String, value: InputValue)]?
     
     public init(name: String, alias: String?, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value:
-        Argument)]?) {
+        InputValue)]?) {
         self.name = name
         self.alias = alias
         self.fields = fields
@@ -178,9 +177,9 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
     public let name: String
     public let fields: [Field]?
     public let fragments: [Fragment]?
-    public let arguments: [(key: String, value: Argument)]?
+    public let arguments: [(key: String, value: InputValue)]?
     
-    public init(type: OperationType, name: String, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value: Argument)]?) {
+    public init(type: OperationType, name: String, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value: InputValue)]?) {
         self.type = type
         self.name = name
         self.fields = fields

@@ -1,7 +1,22 @@
 import Foundation
+import JSONValueRX
 
-extension String: Argument {
-    public func graphQLArgument() throws -> String {
+enum QueryBuilderError: LocalizedError {
+    case incorrectArgumentKey(key: Any)
+    case incorrectArgumentValue(value: Any)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .incorrectArgumentValue(let value):
+            return "value \(value) is not an `InputValue`"
+        case .incorrectArgumentKey(let key):
+            return "key \(key) is not a `String`"
+        }
+    }
+}
+
+extension String: InputValue {
+    public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
     
@@ -15,8 +30,64 @@ extension String: Argument {
     }
 }
 
-extension Int: Argument {
-    public func graphQLArgument() throws -> String {
+extension Int: InputValue {
+    public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
+    }
+}
+
+extension Double: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+}
+
+extension Bool: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.bool(self).encodeAsString()
+    }
+}
+
+extension Float: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(Double(self)).encodeAsString()
+    }
+}
+
+// This can be cleaned up once conditional conformances are added to the language https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md .
+extension Array: InputValue {
+    public func graphQLInputValue() throws -> String {
+        let values: [String] = try self.map {
+            guard case let value as InputValue = $0 else {
+                throw QueryBuilderError.incorrectArgumentValue(value: $0)
+            }
+            return try value.graphQLInputValue()
+        }
+        
+        return "[" + values.joined(separator: ", ") + "]"
+    }
+}
+
+extension Dictionary: InputValue {
+    public func graphQLInputValue() throws -> String {
+        let inputs: [String] = try self.map {
+            guard case let key as String = $0 else {
+                throw QueryBuilderError.incorrectArgumentKey(key: $0)
+            }
+            guard case let value as InputValue = $1 else {
+                throw QueryBuilderError.incorrectArgumentValue(value: $1)
+            }
+            return "\(key): \(try value.graphQLInputValue())"
+        }
+        
+        return "{" + inputs.joined(separator: ", ") + "}"
     }
 }

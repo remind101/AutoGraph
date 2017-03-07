@@ -160,3 +160,22 @@ class OperationTests: XCTestCase {
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Bullshit(name: \"olga\") {\nname\n}")
     }
 }
+
+class InputValueTests: XCTestCase {
+    
+    func testArrayInputValue() {
+        XCTAssertEqual(try! [ 1, "derp" ].graphQLInputValue(), "[1, \"derp\"]")
+    }
+    
+    func testEmptyArrayInputValue() {
+        XCTAssertEqual(try [].graphQLInputValue(), "[]")
+    }
+    
+    func testDictionaryInputValue() {
+        XCTAssertEqual(try! [ "number" : 1, "string" : "derp" ].graphQLInputValue(), "{number: 1, string: \"derp\"}")
+    }
+    
+    func testEmptyDictionaryInputValue() {
+        XCTAssertEqual(try [:].graphQLInputValue(), "{}")
+    }
+}
