@@ -4,6 +4,6 @@ import XCTest
 class StringExtensionsTests: XCTestCase {
     
     func testArgumentStringDoesIncludeQuotes() {
-        XCTAssertEqual(try! "arg arg".graphQLArgument(), "\"arg arg\"")
+        XCTAssertEqual(try! "arg arg".graphQLInputValue(), "\"arg arg\"")
     }
 }
