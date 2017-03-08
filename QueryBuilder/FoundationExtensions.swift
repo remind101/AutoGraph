@@ -85,7 +85,7 @@ extension Dictionary: InputValue {
             guard case let value as InputValue = $1 else {
                 throw QueryBuilderError.incorrectArgumentValue(value: $1)
             }
-            return "\(key): \(try value.graphQLInputValue())"
+            return key + ": " + (try value.graphQLInputValue())
         }
         
         return "{" + inputs.joined(separator: ", ") + "}"
