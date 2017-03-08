@@ -29,14 +29,14 @@ import JSONValueRX
  
 */
 
-indirect enum AutoGraphError: LocalizedError {
+public indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError])
     case network(error: Error, response: HTTPURLResponse?, underlying: AutoGraphError?)
     case mapping(error: Error)
     case refetching
     case invalidResponse
     
-    init?(graphQLResponseJSON: JSONValue) {
+    public init?(graphQLResponseJSON: JSONValue) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
         }
