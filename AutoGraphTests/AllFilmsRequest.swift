@@ -43,6 +43,10 @@ class AllFilmsRequest: Request {
     var mapping: Binding<FilmMapping> {
         return Binding.mapping("data.allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
+    
+    public func willSend() throws { }
+    public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
+    public func didFinish(result: Result<[Film]>) throws { }
 }
 
 class AllFilmsStub: Stub {

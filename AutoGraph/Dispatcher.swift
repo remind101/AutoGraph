@@ -36,7 +36,7 @@ public class Dispatcher {
     (request: R, objectBinding: ObjectBinding<M, CM, C>, globalWillSend: ((R) throws -> ())?) {
         
         let completion: (DataResponse<Any>) -> () = { [weak self] response in
-            self?.responseHandler.handle(response: response, objectBinding: objectBinding)
+            self?.responseHandler.handle(response: response, objectBinding: objectBinding, preMappingHook: request.didFinishRequest)
         }
         
         let earlyFailure: (Error) -> () = { [weak self] e in

@@ -36,8 +36,9 @@ class FilmRequest: Request {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
-    public func didFinish(result: Result<Film>) throws { }
     public func willSend() throws { }
+    public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
+    public func didFinish(result: Result<Film>) throws { }
 }
 
 extension RLMObject: ThreadUnsafe {
