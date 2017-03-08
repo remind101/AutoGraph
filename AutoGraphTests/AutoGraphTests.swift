@@ -7,6 +7,7 @@ import Realm
 
 public extension AutoGraphQL.Request {
     func willSend() throws { }
+    func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
     func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws { }
 }
 

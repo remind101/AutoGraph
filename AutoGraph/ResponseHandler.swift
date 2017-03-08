@@ -17,7 +17,8 @@ public class ResponseHandler {
     
     func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
         response: DataResponse<Any>,
-        objectBinding: ObjectBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C>,
+        preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
                 let value = try response.extractValue()
@@ -26,6 +27,8 @@ public class ResponseHandler {
                 if let queryError = AutoGraphError(graphQLResponseJSON: json) {
                     throw queryError
                 }
+                
+                try preMappingHook(response.response, json)
                 
                 self.queue.addOperation { [weak self] in
                     self?.map(json: json, objectBinding: objectBinding)

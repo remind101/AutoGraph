@@ -73,7 +73,7 @@ class ResponseHandlerTests: XCTestCase {
             let location = gqlError.locations[0]
             XCTAssertEqual(location.line, line)
             XCTAssertEqual(location.column, column)
-        })
+        }, preMappingHook: { _ in })
         
         XCTAssertTrue(called)
     }
@@ -96,7 +96,7 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.network` error")
                 return
             }
-        })
+        }, preMappingHook: { _ in })
         
         XCTAssertTrue(called)
     }
@@ -125,8 +125,31 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.mapping` error")
                 return
             }
-        })
+        }, preMappingHook: { _ in })
         
         XCTAssertTrue(called)
+    }
+    
+    func testPreMappingHookCalledBeforeMapping() {
+        class MockRequest: AllFilmsRequest {
+            var mappingCalled = false
+            var called = false
+            override func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws {
+                called = !mappingCalled
+            }
+            
+            override var mapping: Binding<FilmMapping> {
+                mappingCalled = true
+                return super.mapping
+            }
+        }
+        
+        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
+        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        let request = MockRequest()
+        
+        self.subject.handle(response: response, objectBinding: request.generateBinding(completion: { _ in }), preMappingHook: request.didFinishRequest)
+        
+        XCTAssertTrue(request.called)
     }
 }

@@ -1,5 +1,6 @@
 import Crust
 import Foundation
+import JSONValueRX
 
 public protocol Request {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
@@ -29,7 +30,10 @@ public protocol Request {
     /// Called at the moment before the request will be sent from the `Client`.
     func willSend() throws
     
-    /// Called right before calling the completion handler for the sent request.
+    /// Called as soon as the http request finishs.
+    func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws
+    
+    /// Called right before calling the completion handler for the sent request, i.e. at the end of the lifecycle.
     func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
 
