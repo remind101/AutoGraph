@@ -24,6 +24,7 @@
 		CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */; };
 		CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF391E22D270008CE41A /* RLMSupport.swift */; };
 		CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */; };
+		CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5244521E70EC6B0040771D /* ErrorTests.swift */; };
 		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -94,6 +95,7 @@
 		CD3BFF381E22D270008CE41A /* RLMArray+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RLMArray+Utilities.m"; sourceTree = "<group>"; };
 		CD3BFF391E22D270008CE41A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = RLMSupport.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClient.swift; sourceTree = "<group>"; };
+		CD5244521E70EC6B0040771D /* ErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorTests.swift; sourceTree = "<group>"; };
 		CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -254,6 +256,7 @@
 				CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */,
 				CDA62C071DB16999004BA66D /* AutoGraphTests.swift */,
 				CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */,
+				CD5244521E70EC6B0040771D /* ErrorTests.swift */,
 				CD2014211E30831C00D16F14 /* FilmRequest.swift */,
 				CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */,
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
@@ -673,6 +676,7 @@
 				CD3BFF3C1E22D270008CE41A /* RLMArray+Utilities.m in Sources */,
 				CD3BFF3B1E22D270008CE41A /* RealmMappings.swift in Sources */,
 				CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */,
+				CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */,
 				CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */,

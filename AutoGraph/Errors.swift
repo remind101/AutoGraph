@@ -98,7 +98,7 @@ public struct GraphQLError: LocalizedError {
     public let locations: [Location]
     
     public var errorDescription: String? {
-        return "GraphQL error message: \(self.message), locations: \(self.locations)"
+        return self.message
     }
     
     init(json: JSONValue) {
