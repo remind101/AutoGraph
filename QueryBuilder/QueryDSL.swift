@@ -44,7 +44,7 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
     public let fields: [Field]?
     public let fragments: [Fragment]?
     
-    public init?(name: String, type: String, fields: [Field]?, fragments: [Fragment]?) {
+    public init?(name: String, type: String, fields: [Field]? = nil, fragments: [Fragment]? = nil) {
         guard name != "on" else {
             return nil
         }
@@ -102,7 +102,7 @@ public protocol InputValue {
 }
 
 public protocol AcceptsArguments {
-    var arguments: [(key: String, value: InputValue)]? { get }
+    var arguments: [String : InputValue]? { get }
     func serializedArguments() throws -> String
 }
 
@@ -125,7 +125,7 @@ public struct Scalar: Field {
     public let name: String
     public let alias: String?
     
-    public init(name: String, alias: String?) {
+    public init(name: String, alias: String? = nil) {
         self.name = name
         self.alias = alias
     }
@@ -140,10 +140,9 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     public let alias: String?
     public let fields: [Field]?
     public let fragments: [Fragment]?
-    public let arguments: [(key: String, value: InputValue)]?
+    public let arguments: [String : InputValue]?
     
-    public init(name: String, alias: String?, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value:
-        InputValue)]?) {
+    public init(name: String, alias: String? = nil, fields: [Field]? = nil, fragments: [Fragment]? = nil, arguments: [String : InputValue]? = nil) {
         self.name = name
         self.alias = alias
         self.fields = fields
@@ -177,9 +176,9 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
     public let name: String
     public let fields: [Field]?
     public let fragments: [Fragment]?
-    public let arguments: [(key: String, value: InputValue)]?
+    public let arguments: [String : InputValue]?
     
-    public init(type: OperationType, name: String, fields: [Field]?, fragments: [Fragment]?, arguments: [(key: String, value: InputValue)]?) {
+    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [Fragment]? = nil, arguments: [String : InputValue]? = nil) {
         self.type = type
         self.name = name
         self.fields = fields

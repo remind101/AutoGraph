@@ -21,13 +21,12 @@ class FilmRequest: Request {
                             Object(name: "film",
                                    alias: nil,
                                    fields: [
-                                    Scalar(name: "id", alias: nil),
+                                    "id",
                                     Scalar(name: "title", alias: nil),
                                     Scalar(name: "episodeID", alias: nil),
                                     Scalar(name: "director", alias: nil),
                                     Scalar(name: "openingCrawl", alias: nil)],
-                                   fragments: nil,
-                                   arguments: [(key: "id", value: "ZmlsbXM6MQ==")])
+                                   arguments: ["id" : "ZmlsbXM6MQ=="])
                             ],
                           fragments: nil,
                           arguments: nil)

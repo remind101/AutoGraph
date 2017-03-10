@@ -47,7 +47,7 @@ class AcceptsFieldsTests: XCTestCase {
         
         let scalar1 = Scalar(name: "scalar1", alias: nil)
         let scalar2 = Scalar(name: "scalar2", alias: "derp")
-        let object = Object(name: "obj", alias: "cool", fields: [scalar2], fragments: nil, arguments: [("key", "value")])
+        let object = Object(name: "obj", alias: "cool", fields: [scalar2], fragments: nil, arguments: ["key" : "value"])
         
         self.subject.fields = [ scalar1, object ]
         XCTAssertEqual(try! self.subject.serializedFields(), "scalar1\ncool: obj(key: \"value\") {\nderp: scalar2\n}")
@@ -66,6 +66,10 @@ class ScalarTests: XCTestCase {
     func testGraphQLStringWithoutAlias() {
         self.subject = Scalar(name: "scalar", alias: nil)
         XCTAssertEqual(try! self.subject.graphQLString(), "scalar")
+    }
+    
+    func testGraphQLStringAsLiteral() {
+        XCTAssertEqual(try! "scalar".graphQLString(), "scalar")
     }
 }
 
@@ -156,7 +160,7 @@ class OperationTests: XCTestCase {
     func testMutationForms() {
         
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: [("name", "olga")])
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Bullshit", fields: [scalar], fragments: nil, arguments: ["name" : "olga"])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Bullshit(name: \"olga\") {\nname\n}")
     }
 }
