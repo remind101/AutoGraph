@@ -15,7 +15,19 @@ enum QueryBuilderError: LocalizedError {
     }
 }
 
-extension String: InputValue {
+extension String: Field, InputValue {
+    public var alias: String? {
+        return nil
+    }
+
+    public func graphQLString() throws -> String {
+        return self.name
+    }
+
+    public var name: String {
+        return self
+    }
+
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
