@@ -15,7 +15,7 @@ enum QueryBuilderError: LocalizedError {
     }
 }
 
-extension String: Field, InputValue {
+extension String: Field, InputValue, GraphQLQuery {
     public var alias: String? {
         return nil
     }
