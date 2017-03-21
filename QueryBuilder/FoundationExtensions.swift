@@ -48,6 +48,16 @@ extension Int: InputValue {
     }
 }
 
+extension UInt: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(Double(self)).encodeAsString()
+    }
+}
+
 extension Double: InputValue {
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
@@ -65,6 +75,26 @@ extension Bool: InputValue {
 }
 
 extension Float: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(Double(self)).encodeAsString()
+    }
+}
+
+extension NSNull: InputValue {
+    public func graphQLInputValue() throws -> String {
+        return try self.jsonEncodedString()
+    }
+    
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.null().encodeAsString()
+    }
+}
+
+extension NSNumber: InputValue {
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
