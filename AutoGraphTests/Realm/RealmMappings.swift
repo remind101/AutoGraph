@@ -244,14 +244,14 @@ public class RLMArrayMappingBridge<T: RLMObject>: Mapping {
                                                      rlmObjectType: OGMapping.MappedObject.self)
         self.primaryKeys = rlmObjectMapping.primaryKeys
         
-        self.rlmObjectMapping = { (tomap: inout MappedObject, context: MappingContext) -> Void in
-            var ogObject = unsafeDowncast(tomap, to: OGMapping.MappedObject.self)
-            rlmObjectMapping.mapping(tomap: &ogObject, context: context)
+        self.rlmObjectMapping = { (toMap: inout MappedObject, context: MappingContext) -> Void in
+            var ogObject = unsafeDowncast(toMap, to: OGMapping.MappedObject.self)
+            rlmObjectMapping.mapping(toMap: &ogObject, context: context)
         }
     }
     
-    public final func mapping(tomap: inout MappedObject, context: MappingContext) {
-        self.rlmObjectMapping(&tomap, context)
+    public final func mapping(toMap: inout MappedObject, context: MappingContext) {
+        self.rlmObjectMapping(&toMap, context)
     }
 }
 
