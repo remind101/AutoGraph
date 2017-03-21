@@ -41,7 +41,7 @@ extension Int: AnyMappable { }
 class VoidMapping: AnyMapping {
     typealias AdapterKind = AnyAdapterImp<MappedObject>
     typealias MappedObject = Int
-    func mapping(tomap: inout Int, context: MappingContext) { }
+    func mapping(toMap: inout Int, context: MappingContext) { }
 }
 
 // TODO: We should support non-equatable collections.

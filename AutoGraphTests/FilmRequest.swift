@@ -61,11 +61,11 @@ class FilmMapping: RealmMapping {
         self.adapter = adapter
     }
     
-    public func mapping(tomap: inout Film, context: MappingContext) {
-        tomap.title         <- ("title", context)
-        tomap.episode       <- ("episodeID", context)
-        tomap.openingCrawl  <- ("openingCrawl", context)
-        tomap.director      <- ("director", context)
+    public func mapping(toMap: inout Film, context: MappingContext) {
+        toMap.title         <- ("title", context)
+        toMap.episode       <- ("episodeID", context)
+        toMap.openingCrawl  <- ("openingCrawl", context)
+        toMap.director      <- ("director", context)
     }
 }
 
