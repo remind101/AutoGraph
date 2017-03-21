@@ -35,7 +35,7 @@ public enum Binding<M: Mapping>: Keypath {
     public var collectionUpdatePolicy: CollectionUpdatePolicy<M.MappedObject> {
         switch self {
         case .mapping(_, _):
-            return (.append, true)
+            return (.replace(delete: nil), true)
         case .collectionMapping(_, _, let method):
             return method
         }
@@ -62,11 +62,11 @@ public protocol Mapping {
     typealias PrimaryKeyDescriptor = (property: String, keyPath: Keypath?, transform: ((JSONValue) throws -> CVarArg?)?)
     
     /// The primaryKeys on `MappedObject`. Primary keys are mapped separately from what is mapped in
-    /// `mapping(tomap:context:)` and are never remapped to objects fetched from the database.
+    /// `mapping(toMap:context:)` and are never remapped to objects fetched from the database.
     var primaryKeys: [PrimaryKeyDescriptor]? { get }
     
     /// Override to perform mappings to properties.
-    func mapping(tomap: inout MappedObject, context: MappingContext)
+    func mapping(toMap: inout MappedObject, context: MappingContext)
 }
 
 /// An Adapter to use to write and read objects from a persistance layer.
@@ -128,16 +128,16 @@ public protocol Transform: AnyMapping {
 }
 
 public extension Transform {
-    func mapping(tomap: inout MappedObject, context: MappingContext) {
+    func mapping(toMap: inout MappedObject, context: MappingContext) {
         switch context.dir {
         case .fromJSON:
             do {
-                try tomap = self.fromJSON(context.json)
+                try toMap = self.fromJSON(context.json)
             } catch let err as NSError {
                 context.error = err
             }
         case .toJSON:
-            context.json = self.toJSON(tomap)
+            context.json = self.toJSON(toMap)
         }
     }
 }

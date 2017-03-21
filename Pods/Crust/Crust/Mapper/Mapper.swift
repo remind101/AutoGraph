@@ -215,7 +215,7 @@ public extension Mapping {
     }
     
     public func execute(object: inout MappedObject, context: MappingContext) {
-        self.mapping(tomap: &object, context: context)
+        self.mapping(toMap: &object, context: context)
     }
     
     internal func complete(object: inout MappedObject, context: MappingContext) throws {
