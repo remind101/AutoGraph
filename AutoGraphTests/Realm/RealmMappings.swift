@@ -205,12 +205,12 @@ public class RealmSwiftObjectAdapterBridge<T>: Adapter {
     }
     
     public func save(objects: [BaseType]) throws {
-        let rlmObjs = objects.map { unsafeBitCast($0, to: type(of: self.realmObjCAdapter).BaseType.self) }
+        let rlmObjs = objects.map { unsafeDowncast($0 as AnyObject, to: type(of: self.realmObjCAdapter).BaseType.self) }
         try self.realmObjCAdapter.save(objects: rlmObjs)
     }
     
     public func deleteObject(_ obj: BaseType) throws {
-        let rlmObj = unsafeBitCast(obj, to: type(of: self.realmObjCAdapter).BaseType.self)
+        let rlmObj = unsafeDowncast(obj as AnyObject, to: type(of: self.realmObjCAdapter).BaseType.self)
         try self.realmObjCAdapter.deleteObject(rlmObj)
     }
     
