@@ -17,7 +17,7 @@ public protocol Client: RequestSender, Cancellable {
 /// back to the main thread and then use `retrieveObjects(for:)` to return our result to the caller.
 public protocol ThreadAdapter {
     associatedtype BaseType
-    associatedtype CollectionType: RangeReplaceableCollection
+    associatedtype CollectionType: RangeReplaceableCollection = [BaseType]
     associatedtype ThreadSafeRepresentation
     
     func threadSafeRepresentations(`for` objects: CollectionType, ofType type: Any.Type) throws -> [ThreadSafeRepresentation]

@@ -31,7 +31,8 @@ public protocol Request {
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<Mapping> { get }
     
-    /// Our `ThreadAdapter`.
+    /// Our `ThreadAdapter`. It's `typealias BaseType` must be a the same type or a super type of `Mapping.MappedObject`
+    /// or an error will be thrown at runtime.
     var threadAdapter: ThreadAdapterType? { get }
     
     /// Called at the moment before the request will be sent from the `Client`.
