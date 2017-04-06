@@ -25,13 +25,13 @@ public protocol Request {
     /// **WARNING:**
     ///
     /// `mapping` does NOT execute on the main thread. It's important that any `Adapter`
-    /// used by `mapping` establishes it's own connection to the DB from within `mapping`.
+    /// used by `mapping` establishes its own connection to the DB from within `mapping`.
     ///
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<Mapping> { get }
     
-    /// Our `ThreadAdapter`. It's `typealias BaseType` must be a the same type or a super type of `Mapping.MappedObject`
+    /// Our `ThreadAdapter`. Its `typealias BaseType` must be a the same type or a super type of `Mapping.MappedObject`
     /// or an error will be thrown at runtime.
     var threadAdapter: ThreadAdapterType? { get }
     
