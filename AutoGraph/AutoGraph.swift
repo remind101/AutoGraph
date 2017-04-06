@@ -13,14 +13,15 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-/// Declare a Mapped type as `ThreadUnsafe` if the object being mapped cannot be safely
-/// passed between threads.
-///
-/// Before returning `Result` to the caller, a `ThreadUnsafe` object will be refetched
-/// on the main thread using `primaryKey`.
-public protocol ThreadUnsafe: class {
-    static var primaryKeys: [String] { get }
-    func value(forKeyPath keyPath: String) -> Any?
+/// Before returning `Result` to the caller, the `ThreadAdapter` pass our `ThreadSafeRepresentation`
+/// back to the main thread and then use `retrieveObjects(for:)` to return our result to the caller.
+public protocol ThreadAdapter {
+    associatedtype BaseType
+    associatedtype CollectionType: RangeReplaceableCollection = [BaseType]
+    associatedtype ThreadSafeRepresentation
+    
+    func threadSafeRepresentations(`for` objects: CollectionType, ofType type: Any.Type) throws -> [ThreadSafeRepresentation]
+    func retrieveObjects(`for` repesentations: [ThreadSafeRepresentation]) throws -> CollectionType
 }
 
 public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()

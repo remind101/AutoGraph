@@ -15,9 +15,9 @@ public class ResponseHandler {
         self.callbackQueue = callbackQueue
     }
     
-    func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
+    func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(
         response: DataResponse<Any>,
-        objectBinding: ObjectBinding<M, CM, C>,
+        objectBinding: ObjectBinding<M, CM, C, T>,
         preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
@@ -39,23 +39,37 @@ public class ResponseHandler {
             }
     }
     
-    private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(
+    private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(
         json: JSONValue,
-        objectBinding: ObjectBinding<M, CM, C>) {
+        objectBinding: ObjectBinding<M, CM, C, T>) {
             
             do {
                 switch objectBinding {
-                case .object(let binding, let completion):
+                case .object(let binding, let threadAdapter, let completion):
                     let mapper = Mapper()
                     let result: M.MappedObject = try mapper.map(from: json, using: binding())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: binding, completion: completion)
+                    if let threadAdapter = threadAdapter {
+                        self.refetchAndComplete(result: result, json: json, mapping: binding, threadAdapter: threadAdapter, completion: completion)
+                    }
+                    else {
+                        self.callbackQueue.addOperation {
+                            completion(.success(result))
+                        }
+                    }
                     
-                case .collection(let binding, let completion):
+                case .collection(let binding, let threadAdapter, let completion):
                     let mapper = Mapper()
                     let result: C = try mapper.map(from: json, using: binding())
                     
-                    self.refetchAndComplete(result: result, json: json, mapping: binding, completion: completion)
+                    if let threadAdapter = threadAdapter {
+                        self.refetchAndComplete(result: result, json: json, mapping: binding, threadAdapter: threadAdapter, completion: completion)
+                    }
+                    else {
+                        self.callbackQueue.addOperation {
+                            completion(.success(result))
+                        }
+                    }
                 }
             }
             catch let e {
@@ -71,89 +85,79 @@ public class ResponseHandler {
         }
     }
     
-    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>(error: Error, objectBinding: ObjectBinding<M, CM, C>) {
+    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(error: Error, objectBinding: ObjectBinding<M, CM, C, T>) {
         switch objectBinding {
-        case .object(mappingBinding: _, completion: let completion):
+        case .object(mappingBinding: _, threadAdapter: _, completion: let completion):
             self.fail(error: error, completion: completion)
-        case .collection(mappingBinding: _, completion: let completion):
+        case .collection(mappingBinding: _, threadAdapter: _, completion: let completion):
             self.fail(error: error, completion: completion)
         }
     }
 
-    private func refetchAndComplete<Mapping: Crust.Mapping, Result>
+    private func refetchAndComplete<Mapping: Crust.Mapping, Result, T: ThreadAdapter>
         (result: Result,
          json: JSONValue,
          mapping: @escaping () -> Binding<Mapping>,
+         threadAdapter: T,
          completion: @escaping RequestCompletion<Result>)
         where Result == Mapping.MappedObject {
         
-        guard case let unsafe as ThreadUnsafe = result else {
-            self.callbackQueue.addOperation {
-                completion(.success(result))
+            do {
+                let threadAdapterResult = try coerceToType(result) as T.CollectionType.Iterator.Element
+                let collection = T.CollectionType([threadAdapterResult])
+                let representation = try threadAdapter.threadSafeRepresentations(for: collection, ofType: Result.self)
+                self.callbackQueue.addOperation { [weak self] in
+                    guard let strongSelf = self else { return }
+                    
+                    do {
+                        let objects = try threadAdapter.retrieveObjects(for: representation)
+                        completion(.success(try strongSelf.coerceToType(objects.first)))
+                    }
+                    catch let e {
+                        strongSelf.fail(error: AutoGraphError.refetching(error: e), completion: completion)
+                    }
+                }
             }
-            return
-        }
-        
-        let primaryKeyValues = self.primaryKeyValues(for: unsafe)
-        
-        self.callbackQueue.addOperation {
-            let map = mapping().mapping
-            guard case let finalResult as Result = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: [primaryKeyValues], isMapping: false)?.first else {
-                
-                self.fail(error: AutoGraphError.refetching, completion: completion)
-                return
+            catch let e {
+                self.callbackQueue.addOperation {
+                    self.fail(error: AutoGraphError.refetching(error: e), completion: completion)
+                }
             }
-            completion(.success(finalResult))
-        }
     }
     
-    private func refetchAndComplete<Mapping: Crust.Mapping, Result: RangeReplaceableCollection>
+    private func refetchAndComplete<Mapping: Crust.Mapping, Result: RangeReplaceableCollection, T: ThreadAdapter>
         (result: Result,
          json: JSONValue,
          mapping: @escaping () -> Binding<Mapping>,
+         threadAdapter: T,
          completion: @escaping RequestCompletion<Result>)
         where Result.Iterator.Element == Mapping.MappedObject, Mapping.MappedObject: Equatable {
-    
-        guard
-            case let unsafeResults as [ThreadUnsafe] = result
-        else {
-            self.callbackQueue.addOperation {
-                completion(.success(result))
-            }
-            return
-        }
         
-        let primaryKeyValues: [[String : CVarArg]] = unsafeResults.flatMap { unsafe in
-            self.primaryKeyValues(for: unsafe)
-        }
-        
-        self.callbackQueue.addOperation {
-            let map = mapping().mapping
-            guard let results = map.adapter.fetchObjects(type: Mapping.MappedObject.self as! Mapping.AdapterKind.BaseType.Type, primaryKeyValues: primaryKeyValues, isMapping: false) else {
-                
-                self.fail(error: AutoGraphError.refetching, completion: completion)
-                return
+            do {
+                let representation = try threadAdapter.threadSafeRepresentations(for: try coerceToType(result) as T.CollectionType, ofType: Result.self)
+                self.callbackQueue.addOperation { [weak self] in
+                    guard let strongSelf = self else { return }
+                    
+                    do {
+                        let objects = try threadAdapter.retrieveObjects(for: representation)
+                        completion(.success(try strongSelf.coerceToType(objects)))
+                    }
+                    catch let e {
+                        strongSelf.fail(error: AutoGraphError.refetching(error: e), completion: completion)
+                    }
+                }
             }
-            let mappedResults = Result(results.map { $0 as! Mapping.MappedObject })
-            completion(.success(mappedResults))
-        }
+            catch let e {
+                self.callbackQueue.addOperation {
+                    self.fail(error: AutoGraphError.refetching(error: e), completion: completion)
+                }
+            }
     }
     
-    private func primaryKeyValues(for unsafe: ThreadUnsafe) -> [String : CVarArg] {
-        let primaryKeys = type(of: unsafe).primaryKeys
-        let primaryKeyValuePairs: [(String, CVarArg)] = primaryKeys.flatMap {
-            guard case let value as CVarArg = unsafe.value(forKeyPath: $0) else {
-                return nil
-            }
-            return ($0, value)
+    internal func coerceToType<T, U>(_ instance: T) throws -> U {
+        guard case let coerced as U = instance else {
+            throw AutoGraphError.typeCoercion(from: T.self, to: U.self)
         }
-        
-        let primaryKeyValues: [String : CVarArg] = {
-            var dict = [String : CVarArg]()
-            primaryKeyValuePairs.forEach { dict[$0.0] = $0.1 }
-            return dict
-        }()
-        
-        return primaryKeyValues
+        return coerced
     }
 }

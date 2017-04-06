@@ -4,6 +4,7 @@ import Realm
 @testable import AutoGraphQL
 
 class AllFilmsRequest: Request {
+
     /*
      "query filmRequest {" +
         "allFilms {" +
@@ -39,6 +40,10 @@ class AllFilmsRequest: Request {
                             ],
                           fragments: nil,
                           arguments: nil)
+    
+    var threadAdapter: RealmThreadAdaptor? {
+        return RealmThreadAdaptor()
+    }
     
     var mapping: Binding<FilmMapping> {
         return Binding.mapping("data.allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))

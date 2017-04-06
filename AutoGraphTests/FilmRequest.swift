@@ -35,19 +35,14 @@ class FilmRequest: Request {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
+    var threadAdapter: RealmThreadAdaptor? {
+        return RealmThreadAdaptor()
+    }
+    
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
     public func didFinish(result: Result<Film>) throws { }
 }
-
-extension RLMObject: ThreadUnsafe {
-    public static var primaryKeys: [String] {
-        guard let primaryKey = self.primaryKey() else {
-            fatalError("Must provide a primary key")
-        }
-        return [primaryKey]
-    }
- }
 
 class FilmMapping: RealmMapping {
     

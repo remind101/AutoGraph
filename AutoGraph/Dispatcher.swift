@@ -32,8 +32,8 @@ public class Dispatcher {
         self.responseHandler = responseHandler
     }
     
-    func send<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
-    (request: R, objectBinding: ObjectBinding<M, CM, C>, globalWillSend: ((R) throws -> ())?) {
+    func send<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>
+    (request: R, objectBinding: ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
         
         let completion: (DataResponse<Any>) -> () = { [weak self] response in
             self?.responseHandler.handle(response: response, objectBinding: objectBinding, preMappingHook: request.didFinishRequest)
