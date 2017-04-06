@@ -1,6 +1,7 @@
 /// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdapter` and map to `RLMObject` using `Crust`.
 
 import Foundation
+import AutoGraphQL
 import Crust
 import JSONValueRX
 import Realm
@@ -138,6 +139,19 @@ public class RealmAdapter: Adapter {
             objects.append(obj)
         }
         return objects
+    }
+}
+
+public class RealmThreadAdaptor: ThreadAdapter {
+    public typealias BaseType = RLMObject
+
+    public func threadSafeRepresentations(`for` objects: [RLMObject], ofType type: Any.Type) throws -> [RLMThreadSafeReference<RLMThreadConfined>] {
+        return objects.map { RLMThreadSafeReference(threadConfined: $0) }
+    }
+    
+    public func retrieveObjects(`for` representations: [RLMThreadSafeReference<RLMThreadConfined>]) throws -> [RLMObject] {
+        let realm = RLMRealm.default()
+        return representations.flatMap { realm.__resolve($0) as? RLMObject }
     }
 }
 

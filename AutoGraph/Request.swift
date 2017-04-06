@@ -13,6 +13,10 @@ public protocol Request {
     
     associatedtype Query: GraphQLQuery
     
+    /// If the `SerializedObject`(s) cannot be passed across threads, then we'll use this to transform
+    /// the objects as they are passed from the background to the main thread.
+    associatedtype ThreadAdapterType: ThreadAdapter
+    
     /// The query to be sent to GraphQL.
     var query: Query { get }
     
@@ -26,6 +30,9 @@ public protocol Request {
     /// Additionally, the mapped data (`Mapping.MappedObject`) is assumed to be safe to pass
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<Mapping> { get }
+    
+    /// Our `ThreadAdapter`.
+    var threadAdapter: ThreadAdapterType? { get }
     
     /// Called at the moment before the request will be sent from the `Client`.
     func willSend() throws
@@ -46,11 +53,12 @@ class VoidMapping: AnyMapping {
 
 // TODO: We should support non-equatable collections.
 // TOOD: We should better apply currying and futures to clean some of this up.
-public enum ObjectBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection>
+public enum ObjectBinding<M: Mapping, CM: Mapping, C: RangeReplaceableCollection,
+    T: ThreadAdapter>
 where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable {
     
-    case object(mappingBinding: () -> Binding<M>, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingBinding: () -> Binding<CM>, completion: RequestCompletion<C>)
+    case object(mappingBinding: () -> Binding<M>, threadAdapter: T?, completion: RequestCompletion<M.MappedObject>)
+    case collection(mappingBinding: () -> Binding<CM>, threadAdapter: T?, completion: RequestCompletion<C>)
 }
 
 extension Request
@@ -58,13 +66,13 @@ extension Request
     SerializedObject.Iterator.Element == Mapping.MappedObject,
     Mapping.MappedObject: Equatable {
     
-    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<Mapping, Mapping, SerializedObject> {
-        return ObjectBinding<Mapping, Mapping, SerializedObject>.collection(mappingBinding: { self.mapping }, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<Mapping, Mapping, SerializedObject, ThreadAdapterType> {
+        return ObjectBinding<Mapping, Mapping, SerializedObject, ThreadAdapterType>.collection(mappingBinding: { self.mapping }, threadAdapter: self.threadAdapter, completion: completion)
     }
 }
 
 extension Request where SerializedObject == Mapping.MappedObject {
-    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ObjectBinding<Mapping, VoidMapping, Array<Int>> {
-        return ObjectBinding<Mapping, VoidMapping, Array<Int>>.object(mappingBinding: { self.mapping }, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ObjectBinding<Mapping, VoidMapping, Array<Int>, ThreadAdapterType> {
+        return ObjectBinding<Mapping, VoidMapping, Array<Int>, ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, completion: completion)
     }
 }
