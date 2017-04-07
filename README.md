@@ -1,4 +1,4 @@
-[![AutoGraph](https://github.com/remind101/AutoGraph/blob/master/Artboard.png)](https://github.com/remind101/AutoGraph/blob/master/Artboard.png)
+[![AutoGraph](https://github.com/remind101/AutoGraph/blob/master/autograph.png)](https://github.com/remind101/AutoGraph/blob/master/autograph.png)
 
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/AutoGraph.svg)](https://img.shields.io/cocoapods/v/AutoGraph.svg)
 [![CircleCI](https://circleci.com/gh/remind101/AutoGraph.svg?style=svg&circle-token=3e12fea283d6d6476e480f1cc77e9b14a63e5487)](https://circleci.com/gh/remind101/AutoGraph)
