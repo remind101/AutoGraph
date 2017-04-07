@@ -1,11 +1,9 @@
-# AutoGraph
-A GraphQL Client in Swift
+[![AutoGraph](https://github.com/remind101/AutoGraph/blob/master/Artboard.png)](https://github.com/remind101/AutoGraph/blob/master/Artboard.png)
 
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/AutoGraph.svg)](https://img.shields.io/cocoapods/v/AutoGraph.svg)
 [![CircleCI](https://circleci.com/gh/remind101/AutoGraph.svg?style=svg)](https://circleci.com/gh/remind101/AutoGraph)
 
-## AutoGraph
-A GraphQL Client in Swift
+The Swiftest way to GraphQL
 
 - [Features](#features)
 - [Usage](#usage)
