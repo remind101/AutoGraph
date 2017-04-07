@@ -11,20 +11,20 @@ The Swiftest way to GraphQL
 - [License](#license)
 
 ## Features 
-- [ ] [Code Generation](#code-generation)
-- [x] [Database Agnostic](#database-agnostic)
-  - [x] [Realm](#realm)
-    - [x] Realm Obj-C
-    - [ ] Realm Swift
-  - [ ] [Core Data](#core-data)
-- [x] [Query Builder](#query-builder)
-- [x] [Type safe Mapping](#crust-for-type-safe-mapping)
-- [x] [Type safe JSON](#jsonvalue-for-type-safe-json)
-- [x] [Threading](#threading)
-- [x] [Network Library](#network-library)
-- [ ] Network Library Agnostic
-- [ ] [Batched Queries](#batched-queries)
-- [x] Supports Optional Types and Collections.
+- [ ] ⚡️ [Code Generation](#code-generation)
+- [x] 💒 [Database Agnostic](#database-agnostic)
+  - [x] 👑 [Realm](#realm)
+    - [x] 🦃 Realm Obj-C
+    - [ ] 🕊 Realm Swift
+  - [ ] 💾 [Core Data](#core-data)
+- [x] 🔨 [Query Builder](#query-builder)
+- [x] ⛑ [Type safe Mapping](#crust-for-type-safe-mapping)
+- [x] 🆒 [Type safe JSON](#jsonvalue-for-type-safe-json)
+- [x] 🐙 [Threading](#threading)
+- [x] 🌐 [Network Library](#network-library)
+- [ ] 🔮 Network Library Agnostic
+- [ ] 🥓 [Batched Queries](#batched-queries)
+- [x] ❓ Supports Optional Types and Collections.
 
 AutoGraph is a Swift client framework for making requests using GraphQL and mapping the responses to strongly typed models. Models may be represented by any type, including database model objects such as Realm or Core Data models. AutoGraph relies heavily on Swift's type safety to drive it, leading to safer, compile time checked code.
 
