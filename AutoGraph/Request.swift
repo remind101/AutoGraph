@@ -2,6 +2,7 @@ import Crust
 import Foundation
 import JSONValueRX
 
+/// A `Request` to be sent by AutoGraph.
 public protocol Request {
     /// The `Mapping` used to map from the returned JSON payload to a concrete type
     /// `Mapping.MappedObject`.
@@ -45,11 +46,44 @@ public protocol Request {
     func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
 
+/// A `Request` where the result objects can safely be transmitted across threads without special handling.
+/// In other words, as soon as the result objects are generated from resolving the GraphQL response in the background
+/// they are passed directly to the main thread and returned to the caller.
+public protocol ThreadUnconfinedRequest: Request { }
+public extension ThreadUnconfinedRequest {
+    var threadAdapter: UnsafeThreadAdapter<Self.Mapping.MappedObject>? { return nil }
+}
+
 extension Int: AnyMappable { }
 class VoidMapping: AnyMapping {
     typealias AdapterKind = AnyAdapterImp<MappedObject>
     typealias MappedObject = Int
     func mapping(toMap: inout Int, context: MappingContext) { }
+}
+
+/// Before returning `Result` to the caller, the `ThreadAdapter` passes our `ThreadSafeRepresentation`
+/// back to the main thread and then uses `retrieveObjects(for:)` to return our result to the caller.
+public protocol ThreadAdapter {
+    associatedtype BaseType
+    associatedtype CollectionType: RangeReplaceableCollection = [BaseType]
+    associatedtype ThreadSafeRepresentation
+    
+    func threadSafeRepresentations(`for` objects: CollectionType, ofType type: Any.Type) throws -> [ThreadSafeRepresentation]
+    func retrieveObjects(`for` representations: [ThreadSafeRepresentation]) throws -> CollectionType
+}
+
+/// Use this as your thread adapter if you prefer to ignore thread safety. This simply returns the objects passed into it.
+/// You may also use this to generate a no-op - `var threadAdapter: UnsafeThreadAdapter<Self.Mapping.MappedObject>? { return nil }`.
+public class UnsafeThreadAdapter<T>: ThreadAdapter {
+    public typealias BaseType = T
+
+    public func threadSafeRepresentations(`for` objects: [T], ofType type: Any.Type) throws -> [T] {
+        return objects
+    }
+    
+    public func retrieveObjects(`for` representations: [T]) throws -> [T] {
+        return representations
+    }
 }
 
 // TODO: We should support non-equatable collections.

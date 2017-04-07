@@ -98,6 +98,25 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(called)
     }
     
+    func testFunctionalSingleFilmThreadUnconfinedRequest() {
+        let stub = FilmStub()
+        stub.registerStub()
+        
+        var called = false
+        self.subject.send(FilmThreadUnconfinedRequest()) { result in
+            called = true
+            print(result)
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: 1.0)
+        XCTAssertTrue(called)
+    }
+    
     func testFunctionalLifeCycle() {
         let stub = FilmStub()
         stub.registerStub()
