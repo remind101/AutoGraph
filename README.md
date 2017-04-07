@@ -14,9 +14,9 @@ The Swiftest way to GraphQL
 - [ ] ⚡️ [Code Generation](#code-generation)
 - [x] 💒 [Database Agnostic](#database-agnostic)
   - [x] 👑 [Realm](#realm)
-    - [x] 🦃 Realm Obj-C
-    - [ ] 🕊 Realm Swift
-  - [ ] 💾 [Core Data](#core-data)
+    - [x] 🦃 Realm Obj-C
+    - [ ] 🕊 Realm Swift
+  - [ ] 💾 [Core Data](#core-data)
 - [x] 🔨 [Query Builder](#query-builder)
 - [x] ⛑ [Type safe Mapping](#crust-for-type-safe-mapping)
 - [x] 🆒 [Type safe JSON](#jsonvalue-for-type-safe-json)
