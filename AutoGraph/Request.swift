@@ -61,8 +61,8 @@ class VoidMapping: AnyMapping {
     func mapping(toMap: inout Int, context: MappingContext) { }
 }
 
-/// Before returning `Result` to the caller, the `ThreadAdapter` pass our `ThreadSafeRepresentation`
-/// back to the main thread and then use `retrieveObjects(for:)` to return our result to the caller.
+/// Before returning `Result` to the caller, the `ThreadAdapter` passes our `ThreadSafeRepresentation`
+/// back to the main thread and then uses `retrieveObjects(for:)` to return our result to the caller.
 public protocol ThreadAdapter {
     associatedtype BaseType
     associatedtype CollectionType: RangeReplaceableCollection = [BaseType]
