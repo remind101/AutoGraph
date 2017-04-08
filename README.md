@@ -66,7 +66,7 @@ AutoGraph includes a GraphQL query builder to construct queries in a type safe m
 
 
 Query Example
-```
+```swift
 Raw GraphQL         AutoGraph
 -----------         ---------
 query MyCoolQuery {         AutoGraphQL.Operation(type: .query, name: "MyCoolQuery", fields: [
@@ -82,7 +82,7 @@ query MyCoolQuery {         AutoGraphQL.Operation(type: .query, name: "MyCoolQue
 ```
 
 Mutation Example
-```
+```swift
 Raw GraphQL
 -----------         
 mutation MyCoolMutation {
@@ -108,7 +108,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
                                     "name"
                                     ])
                                 ]
-                            arguments: [ // Continues "updateFavoriteAuthor" constructor
+                            arguments: [ // Continues "updateFavoriteAuthor".
                                 "uuid" : "long_id",
                                 "input" : [
                                    "name" : "My Cool Class"
@@ -145,7 +145,7 @@ Crust and by extension AutoGraph rely on [JSONValue](https://github.com/rexmas/J
 AutoGraph performs all network requests and mapping off of the main thread. Since a `Request` will eventually return whole models back to the caller on the main thread, it's important to consider thread safety with the model types being used. For example, Realm model objects are thread confined; i.e. an exception will be thrown if a Realm model object is used from a thread it was not instantiated on. In order to safely pass the resulting model objects from the background to the main thread, `Request` has a `threadAdapter: ThreadAdapter` property which provides AutoGraph a way to safely pass models across thread boundaries.
 
 E.g.
-```
+```swift
 public class RealmThreadAdaptor: ThreadAdapter {
     public typealias BaseType = RLMObject
 
@@ -177,7 +177,7 @@ This is a planned feature that is not yet supported.
     2.  `mapping` - Defines how to map from the returned JSON payload to the result object.
     3. `threadAdapter` - Used to pass result objects across threads to return to the caller.
     4. A number of methods to inform the Request of its point in the life cycle.
-```
+```swift
 class FilmRequest: Request {
     /*
      query film {
@@ -234,7 +234,7 @@ class FilmRequest: Request {
     2. `.mapping` for single objects, (also work with list results but default to .replace, unique == true).
     3. The keyPath for the request will mirror the hierarchy of the query, with data at the root.
 
-```
+```swift
 Raw GraphQL:
 ------------
 {
