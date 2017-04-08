@@ -26,3 +26,7 @@ parsers:
       method: false
   javascript:
     enable_partials: false
+ignore:
+  - ./Pods
+  - ./QueryBuilderTests
+  - ./AutoGraphTests
