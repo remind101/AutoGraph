@@ -1,10 +1,12 @@
 import Foundation
 import JSONValueRX
 
+/// Defines a type which can be converted to a GraphQL string. This includes queries and fragments.
 public protocol QueryConvertible {
     func graphQLString() throws -> String
 }
 
+/// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
 public protocol Field: QueryConvertible {
     var name: String { get }
     var alias: String? { get }
@@ -20,6 +22,7 @@ public extension Field {
     }
 }
 
+/// Any type that accepts `Field`s. Inherited by `AcceptsSelectionSet`.
 public protocol AcceptsFields {
     var fields: [Field]? { get }
     func serializedFields() throws -> String
@@ -36,8 +39,8 @@ public extension AcceptsFields {
     }
 }
 
-// TODO: may want to make this a protocol so that we have concrete fragments b/c
-// all fragments must have unique names.
+/// `Fragment` can be used as both a _FragmentDefinition_ and a _FragmentSpread_ from the
+/// GraphQL language. Accepted as by any type which inherits `AcceptsSelectionSet`.
 public struct Fragment: AcceptsSelectionSet, QueryConvertible {
     public let name: String
     public let type: String
@@ -62,6 +65,10 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
     }
 }
 
+/// Any type that accepts a _SelectionSet_ from the GraphQL Language.
+///
+/// This type must accept `Field`s and `Fragment`s and must include either a set of
+/// `fragments` _(FragmentSpread)_ or a set of `fields` or both.
 public protocol AcceptsSelectionSet: AcceptsFields {
     var fields: [Field]? { get }
     var fragments: [Fragment]? { get }
@@ -97,10 +104,15 @@ public extension AcceptsSelectionSet {
     }
 }
 
+/// Any type which inherits `InputValue` can be used as an Input Value (_Value_ and _InputObjectValue_) from the GraphQL language.
+///
+/// Inherited by `String`, `Int`, `UInt`, `Double`, `Bool`, `Float`, `NSNull`, `NSNumber`, `Array`, and `Dictionary`
+/// by default.
 public protocol InputValue {
     func graphQLInputValue() throws -> String
 }
 
+/// Any type that accepts _Arguments_ from the GraphQL language.
 public protocol AcceptsArguments {
     var arguments: [String : InputValue]? { get }
     func serializedArguments() throws -> String
@@ -121,6 +133,7 @@ public extension AcceptsArguments {
     }
 }
 
+/// Represents a `Field` which is a scalar type. Such types are Int, String, Bool, Null, List of Scalars, Enum, etc.
 public struct Scalar: Field {
     public let name: String
     public let alias: String?
@@ -135,6 +148,7 @@ public struct Scalar: Field {
     }
 }
 
+/// Represents a `Field` which is an object type in the schema.
 public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     public let name: String
     public let alias: String?
@@ -155,9 +169,13 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
     }
 }
 
+/// Represents a GraphQL query sent by a request to the server.
 public protocol GraphQLQuery: QueryConvertible { }
 
+/// Defines an _OperationDefinition_ from the GraphQL language. Generally used as the `query` portion of a GraphQL request.
 public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
+    
+    /// Defines an _OperationType_ from the GraphQL language.
     public enum OperationType: QueryConvertible {
         case query
         case mutation
