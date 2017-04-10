@@ -70,6 +70,7 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
 /// This type must accept `Field`s and `Fragment`s and must include either a set of
 /// `fragments` _(FragmentSpread)_ or a set of `fields` or both.
 public protocol AcceptsSelectionSet: AcceptsFields {
+    var name: String { get }
     var fields: [Field]? { get }
     var fragments: [Fragment]? { get }
     func serializedFragments() throws -> String
@@ -88,7 +89,7 @@ public extension AcceptsSelectionSet {
         }.joined(separator: "\n")
         
         guard selectionSet.characters.count > 0 else {
-            return ""
+            throw QueryBuilderError.missingFields(selectionSetName: self.name)
         }
         
         return " {\n\(selectionSet)\n}"
