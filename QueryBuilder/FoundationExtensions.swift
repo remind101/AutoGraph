@@ -4,6 +4,7 @@ import JSONValueRX
 enum QueryBuilderError: LocalizedError {
     case incorrectArgumentKey(key: Any)
     case incorrectArgumentValue(value: Any)
+    case missingFields(selectionSetName: String)
     
     public var errorDescription: String? {
         switch self {
@@ -11,12 +12,18 @@ enum QueryBuilderError: LocalizedError {
             return "value \(value) is not an `InputValue`"
         case .incorrectArgumentKey(let key):
             return "key \(key) is not a `String`"
+        case .missingFields(selectionSetName: let selectionSetName):
+            return "Selection Set on \(selectionSetName) must have either `fields` or `fragments` or both"
         }
     }
 }
 
 extension String: Field, InputValue, GraphQLQuery {
     public var alias: String? {
+        return nil
+    }
+    
+    public var directives: [Directive]? {
         return nil
     }
 

@@ -129,9 +129,11 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 - [x] [Input Values](https://facebook.github.io/graphql/#sec-Input-Values)
     - [x] [List Values](https://facebook.github.io/graphql/#sec-List-Value)
     - [x] [Input Object Values](https://facebook.github.io/graphql/#sec-Input-Object-Values)
-- [ ] [Fragments](https://facebook.github.io/graphql/#sec-Language.Fragments)
-    - [ ] [Inline Fragments](https://facebook.github.io/graphql/#sec-Inline-Fragments)
-- [ ] [Directives](https://facebook.github.io/graphql/#sec-Language.Directives)
+- [x] [Fragments](https://facebook.github.io/graphql/#sec-Language.Fragments)
+    - [x] Fragment Spread
+    - [x] Fragment Definition
+- [ ] [Inline Fragments](https://facebook.github.io/graphql/#sec-Inline-Fragments)
+- [x] [Directives](https://facebook.github.io/graphql/#sec-Language.Directives)
 
 ## Crust for type safe Mapping
 AutoGraph relies entirely on [Crust](https://github.com/rexmas/Crust) for mapping JSON responses to models. Crust is a flexible framework that allows for the construction of multiple [Mappings](https://github.com/rexmas/Crust#how-to-map) to a single model and can simultaneously write to a corresponding database during mapping. Additionally, models can be represented by classes or structs.
