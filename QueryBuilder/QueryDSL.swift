@@ -195,7 +195,7 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirec
     }
 }
 
-/// Defines an _Directive_ from the GraphQL language.
+/// Defines a _Directive_ from the GraphQL language.
 public struct Directive: AcceptsArguments, QueryConvertible {
     public let name: String
     public let arguments: [String : InputValue]?
