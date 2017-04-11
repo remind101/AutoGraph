@@ -252,7 +252,7 @@ AutoGraph:
 class MySweetRequest: Request {
     ...
     
-    var mapping: Bind<AuthorMapping> {
+    var mapping: Binding<AuthorMapping> {
         return Binding.mapping("data.user.authors", AuthorMapping())
     }
 }
