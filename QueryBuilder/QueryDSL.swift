@@ -7,7 +7,7 @@ public protocol QueryConvertible {
 }
 
 /// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
-public protocol Field: QueryConvertible {
+public protocol Field: AcceptsDirectives, QueryConvertible {
     var name: String { get }
     var alias: String? { get }
     func serializedAlias() throws -> String
@@ -39,15 +39,35 @@ public extension AcceptsFields {
     }
 }
 
-/// `Fragment` can be used as both a _FragmentDefinition_ and a _FragmentSpread_ from the
-/// GraphQL language. Accepted as by any type which inherits `AcceptsSelectionSet`.
-public struct Fragment: AcceptsSelectionSet, QueryConvertible {
+/// Defines a _FragmentSpread_ from the GraphQL language. Must reference a `fragmentDefinition`.
+/// Accepted by any type which inherits `AcceptsSelectionSet`.
+public struct FragmentSpread: AcceptsDirectives {
+    public let fragment: FragmentDefinition
+    public let directives: [Directive]?
+    
+    public init(fragment: FragmentDefinition, directives: [Directive]? = nil) {
+        self.fragment = fragment
+        self.directives = directives
+    }
+    
+    public init?(name: String, type: String, directives: [Directive]? = nil) {
+        guard let fragment = FragmentDefinition(name: name, type: type) else {
+            return nil
+        }
+        self.fragment = fragment
+        self.directives = directives
+    }
+}
+
+/// Defines a _FragmentDefinition_ from the GraphQL language.
+public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryConvertible {
     public let name: String
     public let type: String
     public let fields: [Field]?
-    public let fragments: [Fragment]?
+    public let fragments: [FragmentSpread]?
+    public let directives: [Directive]?
     
-    public init?(name: String, type: String, fields: [Field]? = nil, fragments: [Fragment]? = nil) {
+    public init?(name: String, type: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
         guard name != "on" else {
             return nil
         }
@@ -58,10 +78,11 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
         self.type = type
         self.fields = fields
         self.fragments = fragments
+        self.directives = directives
     }
     
     public func graphQLString() throws -> String {
-        return "fragment \(self.name) on \(self.type)\(try self.serializedSelectionSet())"
+        return "fragment \(self.name) on \(self.type)\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
     }
 }
 
@@ -72,7 +93,7 @@ public struct Fragment: AcceptsSelectionSet, QueryConvertible {
 public protocol AcceptsSelectionSet: AcceptsFields {
     var name: String { get }
     var fields: [Field]? { get }
-    var fragments: [Fragment]? { get }
+    var fragments: [FragmentSpread]? { get }
     func serializedFragments() throws -> String
     func serializedSelectionSet() throws -> String
 }
@@ -100,7 +121,7 @@ public extension AcceptsSelectionSet {
             return ""
         }
         
-        let fragmentsList = fragments.map { "...\($0.name)" }.joined(separator: "\n")
+        let fragmentsList = try fragments.map { "...\($0.fragment.name)\(try $0.serializedDirectives())" }.joined(separator: "\n")
         return fragmentsList
     }
 }
@@ -138,35 +159,70 @@ public extension AcceptsArguments {
 public struct Scalar: Field {
     public let name: String
     public let alias: String?
+    public let directives: [Directive]?
     
-    public init(name: String, alias: String? = nil) {
+    public init(name: String, alias: String? = nil, directives: [Directive]? = nil) {
         self.name = name
         self.alias = alias
+        self.directives = directives
     }
     
     public func graphQLString() throws -> String {
-        return "\(try self.serializedAlias())\(name)"
+        return "\(try self.serializedAlias())\(name)\(try self.serializedDirectives())"
     }
 }
 
 /// Represents a `Field` which is an object type in the schema.
-public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
+public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirectives {
     public let name: String
     public let alias: String?
     public let fields: [Field]?
-    public let fragments: [Fragment]?
+    public let fragments: [FragmentSpread]?
     public let arguments: [String : InputValue]?
+    public let directives: [Directive]?
     
-    public init(name: String, alias: String? = nil, fields: [Field]? = nil, fragments: [Fragment]? = nil, arguments: [String : InputValue]? = nil) {
+    public init(name: String, alias: String? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, arguments: [String : InputValue]? = nil, directives: [Directive]? = nil) {
         self.name = name
         self.alias = alias
         self.fields = fields
         self.fragments = fragments
         self.arguments = arguments
+        self.directives = directives
     }
     
     public func graphQLString() throws -> String {
-        return "\(try self.serializedAlias())\(name)\(try self.serializedArguments())\(try self.serializedSelectionSet())"
+        return "\(try self.serializedAlias())\(name)\(try self.serializedArguments())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+    }
+}
+
+/// Defines an _Directive_ from the GraphQL language.
+public struct Directive: AcceptsArguments, QueryConvertible {
+    public let name: String
+    public let arguments: [String : InputValue]?
+    
+    public init(name: String, arguments: [String : InputValue]? = nil) {
+        self.name = name
+        self.arguments = arguments
+    }
+    
+    /// @ Name Arguments opt
+    public func graphQLString() throws -> String {
+        return "@\(self.name)\(try self.serializedArguments())"
+    }
+}
+
+public protocol AcceptsDirectives {
+    var directives: [Directive]? { get }
+    func serializedDirectives() throws -> String
+}
+
+public extension AcceptsDirectives {
+    func serializedDirectives() throws -> String {
+        guard let directives = self.directives else {
+            return ""
+        }
+        
+        return " " + (try directives.map { try $0.graphQLString() }.joined(separator: " "))
     }
 }
 
@@ -174,7 +230,7 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet {
 public protocol GraphQLQuery: QueryConvertible { }
 
 /// Defines an _OperationDefinition_ from the GraphQL language. Generally used as the `query` portion of a GraphQL request.
-public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
+public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments, AcceptsDirectives {
     
     /// Defines an _OperationType_ from the GraphQL language.
     public enum OperationType: QueryConvertible {
@@ -194,18 +250,20 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments {
     public let type: OperationType
     public let name: String
     public let fields: [Field]?
-    public let fragments: [Fragment]?
+    public let fragments: [FragmentSpread]?
     public let arguments: [String : InputValue]?
+    public let directives: [Directive]?
     
-    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [Fragment]? = nil, arguments: [String : InputValue]? = nil) {
+    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, arguments: [String : InputValue]? = nil, directives: [Directive]? = nil) {
         self.type = type
         self.name = name
         self.fields = fields
         self.fragments = fragments
         self.arguments = arguments
+        self.directives = directives
     }
     
     public func graphQLString() throws -> String {
-        return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedArguments())\(try self.serializedSelectionSet())"
+        return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedArguments())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
     }
 }

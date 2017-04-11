@@ -22,6 +22,10 @@ extension String: Field, InputValue, GraphQLQuery {
     public var alias: String? {
         return nil
     }
+    
+    public var directives: [Directive]? {
+        return nil
+    }
 
     public func graphQLString() throws -> String {
         return self.name
