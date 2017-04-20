@@ -200,6 +200,62 @@ class OperationTests: XCTestCase {
         self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable], directives: [directive])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
     }
+    
+    func testVariableDefinitions() {
+        struct UserInput: InputObjectValue {
+            var fields: [String : InputValue] {
+                return ["id" : 1234, "name" : "cool_user"]
+            }
+            
+            static var objectTypeName: String {
+                return "UserInput"
+            }
+        }
+        
+        enum UserEnumInput: InputValue {
+            case myCase
+            
+            static func inputType() throws -> InputType {
+                return .enumValue(typeName: "UserEnumInput")
+            }
+            
+            func graphQLInputValue() throws -> String {
+                switch self {
+                case .myCase:
+                    return try "MY_CASE".graphQLInputValue()
+                }
+            }
+        }
+        
+        let stringVariable = VariableDefinition<String>(name: "stringVariable", defaultValue: "best_string")
+        let variableVariable = VariableDefinition<VariableDefinition<String>>(name: "variableVariable")
+        let objectVariable = VariableDefinition<UserInput>(name: "userInput")
+        let nonOptionalListVariable = VariableDefinition<NonNullInputValue<[NonNullInputValue<Int>]>>(name: "nonOptionalListVariable")
+        let optionalListObjectVariable = VariableDefinition<[UserInput]>(name: "optionalListObjectVariable")
+        let enumVariable = VariableDefinition<UserEnumInput>(name: "enumVariable")
+        
+        self.subject = QueryBuilder.Operation(type: .mutation,
+                                              name: "Mutation",
+                                              fields: ["name"],
+                                              fragments: nil,
+                                              variableDefinitions: [
+                                                try! stringVariable.typeErase(),
+                                                try! variableVariable.typeErase(),
+                                                try! objectVariable.typeErase(),
+                                                try! nonOptionalListVariable.typeErase(),
+                                                try! optionalListObjectVariable.typeErase(),
+                                                try! enumVariable.typeErase()
+            ])
+        
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($stringVariable: String = \"best_string\", $variableVariable: String, $userInput: UserInput, $nonOptionalListVariable: [Int!]!, $optionalListObjectVariable: [UserInput], $enumVariable: UserEnumInput) {\nname\n}")
+    }
+    
+    func testVariableVariablesWithDefaultValuesFail() {
+        let stringVariable = VariableDefinition<String>(name: "stringVariable")
+        let variableVariable = VariableDefinition<VariableDefinition<String>>(name: "variableVariable", defaultValue: stringVariable)
+        
+        XCTAssertThrowsError(try variableVariable.typeErase())
+    }
 }
 
 class InputValueTests: XCTestCase {

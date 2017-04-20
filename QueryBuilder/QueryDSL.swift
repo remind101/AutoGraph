@@ -191,7 +191,7 @@ public protocol InputObjectValue: InputValue {
 }
 
 public extension InputObjectValue {
-    static func typeName() throws -> InputType {
+    static func inputType() throws -> InputType {
         return .object(typeName: self.objectTypeName)
     }
     
@@ -238,8 +238,10 @@ public struct NonNullInputValue<T: InputValue>: InputValue {
     }
 }
 
+internal protocol VariableDefinitionType { }
+
 /// Defines a _VariableDefinition_ from the GraphQL language.
-public struct VariableDefinition<T: InputValue>: InputValue {
+public struct VariableDefinition<T: InputValue>: InputValue, VariableDefinitionType {
     public static func inputType() throws -> InputType {
         return try T.inputType()
     }
@@ -267,6 +269,10 @@ public struct AnyVariableDefinition {
     public let defaultValue: InputValue?
     
     public init<T: InputValue>(variableDefinition: VariableDefinition<T>) throws {
+        if variableDefinition.defaultValue is VariableDefinitionType {
+            throw QueryBuilderError.incorrectInputType(message: "A VariableDefinition cannot use a default value of another VariableDefinition")
+        }
+        
         self.name = variableDefinition.name
         self.typeName = try T.inputType()
         self.defaultValue = variableDefinition.defaultValue
@@ -291,7 +297,12 @@ public extension AcceptsVariableDefinitions {
                 guard let defaultValue = def.defaultValue else {
                     return ""
                 }
-                return " " + (try type(of: defaultValue).inputType().typeName)
+                
+                if defaultValue is VariableDefinitionType {
+                    throw QueryBuilderError.incorrectInputType(message: "A VariableDefinition cannot use a default value of another VariableDefinition")
+                }
+                
+                return " = " + (try defaultValue.graphQLInputValue())
             }()
             
             return "$" + def.name + ": " + def.typeName.typeName + defaultValue
