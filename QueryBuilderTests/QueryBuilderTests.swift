@@ -261,6 +261,7 @@ class OperationTests: XCTestCase {
 class InputValueTests: XCTestCase {
     
     func testArrayInputValue() {
+        XCTAssertEqual(try Array<String>.inputType().typeName, "[String]")
         XCTAssertEqual(try! [ 1, "derp" ].graphQLInputValue(), "[1, \"derp\"]")
     }
     
@@ -269,10 +270,28 @@ class InputValueTests: XCTestCase {
     }
     
     func testDictionaryInputValue() {
+        XCTAssertThrowsError(try Dictionary<String, String>.inputType())
         XCTAssertEqual(try! [ "number" : 1, "string" : "derp" ].graphQLInputValue(), "{number: 1, string: \"derp\"}")
     }
     
     func testEmptyDictionaryInputValue() {
         XCTAssertEqual(try [:].graphQLInputValue(), "{}")
+    }
+    
+    func testBoolInputValue() {
+        XCTAssertEqual(try Bool.inputType().typeName, "Boolean")
+        XCTAssertEqual(try true.graphQLInputValue(), "true")
+    }
+    
+    func testVariableInputValue() {
+        let variable = VariableDefinition<String>(name: "variable")
+        XCTAssertEqual(try type(of: variable).inputType().typeName, "String")
+        XCTAssertEqual(try variable.graphQLInputValue(), "$variable")
+    }
+    
+    func testNonNullInputValue() {
+        let nonNull = NonNullInputValue<String>(inputValue: "val")
+        XCTAssertEqual(try nonNull.graphQLInputValue(), "\"val\"")
+        XCTAssertEqual(try type(of: nonNull).inputType().typeName, "String!")
     }
 }

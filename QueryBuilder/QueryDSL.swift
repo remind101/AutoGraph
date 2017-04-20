@@ -132,7 +132,7 @@ public indirect enum InputType {
         case int = "Int"
         case float = "Float"
         case string = "String"
-        case boolean = "Bool"
+        case boolean = "Boolean"
         case null = "Null"
     }
     
