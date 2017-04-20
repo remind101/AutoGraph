@@ -37,9 +37,7 @@ class AllFilmsRequest: Request {
                                            arguments: nil)],
                                    fragments: nil,
                                    arguments: nil)
-                            ],
-                          fragments: nil,
-                          arguments: nil)
+                            ])
     
     var threadAdapter: RealmThreadAdaptor? {
         return RealmThreadAdaptor()

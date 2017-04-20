@@ -126,12 +126,78 @@ public extension AcceptsSelectionSet {
     }
 }
 
+/// Represents the names of types accepted by `InputValue`.
+public indirect enum InputType {
+    public enum ScalarTypes: String {
+        case int = "Int"
+        case float = "Float"
+        case string = "String"
+        case boolean = "Bool"
+        case null = "Null"
+    }
+    
+    case variable(typeName: String)
+    case scalar(ScalarTypes)
+    case nonNull(InputType)
+    case list(InputType)
+    case enumValue(typeName: String)
+    case object(typeName: String)
+    
+    public var typeName: String {
+        switch self {
+        case .variable(let typeName):
+            return typeName
+        case .scalar(let type):
+            return type.rawValue
+        case .nonNull(let inputType):
+            return inputType.typeName + "!"
+        case .list(let inputType):
+            return "[" + inputType.typeName + "]"
+        case .enumValue(let typeName):
+            return typeName
+        case .object(let typeName):
+            return typeName
+        }
+    }
+}
+
 /// Any type which inherits `InputValue` can be used as an Input Value (_Value_ and _InputObjectValue_) from the GraphQL language.
 ///
 /// Inherited by `String`, `Int`, `UInt`, `Double`, `Bool`, `Float`, `NSNull`, `NSNumber`, `Array`, and `Dictionary`
 /// by default.
 public protocol InputValue {
+    static func inputType() throws -> InputType
     func graphQLInputValue() throws -> String
+}
+
+/// Defines an _ObjectValue_ from the GraphQL language. Use this in replace of `Dictionary` when creating an `InputValue`
+/// which will be represented by a `VariableDefinition`.
+///
+/// E.g. mutation:
+///
+/// ```
+/// mutation UserProfileUpdate($profileUpdate: ProfileUpdate) {
+///   user(profileUpdate: $profileUpdate)
+/// }
+/// ```
+///
+/// ProfileUpdate is a _Type_ Name that cannot be expressed merely by using a `Dictionary`.
+/// 
+/// When we construct our `VariableDefinition` for `$profileUpdate` it will be required that we use
+/// `InputObjectValue` instead of a `Dictionary` for `<T: InputValue>` and specify `"ProfileUpdate"` for `objectTypeName: String`.
+public protocol InputObjectValue: InputValue {
+    static var objectTypeName: String { get }
+    var fields: [String : InputValue] { get }
+}
+
+public extension InputObjectValue {
+    static func typeName() throws -> InputType {
+        return .object(typeName: self.objectTypeName)
+    }
+    
+    func graphQLInputValue() throws -> String {
+        return try self.fields.graphQLInputValue()
+    }
 }
 
 /// Any type that accepts _Arguments_ from the GraphQL language.
@@ -152,6 +218,87 @@ public extension AcceptsArguments {
         }.joined(separator: ", ")
         
         return "(\(argumentsList))"
+    }
+}
+
+/// Use in order to specify that the type of an `InputValue` is _NonNullType_.
+public struct NonNullInputValue<T: InputValue>: InputValue {
+    public static func inputType() throws -> InputType {
+        return .nonNull(try T.inputType())
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return try self.inputValue.graphQLInputValue()
+    }
+
+    let inputValue: T
+    
+    init(inputValue: T) {
+        self.inputValue = inputValue
+    }
+}
+
+/// Defines a _VariableDefinition_ from the GraphQL language.
+public struct VariableDefinition<T: InputValue>: InputValue {
+    public static func inputType() throws -> InputType {
+        return try T.inputType()
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return "$" + self.name
+    }
+    
+    public let name: String
+    public let defaultValue: T?
+    
+    public init(name: String, defaultValue: T? = nil) {
+        self.name = name
+        self.defaultValue = defaultValue
+    }
+    
+    public func typeErase() throws -> AnyVariableDefinition {
+        return try AnyVariableDefinition(variableDefinition: self)
+    }
+}
+
+public struct AnyVariableDefinition {
+    public let name: String
+    public let typeName: InputType
+    public let defaultValue: InputValue?
+    
+    public init<T: InputValue>(variableDefinition: VariableDefinition<T>) throws {
+        self.name = variableDefinition.name
+        self.typeName = try T.inputType()
+        self.defaultValue = variableDefinition.defaultValue
+    }
+}
+
+/// Any type that accepts _VariableDefinition_ from the GraphQL language.
+public protocol AcceptsVariableDefinitions {
+    var variableDefinitions: [AnyVariableDefinition]? { get }
+    func serializedVariableDefinitions() throws -> String
+}
+
+public extension AcceptsVariableDefinitions {
+    func serializedVariableDefinitions() throws -> String {
+        
+        guard let variableDefinitions = self.variableDefinitions else {
+            return ""
+        }
+        
+        let defList: String = try variableDefinitions.map { def in
+            let defaultValue: String = try {
+                guard let defaultValue = def.defaultValue else {
+                    return ""
+                }
+                return " " + (try type(of: defaultValue).inputType().typeName)
+            }()
+            
+            return "$" + def.name + ": " + def.typeName.typeName + defaultValue
+        }
+        .joined(separator: ", ")
+        
+        return "(\(defList))"
     }
 }
 
@@ -230,7 +377,7 @@ public extension AcceptsDirectives {
 public protocol GraphQLQuery: QueryConvertible { }
 
 /// Defines an _OperationDefinition_ from the GraphQL language. Generally used as the `query` portion of a GraphQL request.
-public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments, AcceptsDirectives {
+public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefinitions, AcceptsDirectives {
     
     /// Defines an _OperationType_ from the GraphQL language.
     public enum OperationType: QueryConvertible {
@@ -251,19 +398,19 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsArguments, Ac
     public let name: String
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
-    public let arguments: [String : InputValue]?
+    public let variableDefinitions: [AnyVariableDefinition]?
     public let directives: [Directive]?
     
-    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, arguments: [String : InputValue]? = nil, directives: [Directive]? = nil) {
+    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, variableDefinitions: [AnyVariableDefinition]? = nil, directives: [Directive]? = nil) {
         self.type = type
         self.name = name
         self.fields = fields
         self.fragments = fragments
-        self.arguments = arguments
+        self.variableDefinitions = variableDefinitions
         self.directives = directives
     }
     
     public func graphQLString() throws -> String {
-        return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedArguments())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+        return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedVariableDefinitions())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
     }
 }

@@ -28,8 +28,7 @@ class FilmRequest: Request {
                                     Scalar(name: "openingCrawl", alias: nil)],
                                    arguments: ["id" : "ZmlsbXM6MQ=="])
                             ],
-                          fragments: nil,
-                          arguments: nil)
+                          fragments: nil)
     
     var mapping: Binding<FilmMapping> {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))

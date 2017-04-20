@@ -182,21 +182,23 @@ class OperationTests: XCTestCase {
     
     func testQueryForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .query, name: "Query", fields: [scalar], fragments: nil, arguments: nil)
+        self.subject = QueryBuilder.Operation(type: .query, name: "Query", fields: [scalar], fragments: nil)
         XCTAssertEqual(try! self.subject.graphQLString(), "query Query {\nname\n}")
     }
     
     func testMutationForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, arguments: ["name" : "olga"])
-        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation(name: \"olga\") {\nname\n}")
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable])
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
     func testDirectives() {
         let scalar = Scalar(name: "name", alias: nil)
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, arguments: ["name" : "olga"], directives: [directive])
-        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation(name: \"olga\") @cool(best: \"directive\") {\nname\n}")
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable], directives: [directive])
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
     }
 }
 
