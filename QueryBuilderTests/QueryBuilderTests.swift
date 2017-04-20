@@ -283,6 +283,21 @@ class InputValueTests: XCTestCase {
         XCTAssertEqual(try true.graphQLInputValue(), "true")
     }
     
+    func testIntInputValue() {
+        XCTAssertEqual(try Int.inputType().typeName, "Int")
+        XCTAssertEqual(try 1.graphQLInputValue(), "1")
+    }
+    
+    func testDoubleInputValue() {
+        XCTAssertEqual(try Double.inputType().typeName, "Float")
+        XCTAssertEqual(try (1.1 as Double).graphQLInputValue(), "1.1")
+    }
+    
+    func testNSNullInputValue() {
+        XCTAssertEqual(try NSNull.inputType().typeName, "Null")
+        XCTAssertEqual(try NSNull().graphQLInputValue(), "null")
+    }
+    
     func testVariableInputValue() {
         let variable = VariableDefinition<String>(name: "variable")
         XCTAssertEqual(try type(of: variable).inputType().typeName, "String")
