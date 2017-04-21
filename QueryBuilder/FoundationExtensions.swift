@@ -4,6 +4,7 @@ import JSONValueRX
 enum QueryBuilderError: LocalizedError {
     case incorrectArgumentKey(key: Any)
     case incorrectArgumentValue(value: Any)
+    case incorrectInputType(message: String)
     case missingFields(selectionSetName: String)
     
     public var errorDescription: String? {
@@ -12,6 +13,8 @@ enum QueryBuilderError: LocalizedError {
             return "value \(value) is not an `InputValue`"
         case .incorrectArgumentKey(let key):
             return "key \(key) is not a `String`"
+        case .incorrectInputType(message: let message):
+            return message
         case .missingFields(selectionSetName: let selectionSetName):
             return "Selection Set on \(selectionSetName) must have either `fields` or `fragments` or both"
         }
@@ -19,6 +22,10 @@ enum QueryBuilderError: LocalizedError {
 }
 
 extension String: Field, InputValue, GraphQLQuery {
+    public static func inputType() throws -> InputType {
+        return .scalar(.string)
+    }
+
     public var alias: String? {
         return nil
     }
@@ -50,12 +57,20 @@ extension String: Field, InputValue, GraphQLQuery {
 }
 
 extension Int: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.int)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
 }
 
 extension UInt: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.int)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
@@ -66,12 +81,20 @@ extension UInt: InputValue {
 }
 
 extension Double: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.float)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
 }
 
 extension Bool: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.boolean)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
@@ -82,6 +105,10 @@ extension Bool: InputValue {
 }
 
 extension Float: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.float)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
@@ -92,6 +119,10 @@ extension Float: InputValue {
 }
 
 extension NSNull: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.null)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
@@ -102,6 +133,10 @@ extension NSNull: InputValue {
 }
 
 extension NSNumber: InputValue {
+    public static func inputType() throws -> InputType {
+        return .scalar(.float)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.jsonEncodedString()
     }
@@ -113,6 +148,14 @@ extension NSNumber: InputValue {
 
 // This can be cleaned up once conditional conformances are added to the language https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md .
 extension Array: InputValue {
+    public static func inputType() throws -> InputType {
+        guard case let elementType as InputValue.Type = Element.self else {
+            throw QueryBuilderError.incorrectArgumentValue(value: Element.self)
+        }
+        
+        return .list(try elementType.inputType())
+    }
+    
     public func graphQLInputValue() throws -> String {
         let values: [String] = try self.map {
             guard case let value as InputValue = $0 else {
@@ -126,6 +169,10 @@ extension Array: InputValue {
 }
 
 extension Dictionary: InputValue {
+    public static func inputType() throws -> InputType {
+        throw QueryBuilderError.incorrectInputType(message: "Dictionary does not have a defined `InputType`, please use `InputObjectType` instead")
+    }
+    
     public func graphQLInputValue() throws -> String {
         let inputs: [String] = try self.map {
             guard case let key as String = $0 else {

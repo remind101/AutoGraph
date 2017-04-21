@@ -182,27 +182,86 @@ class OperationTests: XCTestCase {
     
     func testQueryForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .query, name: "Query", fields: [scalar], fragments: nil, arguments: nil)
+        self.subject = QueryBuilder.Operation(type: .query, name: "Query", fields: [scalar], fragments: nil)
         XCTAssertEqual(try! self.subject.graphQLString(), "query Query {\nname\n}")
     }
     
     func testMutationForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, arguments: ["name" : "olga"])
-        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation(name: \"olga\") {\nname\n}")
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable])
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
     func testDirectives() {
         let scalar = Scalar(name: "name", alias: nil)
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, arguments: ["name" : "olga"], directives: [directive])
-        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation(name: \"olga\") @cool(best: \"directive\") {\nname\n}")
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable], directives: [directive])
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
+    }
+    
+    func testVariableDefinitions() {
+        struct UserInput: InputObjectValue {
+            var fields: [String : InputValue] {
+                return ["id" : 1234, "name" : "cool_user"]
+            }
+            
+            static var objectTypeName: String {
+                return "UserInput"
+            }
+        }
+        
+        enum UserEnumInput: InputValue {
+            case myCase
+            
+            static func inputType() throws -> InputType {
+                return .enumValue(typeName: "UserEnumInput")
+            }
+            
+            func graphQLInputValue() throws -> String {
+                switch self {
+                case .myCase:
+                    return try "MY_CASE".graphQLInputValue()
+                }
+            }
+        }
+        
+        let stringVariable = VariableDefinition<String>(name: "stringVariable", defaultValue: "best_string")
+        let variableVariable = VariableDefinition<VariableDefinition<String>>(name: "variableVariable")
+        let objectVariable = VariableDefinition<UserInput>(name: "userInput")
+        let nonOptionalListVariable = VariableDefinition<NonNullInputValue<[NonNullInputValue<Int>]>>(name: "nonOptionalListVariable")
+        let optionalListObjectVariable = VariableDefinition<[UserInput]>(name: "optionalListObjectVariable")
+        let enumVariable = VariableDefinition<UserEnumInput>(name: "enumVariable")
+        
+        self.subject = QueryBuilder.Operation(type: .mutation,
+                                              name: "Mutation",
+                                              fields: ["name"],
+                                              fragments: nil,
+                                              variableDefinitions: [
+                                                try! stringVariable.typeErase(),
+                                                try! variableVariable.typeErase(),
+                                                try! objectVariable.typeErase(),
+                                                try! nonOptionalListVariable.typeErase(),
+                                                try! optionalListObjectVariable.typeErase(),
+                                                try! enumVariable.typeErase()
+            ])
+        
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($stringVariable: String = \"best_string\", $variableVariable: String, $userInput: UserInput, $nonOptionalListVariable: [Int!]!, $optionalListObjectVariable: [UserInput], $enumVariable: UserEnumInput) {\nname\n}")
+    }
+    
+    func testVariableVariablesWithDefaultValuesFail() {
+        let stringVariable = VariableDefinition<String>(name: "stringVariable")
+        let variableVariable = VariableDefinition<VariableDefinition<String>>(name: "variableVariable", defaultValue: stringVariable)
+        
+        XCTAssertThrowsError(try variableVariable.typeErase())
     }
 }
 
 class InputValueTests: XCTestCase {
     
     func testArrayInputValue() {
+        XCTAssertEqual(try Array<String>.inputType().typeName, "[String]")
         XCTAssertEqual(try! [ 1, "derp" ].graphQLInputValue(), "[1, \"derp\"]")
     }
     
@@ -211,10 +270,43 @@ class InputValueTests: XCTestCase {
     }
     
     func testDictionaryInputValue() {
+        XCTAssertThrowsError(try Dictionary<String, String>.inputType())
         XCTAssertEqual(try! [ "number" : 1, "string" : "derp" ].graphQLInputValue(), "{number: 1, string: \"derp\"}")
     }
     
     func testEmptyDictionaryInputValue() {
         XCTAssertEqual(try [:].graphQLInputValue(), "{}")
+    }
+    
+    func testBoolInputValue() {
+        XCTAssertEqual(try Bool.inputType().typeName, "Boolean")
+        XCTAssertEqual(try true.graphQLInputValue(), "true")
+    }
+    
+    func testIntInputValue() {
+        XCTAssertEqual(try Int.inputType().typeName, "Int")
+        XCTAssertEqual(try 1.graphQLInputValue(), "1")
+    }
+    
+    func testDoubleInputValue() {
+        XCTAssertEqual(try Double.inputType().typeName, "Float")
+        XCTAssertEqual(try (1.1 as Double).graphQLInputValue(), "1.1")
+    }
+    
+    func testNSNullInputValue() {
+        XCTAssertEqual(try NSNull.inputType().typeName, "Null")
+        XCTAssertEqual(try NSNull().graphQLInputValue(), "null")
+    }
+    
+    func testVariableInputValue() {
+        let variable = VariableDefinition<String>(name: "variable")
+        XCTAssertEqual(try type(of: variable).inputType().typeName, "String")
+        XCTAssertEqual(try variable.graphQLInputValue(), "$variable")
+    }
+    
+    func testNonNullInputValue() {
+        let nonNull = NonNullInputValue<String>(inputValue: "val")
+        XCTAssertEqual(try nonNull.graphQLInputValue(), "\"val\"")
+        XCTAssertEqual(try type(of: nonNull).inputType().typeName, "String!")
     }
 }
