@@ -219,16 +219,16 @@ public extension Mapping {
             }
             
             // Walk parent contexts, if using the same adapter type assume that we'll call end mapping later.
+            let adapterType = context.adapterType
             var context = context
-            var aParentHasSameAdapter = false
             while let parent = context.parent {
-                if parent.adapterType == context.adapterType {
-                    aParentHasSameAdapter = true
+                if parent.adapterType == adapterType {
+                    return false
                 }
                 context = parent
             }
             
-            return !aParentHasSameAdapter
+            return true
         }()
         
         if shouldCallEndMapping {
@@ -265,7 +265,7 @@ public extension Mapping {
         context.object = collection
     }
     
-    private func completeMapping<C: Sequence>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
+    internal func completeMapping<C: Sequence>(objects: C, context: MappingContext) throws where C.Iterator.Element == MappedObject {
         if context.error == nil {
             do {
                 try self.checkForAdapterBaseTypeConformance()
