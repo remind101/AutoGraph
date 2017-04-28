@@ -12,7 +12,8 @@ struct VariableFilm: AnyMappable, ThreadAdaptable {
         return self.arbitraryScalar
     }
     
-    // TODO: If we could use a tuple here instead that would be best.
+    // NOTE: If we could use a tuple here instead that would be best. Haven't figured
+    // out a simple way to resolve those types though.
     var threadConfinedPayload: [[RLMObject]] {
         let nodePayload = self.node != nil ? [self.node!] : []
         return [nodePayload, self.allFilms]

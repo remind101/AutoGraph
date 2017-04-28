@@ -61,7 +61,6 @@ public class Dispatcher {
     open func send(sendable: Sendable) {
         do {
             try sendable.willSend?()
-            // "variables" : [json payload]
             let query = try sendable.query.graphQLString()
             var parameters: [String : Any] = ["query" : query]
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
