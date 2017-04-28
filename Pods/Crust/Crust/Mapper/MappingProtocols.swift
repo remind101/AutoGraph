@@ -7,9 +7,9 @@ public enum CollectionInsertionMethod<Element> {
 }
 
 public typealias CollectionUpdatePolicy<Element> =
-    (insert: CollectionInsertionMethod<Element>, unique: Bool)
+    (insert: CollectionInsertionMethod<Element>, unique: Bool, nullable: Bool)
 
-public enum Binding<M: Mapping>: Keypath {
+public enum Binding<M: Mapping> {
     
     case mapping(Keypath, M)
     case collectionMapping(Keypath, M, CollectionUpdatePolicy<M.MappedObject>)
@@ -35,7 +35,7 @@ public enum Binding<M: Mapping>: Keypath {
     public var collectionUpdatePolicy: CollectionUpdatePolicy<M.MappedObject> {
         switch self {
         case .mapping(_, _):
-            return (.replace(delete: nil), true)
+            return (.replace(delete: nil), true, true)
         case .collectionMapping(_, _, let method):
             return method
         }
@@ -66,7 +66,13 @@ public protocol Mapping {
     var primaryKeys: [PrimaryKeyDescriptor]? { get }
     
     /// Override to perform mappings to properties.
-    func mapping(toMap: inout MappedObject, context: MappingContext)
+    func mapping(toMap: inout MappedObject, context: MappingContext) throws
+}
+
+public enum DefaultDatabaseTag: String {
+    case realm = "Realm"
+    case coreData = "CoreData"
+    case none = "None"
 }
 
 /// An Adapter to use to write and read objects from a persistance layer.
@@ -77,13 +83,28 @@ public protocol Adapter {
     /// The type of returned results after a fetch.
     associatedtype ResultsType: Collection
     
+    /// Informs the caller if the Adapter is currently within a transaction. The type which inherits Adapter
+    /// will generally set this value to `true` explicitly or implicitly in the call to `mappingWillBegin` 
+    /// `false` in the call to `mappingDidEnd`.
+    ///
+    /// The `Mapper` will check for this value before calling `mappingWillBegin`, and if `true` will _not_ call `mappingWillBegin`
+    /// and if `false` will call `mappingWillBegin`, even in nested object mappings.
+    var isInTransaction: Bool { get }
+    
+    /// Used to designate the database type being written to by this adapter. This is checked before calls to `mappingWillBegin` and
+    /// `mappingDidEnd`. If the same `dataBaseTag` is used for a nested mapping as a parent mapping, then `mappingWillBegin` and
+    /// `mappingDidEnd` will not be called for the nested mapping. This prevents illegal recursive transactions from being started during mapping.
+    /// `DefaultDatabaseTag` provides some defaults to use for often use iOS databases, or none at all.
+    var dataBaseTag: String { get }
+    
     /// Called at the beginning of mapping a json blob. Good place to start a write transaction. Will only
-    /// be called once at the beginning of a tree of nested objects being mapped.
-    func mappingBegins() throws
+    /// be called once at the beginning of a tree of nested objects being mapped assuming `isInTransaction` is set to
+    /// `true` during that first call.
+    func mappingWillBegin() throws
     
     /// Called at the end of mapping a json blob. Good place to close a write transaction. Will only
     /// be called once at the end of a tree of nested objects being mapped.
-    func mappingEnded() throws
+    func mappingDidEnd() throws
     
     /// Called if mapping errored. Good place to cancel a write transaction. Mapping will no longer
     /// continue after this is called.
@@ -111,14 +132,14 @@ public protocol Adapter {
     /// - returns: Results of the query.
     func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType?
     
-    /// Create a default object of type `BaseType`. This is called between `mappingBegins` and `mappingEnded` and
+    /// Create a default object of type `BaseType`. This is called between `mappingWillBegin` and `mappingDidEnd` and
     /// will be the object that Crust then maps to.
     func createObject(type: BaseType.Type) throws -> BaseType
     
     /// Delete an object.
     func deleteObject(_ obj: BaseType) throws
     
-    /// Save a set of mapped objects. Called right before `mappingEnded`.
+    /// Save a set of mapped objects. Called right before `mappingDidEnd`.
     func save(objects: [ BaseType ]) throws
 }
 
