@@ -25,6 +25,7 @@ public extension AnyMapping {
 public struct AnyAdapterImp<T: AnyMappable>: AnyAdapter {
     public typealias BaseType = T
     public init() { }
+    public let dataBaseTag: String = DefaultDatabaseTag.none.rawValue
 }
 
 /// A bare-bones `Adapter`.
@@ -38,8 +39,9 @@ public protocol AnyAdapter: Adapter {
 
 public extension AnyAdapter {
     
-    func mappingBegins() throws { }
-    func mappingEnded() throws { }
+    var isInTransaction: Bool { return false }
+    func mappingWillBegin() throws { }
+    func mappingDidEnd() throws { }
     func mappingErrored(_ error: Error) { }
     
     func sanitize(primaryKeyProperty property: String, forValue value: CVarArg, ofType type: Self.BaseType.Type) -> CVarArg? {

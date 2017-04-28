@@ -16,6 +16,7 @@ public class RealmAdapter: Adapter {
     
     private var cache: Set<BaseType>
     public let realm: RLMRealm
+    public let dataBaseTag: String = DefaultDatabaseTag.realm.rawValue
     public var requiresPrimaryKeys = false
     
     public init(realm: RLMRealm) {
@@ -27,11 +28,15 @@ public class RealmAdapter: Adapter {
         self.init(realm: RLMRealm.default())
     }
     
-    public func mappingBegins() throws {
+    public var isInTransaction: Bool {
+        return self.realm.inWriteTransaction
+    }
+    
+    public func mappingWillBegin() throws {
         self.realm.beginWriteTransaction()
     }
     
-    public func mappingEnded() throws {
+    public func mappingDidEnd() throws {
         try self.realm.commitWriteTransaction()
         self.cache.removeAll()
     }
@@ -144,7 +149,7 @@ public class RealmAdapter: Adapter {
 
 public class RealmThreadAdaptor: ThreadAdapter {
     public typealias BaseType = RLMObject
-
+    
     public func threadSafeRepresentations(`for` objects: [RLMObject], ofType type: Any.Type) throws -> [RLMThreadSafeReference<RLMThreadConfined>] {
         return objects.map { RLMThreadSafeReference(threadConfined: $0) }
     }
@@ -195,18 +200,23 @@ public class RealmSwiftObjectAdapterBridge<T>: Adapter {
     
     public let realmObjCAdapter: RealmAdapter
     public let rlmObjectType: RLMObject.Type
+    public let dataBaseTag: String = DefaultDatabaseTag.realm.rawValue
     
     public init(realmObjCAdapter: RealmAdapter, rlmObjectType: RLMObject.Type) {
         self.realmObjCAdapter = realmObjCAdapter
         self.rlmObjectType = rlmObjectType
     }
     
-    public func mappingBegins() throws {
-        try self.realmObjCAdapter.mappingBegins()
+    public var isInTransaction: Bool {
+        return self.realmObjCAdapter.isInTransaction
     }
     
-    public func mappingEnded() throws {
-        try self.realmObjCAdapter.mappingEnded()
+    public func mappingWillBegin() throws {
+        try self.realmObjCAdapter.mappingWillBegin()
+    }
+    
+    public func mappingDidEnd() throws {
+        try self.realmObjCAdapter.mappingDidEnd()
     }
     
     public func mappingErrored(_ error: Error) {
@@ -250,7 +260,7 @@ public class RLMArrayMappingBridge<T: RLMObject>: Mapping {
     
     public let adapter: RealmSwiftObjectAdapterBridge<MappedObject>
     public let primaryKeys: [Mapping.PrimaryKeyDescriptor]?
-    public let rlmObjectMapping: (inout MappedObject, MappingContext) -> Void
+    public let rlmObjectMapping: (inout MappedObject, MappingContext) throws -> Void
     
     public required init<OGMapping: RealmMapping>(rlmObjectMapping: OGMapping) where OGMapping.MappedObject: RLMObject, OGMapping.MappedObject == T {
         
@@ -258,14 +268,14 @@ public class RLMArrayMappingBridge<T: RLMObject>: Mapping {
                                                      rlmObjectType: OGMapping.MappedObject.self)
         self.primaryKeys = rlmObjectMapping.primaryKeys
         
-        self.rlmObjectMapping = { (toMap: inout MappedObject, context: MappingContext) -> Void in
+        self.rlmObjectMapping = { (toMap: inout MappedObject, context: MappingContext) throws -> Void in
             var ogObject = unsafeDowncast(toMap, to: OGMapping.MappedObject.self)
-            rlmObjectMapping.mapping(toMap: &ogObject, context: context)
+            try rlmObjectMapping.mapping(toMap: &ogObject, context: context)
         }
     }
     
-    public final func mapping(toMap: inout MappedObject, context: MappingContext) {
-        self.rlmObjectMapping(&toMap, context)
+    public final func mapping(toMap: inout MappedObject, context: MappingContext) throws {
+        try self.rlmObjectMapping(&toMap, context)
     }
 }
 
@@ -286,13 +296,13 @@ public extension Binding where M: RealmMapping, M.MappedObject: RLMObject {
 }
 
 @discardableResult
-public func <- <T: RLMObject, U: RealmMapping, C: MappingContext>(field: RLMArray<T>, binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T, T: Equatable {
+public func <- <U: RealmMapping, C: MappingContext>(field: RLMArray<U.MappedObject>, binding:(key: Binding<U>, context: C)) -> C {
     
     return map(toRLMArray: field, using: binding)
 }
 
 @discardableResult
-public func map<T: RLMObject, U: RealmMapping, C: MappingContext>(toRLMArray field: RLMArray<T>, using binding:(key: Binding<U>, context: C)) -> C where U.MappedObject == T, T: Equatable {
+public func map<U: RealmMapping, C: MappingContext>(toRLMArray field: RLMArray<U.MappedObject>, using binding:(key: Binding<U>, context: C)) -> C {
     
     var variableList = RLMArrayBridge(rlmArray: field)
     let bridge = binding.key.generateRLMArrayMappingBridge()
