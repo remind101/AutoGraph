@@ -3,9 +3,28 @@ import Crust
 import Realm
 @testable import AutoGraphQL
 
-struct VariableFilm: AnyMappable {
+struct VariableFilm: AnyMappable, ThreadAdaptable {
+    let arbitraryScalar = "scalar"
     var allFilms: [Film] = []
     var node: Film? = nil
+    
+    var threadSafePayload: String {
+        return self.arbitraryScalar
+    }
+    
+    // TODO: If we could use a tuple here instead that would be best.
+    var threadConfinedPayload: [[RLMObject]] {
+        let nodePayload = self.node != nil ? [self.node!] : []
+        return [nodePayload, self.allFilms]
+    }
+    
+    init() { }
+    
+    init(threadSafePayload: String, threadConfinedPayload: [[RLMObject]]) {
+        self.init()
+        self.node = threadConfinedPayload[0].first as? Film
+        self.allFilms = threadConfinedPayload[1] as! [Film]
+    }
 }
 
 class VariableFilmRequest: Request {
@@ -80,7 +99,7 @@ class VariableFilmRequest: Request {
     ]
     
     let mapping = Binding.mapping("data", VariableFilmMapping())
-    let threadAdapter: RealmThreadAdaptor? = RealmThreadAdaptor()
+    let threadAdapter: NestedThreadAdapter<VariableFilm, RealmThreadAdapter>? = NestedThreadAdapter<VariableFilm, RealmThreadAdapter>(nestedThreadAdapter: RealmThreadAdapter())
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
@@ -93,7 +112,7 @@ class VariableFilmMapping: AnyMapping {
     
     public func mapping(toMap: inout VariableFilm, context: MappingContext) {
         toMap.allFilms      <- (.mapping("allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), context)
-        toMap.node          <- (.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), context)
+        toMap.node          <- (.mapping("node", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), context)
     }
 }
 

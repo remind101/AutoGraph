@@ -36,8 +36,8 @@ class FilmRequest: Request {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
-    var threadAdapter: RealmThreadAdaptor? {
-        return RealmThreadAdaptor()
+    var threadAdapter: RealmThreadAdapter? {
+        return RealmThreadAdapter()
     }
     
     public func willSend() throws { }
