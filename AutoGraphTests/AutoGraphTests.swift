@@ -132,7 +132,7 @@ class AutoGraphTests: XCTestCase {
             }
         }
         
-        waitFor(delay: 1000.0)
+        waitFor(delay: 1.0)
         XCTAssertTrue(called)
     }
     

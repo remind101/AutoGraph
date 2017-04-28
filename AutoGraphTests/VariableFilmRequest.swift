@@ -161,3 +161,43 @@ class VariableFilmStub: Stub {
         set { }
     }
 }
+
+protocol ThreadAdaptable {
+    associatedtype ThreadSafePayload
+    associatedtype ThreadConfinedPayload: RangeReplaceableCollection
+    
+    var threadSafePayload: ThreadSafePayload { get }
+    var threadConfinedPayload: [ThreadConfinedPayload] { get }
+    
+    init(threadSafePayload: ThreadSafePayload, threadConfinedPayload: [ThreadConfinedPayload])
+}
+
+struct NestedThreadAdapter<T: ThreadAdaptable, A: ThreadAdapter>: ThreadAdapter
+where A.BaseType == T.ThreadConfinedPayload.Iterator.Element, A.CollectionType == T.ThreadConfinedPayload {
+    
+    public typealias BaseType = T
+    
+    let nestedThreadAdapter: A
+    
+    init(nestedThreadAdapter: A) {
+        self.nestedThreadAdapter = nestedThreadAdapter
+    }
+    
+    public func threadSafeRepresentations(`for` objects: [T], ofType type: Any.Type) throws -> [(T.ThreadSafePayload, [[A.ThreadSafeRepresentation]])] {
+        return try objects.map { object in
+            let threadConfinedPayload = object.threadConfinedPayload
+            var safe = Array<[A.ThreadSafeRepresentation]>()    // Type inference is failing here.
+            for value in threadConfinedPayload {
+                safe.append(try nestedThreadAdapter.threadSafeRepresentations(for: value, ofType: type(of: value)))
+            }
+            return (object.threadSafePayload, safe)
+        }
+    }
+    
+    public func retrieveObjects(`for` representations: [(T.ThreadSafePayload, [[A.ThreadSafeRepresentation]])]) throws -> [T] {
+        return try representations.map { payload in
+            let threadConfinedPayload = try payload.1.map { try nestedThreadAdapter.retrieveObjects(for: $0) }
+            return T(threadSafePayload: payload.0, threadConfinedPayload: threadConfinedPayload)
+        }
+    }
+}
