@@ -18,12 +18,14 @@ open class MappingContext {
     open internal(set) var object: Any
     open internal(set) var error: Error?
     open internal(set) var parent: MappingContext? = nil
+    open internal(set) var adapterType: String
     open fileprivate(set) var dir: MappingDirection
     
-    init(withObject object: Any, json: JSONValue, direction: MappingDirection) {
-        self.dir = direction
+    init(withObject object: Any, json: JSONValue, adapterType: String, direction: MappingDirection) {
         self.object = object
         self.json = json
+        self.adapterType = adapterType
+        self.dir = direction
     }
 }
 
@@ -36,7 +38,7 @@ public struct Mapper {
     where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
         
         var collection = C()
-        let context = MappingContext(withObject: collection, json: json, direction: MappingDirection.fromJSON)
+        let context = MappingContext(withObject: collection, json: json, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
         
         try binding.mapping.start(context: context)
         collection <- (binding, context)
@@ -45,13 +47,26 @@ public struct Mapper {
         return collection
     }
     
+    public func map<M: Mapping, C: RangeReplaceableCollection>(from json: JSONValue, using binding: Binding<M>) throws -> C
+        where M.MappedObject == C.Iterator.Element {
+            
+            var collection = C()
+            let context = MappingContext(withObject: collection, json: json, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
+            
+            try binding.mapping.start(context: context)
+            collection <- (binding, context)
+            try binding.mapping.completeMapping(collection: collection, context: context)
+            
+            return collection
+    }
+    
     public func map<M: Mapping>(from json: JSONValue, using binding: Binding<M>, parentContext: MappingContext? = nil) throws -> M.MappedObject {
         
         // TODO: Figure out better ways to represent `nil` keyPaths than `""`.
         let baseJson = json[binding.keyPath] ?? json
         
         var object = try binding.mapping.fetchOrCreateObject(from: baseJson)
-        let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
+        let context = MappingContext(withObject: object, json: json, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
         context.parent = parentContext
         try self.perform(binding, on: &object, with: context)
         
@@ -65,7 +80,7 @@ public struct Mapper {
     
     public func map<M: Mapping>(from json: JSONValue, to object: M.MappedObject, using mapping: M, parentContext: MappingContext? = nil) throws -> M.MappedObject {
         var object = object
-        let context = MappingContext(withObject: object, json: json, direction: MappingDirection.fromJSON)
+        let context = MappingContext(withObject: object, json: json, adapterType: mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
         context.parent = parentContext
         try self.perform(mapping, on: &object, with: context)
         return object
@@ -73,7 +88,7 @@ public struct Mapper {
     
     public func mapFromObjectToJSON<M: Mapping>(_ object: M.MappedObject, mapping: M) throws -> JSONValue {
         var object = object
-        let context = MappingContext(withObject: object, json: JSONValue.object([:]), direction: MappingDirection.toJSON)
+        let context = MappingContext(withObject: object, json: JSONValue.object([:]), adapterType: mapping.adapter.dataBaseTag, direction: MappingDirection.toJSON)
         try self.perform(mapping, on: &object, with: context)
         return context.json
     }
@@ -182,16 +197,15 @@ public extension Mapping {
     
     internal func start(context: MappingContext) throws {
         try self.checkForAdapterBaseTypeConformance()
-        
-        if context.parent == nil {
+        if context.parent == nil || !self.adapter.isInTransaction {
             var underlyingError: NSError?
             do {
-                try self.adapter.mappingBegins()
+                try self.adapter.mappingWillBegin()
             } catch let err as NSError {    // We can handle NSErrors higher up.
                 underlyingError = err
             } catch {
                 var userInfo = [AnyHashable : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingBegins for adapter \(self.adapter)"
+                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingWillBegin for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
@@ -199,15 +213,33 @@ public extension Mapping {
     }
     
     internal func endMapping(context: MappingContext) throws {
-        if context.parent == nil {
+        let shouldCallEndMapping = { () -> Bool in 
+            guard context.parent != nil else {
+                return true
+            }
+            
+            // Walk parent contexts, if using the same adapter type assume that we'll call end mapping later.
+            var context = context
+            var aParentHasSameAdapter = false
+            while let parent = context.parent {
+                if parent.adapterType == context.adapterType {
+                    aParentHasSameAdapter = true
+                }
+                context = parent
+            }
+            
+            return !aParentHasSameAdapter
+        }()
+        
+        if shouldCallEndMapping {
             var underlyingError: NSError?
             do {
-                try self.adapter.mappingEnded()
+                try self.adapter.mappingDidEnd()
             } catch let err as NSError {
                 underlyingError = err
             } catch {
                 var userInfo = [AnyHashable : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingEnded for adapter \(self.adapter)"
+                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingDidEnd for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
             }
@@ -215,7 +247,12 @@ public extension Mapping {
     }
     
     public func execute(object: inout MappedObject, context: MappingContext) {
-        self.mapping(toMap: &object, context: context)
+        do {
+            try self.mapping(toMap: &object, context: context)
+        }
+        catch let e {
+            context.error = e
+        }
     }
     
     internal func complete(object: inout MappedObject, context: MappingContext) throws {
