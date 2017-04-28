@@ -39,6 +39,8 @@ class AllFilmsRequest: Request {
                                    arguments: nil)
                             ])
     
+    let variables: [AnyHashable : Any]? = nil
+    
     var threadAdapter: RealmThreadAdaptor? {
         return RealmThreadAdaptor()
     }

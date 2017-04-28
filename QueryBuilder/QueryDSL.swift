@@ -134,6 +134,7 @@ public indirect enum InputType {
         case string = "String"
         case boolean = "Boolean"
         case null = "Null"
+        case id = "ID"
     }
     
     case variable(typeName: String)
@@ -197,6 +198,27 @@ public extension InputObjectValue {
     
     func graphQLInputValue() throws -> String {
         return try self.fields.graphQLInputValue()
+    }
+}
+
+/// `InputValue` representing an _ID_.
+public struct ID: InputValue {
+    let value: String
+    
+    public init(_ value: String) {
+        self.value = value
+    }
+    
+    public init(_ value: Int) {
+        self.value = String(value)
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return try self.value.jsonEncodedString()
+    }
+    
+    public static func inputType() throws -> InputType {
+        return .scalar(.id)
     }
 }
 
@@ -387,6 +409,11 @@ public extension AcceptsDirectives {
 /// Represents a GraphQL query sent by a request to the server.
 public protocol GraphQLQuery: QueryConvertible { }
 
+/// Represents a GraphQL variables payload sent by a request to the server.
+public protocol GraphQLVariables {
+    func graphQLVariablesDictionary() throws -> [AnyHashable : Any]
+}
+
 /// Defines an _OperationDefinition_ from the GraphQL language. Generally used as the `query` portion of a GraphQL request.
 public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefinitions, AcceptsDirectives {
     
@@ -412,7 +439,7 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
     public let variableDefinitions: [AnyVariableDefinition]?
     public let directives: [Directive]?
     
-    public init(type: OperationType, name: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, variableDefinitions: [AnyVariableDefinition]? = nil, directives: [Directive]? = nil) {
+    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
         self.type = type
         self.name = name
         self.fields = fields

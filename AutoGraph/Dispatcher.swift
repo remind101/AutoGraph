@@ -12,7 +12,7 @@ public class Dispatcher {
     public let responseHandler: ResponseHandler
     public let requestSender: RequestSender
     
-    public typealias Sendable = (query: GraphQLQuery, willSend: (() throws -> ())?, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
+    public typealias Sendable = (query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
     public internal(set) var pendingRequests = [Sendable]()
     
     public internal(set) var paused = false {
@@ -48,7 +48,7 @@ public class Dispatcher {
             try request.willSend()
         }
         
-        let sendable: Sendable = (query: request.query, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
+        let sendable: Sendable = (query: request.query, request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
         
         guard !self.paused else {
             self.pendingRequests.append(sendable)
@@ -61,7 +61,13 @@ public class Dispatcher {
     open func send(sendable: Sendable) {
         do {
             try sendable.willSend?()
-            self.requestSender.sendRequest(url: self.url, parameters: ["query" : try sendable.query.graphQLString()], completion: sendable.completion)
+            // "variables" : [json payload]
+            let query = try sendable.query.graphQLString()
+            var parameters: [String : Any] = ["query" : query]
+            if let variables = try sendable.variables?.graphQLVariablesDictionary() {
+                parameters["variables"] = variables
+            }
+            self.requestSender.sendRequest(url: self.url, parameters: parameters, completion: sendable.completion)
         }
         catch let e {
             sendable.earlyFailure(e)

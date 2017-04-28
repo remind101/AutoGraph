@@ -187,3 +187,9 @@ extension Dictionary: InputValue {
         return "{" + inputs.joined(separator: ", ") + "}"
     }
 }
+
+extension Dictionary: GraphQLVariables {
+    public func graphQLVariablesDictionary() throws -> [AnyHashable : Any] {
+        return self
+    }
+}

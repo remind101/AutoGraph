@@ -96,6 +96,7 @@ class DispatcherTests: XCTestCase {
         }
         
         let query = BadQuery()
+        let variables: [AnyHashable : Any]? = nil
         
         var threadAdapter: RealmThreadAdaptor? = nil
         
