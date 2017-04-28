@@ -411,17 +411,32 @@ private func mapFromJSON<M: Mapping, MC: MappingContext, RRC: RangeReplaceableCo
      uniquing: UniquingFunctions<M.MappedObject, RRC>?) throws
     where RRC.Iterator.Element == M.MappedObject {
         
+        let mapping = binding.key.mapping
+        let parentContext = binding.context
+        
+        guard parentContext.error == nil else {
+            throw parentContext.error!
+        }
+        
+        let context = MappingContext(withObject: parentContext.object, json: parentContext.json, adapterType: mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
+        context.parent = parentContext
+        let nestedBinding = (binding.key, context)
+        
+        try mapping.start(context: context)
+        
         let fieldCopy = field
         let contains = uniquing?.contains(fieldCopy) ?? { _ in false }
         let elementEquality = uniquing?.elementEquality ?? { _ in { _ in false } }
         let optionalNewValues = try mapFromJsonToSequenceOfNewValues(
-            map: binding,
+            map: nestedBinding,
             newValuesContains: elementEquality,
             fieldContains: contains)
         
-        let newValues = try transform(newValues: optionalNewValues, via: binding.key.keyPath, forUpdatePolicyNullability: binding.key.collectionUpdatePolicy)
+        let newValues = try transform(newValues: optionalNewValues, via: nestedBinding.0.keyPath, forUpdatePolicyNullability: nestedBinding.0.collectionUpdatePolicy)
         
-        try insert(into: &field, newValues: newValues, using: binding.key.mapping, updatePolicy: binding.key.collectionUpdatePolicy, indexOf: uniquing?.indexOf)
+        try insert(into: &field, newValues: newValues, using: mapping, updatePolicy: nestedBinding.0.collectionUpdatePolicy, indexOf: uniquing?.indexOf)
+        
+        try mapping.completeMapping(objects: field, context: context)
 }
 
 /// Handles null JSON values. Only nullable collections do not error on null (newValues == nil).
