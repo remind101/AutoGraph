@@ -54,7 +54,7 @@ class VariableFilmRequest: Request {
      }
      */
     
-    static let nodeIdVariable = VariableDefinition<NonNullInputValue<ID>>(name: "nodeId")
+    static let nodeIdVariable = VariableDefinition<NonNullInputValue<IDValue>>(name: "nodeId")
     static let lastVariable = VariableDefinition<Int>(name: "last")
     
     let query = Operation(type: .query,
