@@ -310,4 +310,17 @@ class InputValueTests: XCTestCase {
         XCTAssertEqual(try nonNull.graphQLInputValue(), "\"val\"")
         XCTAssertEqual(try type(of: nonNull).inputType().typeName, "String!")
     }
+    
+    func testIDInputValue() {
+        var id = IDValue("blah")
+        XCTAssertEqual(try id.graphQLInputValue(), "\"blah\"")
+        
+        id = IDValue(1)
+        XCTAssertEqual(try id.graphQLInputValue(), "\"1\"")
+        
+        guard case .scalar(.id) = try! IDValue.inputType() else {
+            XCTFail()
+            return
+        }
+    }
 }

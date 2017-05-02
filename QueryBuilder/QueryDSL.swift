@@ -202,7 +202,7 @@ public extension InputObjectValue {
 }
 
 /// `InputValue` representing an _ID_.
-public struct ID: InputValue {
+public struct IDValue: InputValue {
     let value: String
     
     public init(_ value: String) {
