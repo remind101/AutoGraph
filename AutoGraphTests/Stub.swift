@@ -16,6 +16,7 @@ class Stub {
     }
     
     var graphQLQuery: String = ""
+    var variables: [AnyHashable : Any]? = nil
     
     var httpMethod: String?
     var urlPath: String?
@@ -58,9 +59,19 @@ class Stub {
             
             let body = (request as NSURLRequest).ohhttpStubs_HTTPBody()!
             let jsonBody = try? JSONSerialization.jsonObject(with: body, options: JSONSerialization.ReadingOptions(rawValue: 0))
-            let query = (jsonBody as! [String : String])["query"]
-            guard query?.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
+            let query = (jsonBody as! [String : Any])["query"] as! String
+            guard query.condensedWhitespace == self.graphQLQuery.condensedWhitespace else {
                     return false
+            }
+            
+            if case let variables as NSDictionary = self.variables {
+                guard case let otherVariables as NSDictionary = (jsonBody as! [AnyHashable : Any])["variables"] else {
+                    return false
+                }
+                
+                guard otherVariables == variables else {
+                    return false
+                }
             }
             
             if let urlQueryString = self.urlQueryString {

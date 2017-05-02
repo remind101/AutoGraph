@@ -13,6 +13,7 @@ public protocol Request {
     associatedtype SerializedObject = Mapping.MappedObject
     
     associatedtype Query: GraphQLQuery
+    associatedtype Variables: GraphQLVariables
     
     /// If the `SerializedObject`(s) cannot be passed across threads, then we'll use this to transform
     /// the objects as they are passed from the background to the main thread.
@@ -20,6 +21,9 @@ public protocol Request {
     
     /// The query to be sent to GraphQL.
     var query: Query { get }
+    
+    /// The variables sent along with the query.
+    var variables: Variables? { get }
     
     /// The mapping to use when mapping JSON into the a concrete type.
     ///

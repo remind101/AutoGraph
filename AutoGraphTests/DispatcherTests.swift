@@ -96,8 +96,9 @@ class DispatcherTests: XCTestCase {
         }
         
         let query = BadQuery()
+        let variables: [AnyHashable : Any]? = nil
         
-        var threadAdapter: RealmThreadAdaptor? = nil
+        var threadAdapter: RealmThreadAdapter? = nil
         
         var mapping: Binding<FilmMapping> {
             return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))

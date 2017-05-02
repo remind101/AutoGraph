@@ -30,12 +30,14 @@ class FilmRequest: Request {
                             ],
                           fragments: nil)
     
+    let variables: [AnyHashable : Any]? = nil
+    
     var mapping: Binding<FilmMapping> {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
-    var threadAdapter: RealmThreadAdaptor? {
-        return RealmThreadAdaptor()
+    var threadAdapter: RealmThreadAdapter? {
+        return RealmThreadAdapter()
     }
     
     public func willSend() throws { }
@@ -117,6 +119,8 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
                                     Scalar(name: "openingCrawl", alias: nil)],
                                    arguments: ["id" : "ZmlsbXM6MQ=="])
                         ])
+    
+    let variables: [AnyHashable : Any]? = nil
     
     var mapping: Binding<FilmThreadUnconfinedMapping> {
         return Binding.mapping("data.film", FilmThreadUnconfinedMapping())

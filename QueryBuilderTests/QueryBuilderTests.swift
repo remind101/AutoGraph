@@ -189,7 +189,7 @@ class OperationTests: XCTestCase {
     func testMutationForms() {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable])
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], fields: [scalar], fragments: nil)
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
@@ -197,7 +197,7 @@ class OperationTests: XCTestCase {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", fields: [scalar], fragments: nil, variableDefinitions: [variable], directives: [directive])
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], fields: [scalar], fragments: nil, directives: [directive])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
     }
     
@@ -236,8 +236,6 @@ class OperationTests: XCTestCase {
         
         self.subject = QueryBuilder.Operation(type: .mutation,
                                               name: "Mutation",
-                                              fields: ["name"],
-                                              fragments: nil,
                                               variableDefinitions: [
                                                 try! stringVariable.typeErase(),
                                                 try! variableVariable.typeErase(),
@@ -245,7 +243,10 @@ class OperationTests: XCTestCase {
                                                 try! nonOptionalListVariable.typeErase(),
                                                 try! optionalListObjectVariable.typeErase(),
                                                 try! enumVariable.typeErase()
-            ])
+            ],
+                                              fields: ["name"],
+                                              fragments: nil
+                                              )
         
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($stringVariable: String = \"best_string\", $variableVariable: String, $userInput: UserInput, $nonOptionalListVariable: [Int!]!, $optionalListObjectVariable: [UserInput], $enumVariable: UserEnumInput) {\nname\n}")
     }
@@ -308,5 +309,18 @@ class InputValueTests: XCTestCase {
         let nonNull = NonNullInputValue<String>(inputValue: "val")
         XCTAssertEqual(try nonNull.graphQLInputValue(), "\"val\"")
         XCTAssertEqual(try type(of: nonNull).inputType().typeName, "String!")
+    }
+    
+    func testIDInputValue() {
+        var id = IDValue("blah")
+        XCTAssertEqual(try id.graphQLInputValue(), "\"blah\"")
+        
+        id = IDValue(1)
+        XCTAssertEqual(try id.graphQLInputValue(), "\"1\"")
+        
+        guard case .scalar(.id) = try! IDValue.inputType() else {
+            XCTFail()
+            return
+        }
     }
 }

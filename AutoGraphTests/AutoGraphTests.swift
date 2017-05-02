@@ -117,6 +117,25 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(called)
     }
     
+    func testFunctionalVariableFilmRequest() {
+        let stub = VariableFilmStub()
+        stub.registerStub()
+        
+        var called = false
+        self.subject.send(VariableFilmRequest()) { result in
+            called = true
+            print(result)
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: 1.0)
+        XCTAssertTrue(called)
+    }
+    
     func testFunctionalLifeCycle() {
         let stub = FilmStub()
         stub.registerStub()

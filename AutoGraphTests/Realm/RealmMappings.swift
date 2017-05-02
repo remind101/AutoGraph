@@ -147,7 +147,7 @@ public class RealmAdapter: Adapter {
     }
 }
 
-public class RealmThreadAdaptor: ThreadAdapter {
+public class RealmThreadAdapter: ThreadAdapter {
     public typealias BaseType = RLMObject
     
     public func threadSafeRepresentations(`for` objects: [RLMObject], ofType type: Any.Type) throws -> [RLMThreadSafeReference<RLMThreadConfined>] {

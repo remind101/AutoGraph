@@ -39,8 +39,10 @@ class AllFilmsRequest: Request {
                                    arguments: nil)
                             ])
     
-    var threadAdapter: RealmThreadAdaptor? {
-        return RealmThreadAdaptor()
+    let variables: [AnyHashable : Any]? = nil
+    
+    var threadAdapter: RealmThreadAdapter? {
+        return RealmThreadAdapter()
     }
     
     var mapping: Binding<FilmMapping> {

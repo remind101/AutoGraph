@@ -44,6 +44,8 @@
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDE3C7241E00D23400AB4EB1 /* AllFilms.json */; };
 		CDFA6CB61E4D4ED200E30982 /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */; };
+		CDFC20441EB2CADD005D09DD /* VariableFilm.json in Resources */ = {isa = PBXBuildFile; fileRef = CDFC20431EB2CADD005D09DD /* VariableFilm.json */; };
+		CDFC20461EB2CB07005D09DD /* VariableFilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFC20451EB2CB07005D09DD /* VariableFilmRequest.swift */; };
 		CDFFEBC71E6788C100685110 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFFEBC61E6788C100685110 /* Request.swift */; };
 /* End PBXBuildFile section */
 
@@ -129,6 +131,8 @@
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDE3C7241E00D23400AB4EB1 /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
 		CDFA6CB51E4D4ED200E30982 /* RLMArrayBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMArrayBridge.swift; sourceTree = "<group>"; };
+		CDFC20431EB2CADD005D09DD /* VariableFilm.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = VariableFilm.json; sourceTree = "<group>"; };
+		CDFC20451EB2CB07005D09DD /* VariableFilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VariableFilmRequest.swift; sourceTree = "<group>"; };
 		CDFFEBC61E6788C100685110 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -258,10 +262,12 @@
 				CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */,
 				CD5244521E70EC6B0040771D /* ErrorTests.swift */,
 				CD2014211E30831C00D16F14 /* FilmRequest.swift */,
+				CDFC20451EB2CB07005D09DD /* VariableFilmRequest.swift */,
 				CD3BFF311E22D1EC008CE41A /* ResponseHandlerTests.swift */,
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
 				CDE3C7241E00D23400AB4EB1 /* AllFilms.json */,
 				CD2014251E308CB600D16F14 /* Film.json */,
+				CDFC20431EB2CADD005D09DD /* VariableFilm.json */,
 				CDA62C091DB16999004BA66D /* Info.plist */,
 				CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */,
 			);
@@ -477,6 +483,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */,
+				CDFC20441EB2CADD005D09DD /* VariableFilm.json in Resources */,
 				CD2014261E308CB600D16F14 /* Film.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -682,6 +689,7 @@
 				CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */,
 				CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */,
 				CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */,
+				CDFC20461EB2CB07005D09DD /* VariableFilmRequest.swift in Sources */,
 				CD3BFF321E22D1EC008CE41A /* ResponseHandlerTests.swift in Sources */,
 				CD2014221E30831C00D16F14 /* FilmRequest.swift in Sources */,
 				CDBEBEAE1E1D97E60029909A /* AllFilmsRequest.swift in Sources */,
