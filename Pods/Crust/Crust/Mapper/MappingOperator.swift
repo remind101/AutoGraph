@@ -478,9 +478,9 @@ private func insert<M: Mapping, RRC: RangeReplaceableCollection>
             if let deletion = deletionBlock {
                 // Check if any of our newly mapped objects previously existed in our collection
                 // and prune them from orphans, because in which case, we don't want to delete them.
-                if let indexOfFunc = indexOf?(orphans) {
+                if let indexOfFunc = indexOf {
                     newValues.forEach {
-                        if let index = indexOfFunc($0) {
+                        if let index = indexOfFunc(orphans)($0) {
                             orphans.remove(at: index)
                         }
                     }

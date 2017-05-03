@@ -1,6 +1,6 @@
 PODS:
   - Alamofire (4.4.0)
-  - Crust (0.3.2):
+  - Crust (0.3.3):
     - JSONValueRX
   - JSONValueRX (1.5.1)
   - OHHTTPStubs (6.0.0):
@@ -40,7 +40,7 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Alamofire: dc44b1600b800eb63da6a19039a0083d62a6a62d
-  Crust: '01717303927b46d7097715d43d2e398ef35631fe'
+  Crust: dce2ea498d40de7b6b2bc52bf65f941e7d318404
   JSONValueRX: 3fcf3b19a249fd55373142cce069fc43c180df1d
   OHHTTPStubs: dbe7fc78b805b075ff74bb20922854d0dca8679b
   Realm: 07e5d3a9e0e41d65fd5f9f05150ed6295d0f093b
