@@ -16,11 +16,11 @@ PODS:
   - OHHTTPStubs/NSURLSession (6.0.0):
     - OHHTTPStubs/Core
   - OHHTTPStubs/OHPathHelpers (6.0.0)
-  - Realm (2.6.2):
-    - Realm/Headers (= 2.6.2)
-  - Realm/Headers (2.6.2)
-  - RealmSwift (2.6.2):
-    - Realm (= 2.6.2)
+  - Realm (2.7.0):
+    - Realm/Headers (= 2.7.0)
+  - Realm/Headers (2.7.0)
+  - RealmSwift (2.7.0):
+    - Realm (= 2.7.0)
 
 DEPENDENCIES:
   - Alamofire (~> 4)
@@ -43,8 +43,8 @@ SPEC CHECKSUMS:
   Crust: '01717303927b46d7097715d43d2e398ef35631fe'
   JSONValueRX: 3fcf3b19a249fd55373142cce069fc43c180df1d
   OHHTTPStubs: dbe7fc78b805b075ff74bb20922854d0dca8679b
-  Realm: 29222766425b9f831228f81b63f0e38a97a4d700
-  RealmSwift: d161a80f96cb91ae88391a7d5a9cf08024a7bc8e
+  Realm: 07e5d3a9e0e41d65fd5f9f05150ed6295d0f093b
+  RealmSwift: 6d06425d3900c86473c4f323bf6949b43fca22bc
 
 PODFILE CHECKSUM: 834d6d9857f91742a54fd86ae6e3507e882dda53
 
