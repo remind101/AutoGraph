@@ -125,7 +125,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 - [x] [Fields](https://facebook.github.io/graphql/#sec-Language.Fields)
 - [x] [Arguments](https://facebook.github.io/graphql/#sec-Language.Arguments)
 - [x] [Aliases](https://facebook.github.io/graphql/#sec-Field-Alias)
-- [ ] [Variables](https://facebook.github.io/graphql/#sec-Language.Variables)
+- [x] [Variables](https://facebook.github.io/graphql/#sec-Language.Variables)
 - [x] [Input Values](https://facebook.github.io/graphql/#sec-Input-Values)
     - [x] [List Values](https://facebook.github.io/graphql/#sec-List-Value)
     - [x] [Input Object Values](https://facebook.github.io/graphql/#sec-Input-Object-Values)
