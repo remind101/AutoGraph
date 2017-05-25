@@ -2,7 +2,7 @@ import Foundation
 import JSONValueRX
 
 /*
- GraphQL errors have the following form:
+ GraphQL errors have the following base shape:
  
  {
     "errors": [
@@ -29,26 +29,46 @@ import JSONValueRX
  
 */
 
+public protocol NetworkError: Error {
+    var statusCode: Int { get }
+    var underlyingError: GraphQLError { get }
+}
+public typealias NetworkErrorParser = (_ graphQLError: GraphQLError) -> NetworkError?
+
 public indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError])
-    case network(error: Error, response: HTTPURLResponse?, underlying: AutoGraphError?)
+    case network(error: Error, statusCode: Int, response: HTTPURLResponse?, underlying: AutoGraphError?)
     case mapping(error: Error)
     case refetching(error: Error?)
     case typeCoercion(from: Any.Type, to: Any.Type)
     case invalidResponse
     
-    public init?(graphQLResponseJSON: JSONValue) {
+    public init?(graphQLResponseJSON: JSONValue, networkErrorParser: NetworkErrorParser?) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
         }
         
-        guard case .array(let errors) = errorsJSON else {
+        guard case .array(let errorsArray) = errorsJSON else {
             self = .invalidResponse
             return
         }
         
-        self = .graphQL(errors: errors.flatMap { GraphQLError(json: $0) })
-        return
+        let errors = errorsArray.flatMap { GraphQLError(json: $0) }
+        let graphQLError = AutoGraphError.graphQL(errors: errors)
+        if let networkError: NetworkError = networkErrorParser.flatMap({
+            for error in errors {
+                if let networkError = $0(error) {
+                    return networkError
+                }
+            }
+            return nil
+        })
+        {
+            self = .network(error: networkError, statusCode: networkError.statusCode, response: nil, underlying: graphQLError)
+        }
+        else {
+            self = .graphQL(errors: errorsArray.flatMap { GraphQLError(json: $0) })
+        }
     }
     
     public var errorDescription: String? {
@@ -56,8 +76,8 @@ public indirect enum AutoGraphError: LocalizedError {
         case .graphQL(let errors):
             return errors.flatMap { $0.localizedDescription }.joined(separator: "\n")
             
-        case .network(let error, _, let underlying):
-            return "Network Failure: " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
+        case .network(let error, let statusCode, _, let underlying):
+            return "Network Failure - \(statusCode): " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
             
         case .mapping(let error):
             return "Mapping Failure: " + error.localizedDescription
@@ -105,12 +125,14 @@ public struct GraphQLError: LocalizedError {
     
     public let message: String
     public let locations: [Location]
+    public let jsonPayload: JSONValue
     
     public var errorDescription: String? {
         return self.message
     }
     
     init(json: JSONValue) {
+        self.jsonPayload = json
         self.message = {
             guard case .some(.string(let message)) = json["message"] else {
                 return ""

@@ -111,7 +111,7 @@ extension Request
 }
 
 extension Request where SerializedObject == Mapping.MappedObject {
-    func generateBinding(completion: @escaping RequestCompletion<Mapping.MappedObject>) -> ObjectBinding<Mapping, VoidMapping, Array<Int>, ThreadAdapterType> {
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<Mapping, VoidMapping, Array<Int>, ThreadAdapterType> {
         return ObjectBinding<Mapping, VoidMapping, Array<Int>, ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, completion: completion)
     }
 }

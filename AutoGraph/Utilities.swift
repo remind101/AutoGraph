@@ -44,10 +44,21 @@ extension DataResponse {
                         return nil
                 }
                 
-                return AutoGraphError(graphQLResponseJSON: json)
+                return AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil)
             }()
             
-            throw AutoGraphError.network(error: e, response: self.response, underlying: gqlError)
+            throw AutoGraphError.network(error: e, statusCode: self.response?.statusCode ?? -1, response: self.response, underlying: gqlError)
         }
+    }
+    
+    func extractJSON(networkErrorParser: @escaping NetworkErrorParser) throws -> JSONValue {
+        let value = try self.extractValue()
+        let json = try JSONValue(object: value)
+        
+        if let queryError = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: networkErrorParser) {
+            throw queryError
+        }
+        
+        return json
     }
 }

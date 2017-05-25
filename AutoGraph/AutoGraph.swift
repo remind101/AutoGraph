@@ -13,7 +13,7 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: Result<SerializedObject>) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
@@ -30,6 +30,15 @@ open class AutoGraph {
     public var authHandler: AuthHandler {
         get {
             return self.client.authHandler
+        }
+    }
+    
+    public var networkErrorParser: NetworkErrorParser? {
+        get {
+            return self.dispatcher.responseHandler.networkErrorParser
+        }
+        set {
+            self.dispatcher.responseHandler.networkErrorParser = newValue
         }
     }
     
