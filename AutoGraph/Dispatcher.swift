@@ -6,13 +6,47 @@ public protocol RequestSender {
     func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ())
 }
 
+public final class Sendable {
+    public let query: GraphQLQuery
+    public let variables: GraphQLVariables?
+    public let willSend: (() throws -> ())?
+    public let completion: (DataResponse<Any>) -> ()
+    public let earlyFailure: (Error) -> ()
+    
+    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, completion: @escaping (DataResponse<Any>) -> (), earlyFailure: @escaping (Error) -> ()) {
+        self.query = query
+        self.variables = variables
+        self.willSend = willSend
+        self.completion = completion
+        self.earlyFailure = earlyFailure
+    }
+    
+    public convenience init<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>
+        (dispatcher: Dispatcher, request: R, objectBinding: ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
+        
+        let completion: (DataResponse<Any>) -> () = { [weak dispatcher] response in
+            dispatcher?.responseHandler.handle(response: response, objectBinding: objectBinding, preMappingHook: request.didFinishRequest)
+        }
+        
+        let earlyFailure: (Error) -> () = { [weak dispatcher] e in
+            dispatcher?.responseHandler.fail(error: e, objectBinding: objectBinding)
+        }
+        
+        let willSend: (() throws -> ())? = {
+            try globalWillSend?(request)
+            try request.willSend()
+        }
+        
+        self.init(query: request.query, variables: request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
+    }
+}
+
 public class Dispatcher {
         
     public let url: String
     public let responseHandler: ResponseHandler
     public let requestSender: RequestSender
     
-    public typealias Sendable = (query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, completion: (DataResponse<Any>) -> (), earlyFailure: (Error) -> ())
     public internal(set) var pendingRequests = [Sendable]()
     
     public internal(set) var paused = false {
@@ -48,8 +82,9 @@ public class Dispatcher {
             try request.willSend()
         }
         
-        let sendable: Sendable = (query: request.query, request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
+        let sendable = Sendable(query: request.query, variables: request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
         
+        // TODO: move this to send(sendable:) return a sendable here
         guard !self.paused else {
             self.pendingRequests.append(sendable)
             return

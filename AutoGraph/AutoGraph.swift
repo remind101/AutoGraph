@@ -83,6 +83,11 @@ open class AutoGraph {
             }
         }
         
+        let objectBinding = request.generateBinding { [weak self] result in
+            self?.complete(request: request, result: result, completion: completion)
+        }
+        
+        // TODO: have this return a Sendable
         self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
@@ -92,19 +97,41 @@ open class AutoGraph {
     where R.SerializedObject == R.Mapping.MappedObject {
         
         let objectBinding = request.generateBinding { [weak self] result in
-            do {
-                try request.didFinish(result: result)
-                try self?.lifeCycle?.didFinish(result: result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
-            }
+            self?.complete(request: request, result: result, completion: completion)
         }
         
         self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
+    }
+    
+    private func complete<R: Request>(request: R, result: Result<R.SerializedObject>, completion: @escaping RequestCompletion<R.SerializedObject>) {
+        do {
+            try request.didFinish(result: result)
+            try self.lifeCycle?.didFinish(result: result)
+            completion(result)
+        }
+        catch let e {
+            completion(.failure(e))
+        }
+    }
+    
+    private func raiseAuthenticationError<SerializedObject>(from result: Result<SerializedObject>) throws {
+        guard
+            case .failure(let error) = result,
+            case let autoGraphError as AutoGraphError = error,
+            case let .network(error: _, statusCode: code, response: _, underlying: _) = autoGraphError,
+            code == Unauthorized401StatusCode
+        else {
+            return
+        }
+        
+        throw error
+    }
+    
+    private func handleRaisedAuthenticationError() {
+        self.triggerReauthentication()
+        self.dispatcher.paused = true
     }
     
     public func triggerReauthentication() {
