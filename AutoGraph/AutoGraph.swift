@@ -72,25 +72,26 @@ open class AutoGraph {
     R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
     R.Mapping.MappedObject: Equatable {
         
-        let objectBinding = request.generateBinding { [weak self] result in
-            do {
-                try request.didFinish(result: result)
-                try self?.lifeCycle?.didFinish(result: result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
-            }
-        }
+//        let completionWithReauth = { [weak self] result in
+//            do {
+//                try self?.raiseAuthenticationError(from: result)
+//                completion(result)
+//            }
+//            catch {
+//                self?.handleRaisedAuthenticationError()
+//                self?.dispatcher.send(sendable: <#T##Dispatcher.Sendable#>)
+//            }
+//        }
         
         let objectBinding = request.generateBinding { [weak self] result in
             self?.complete(request: request, result: result, completion: completion)
         }
         
-        // TODO: have this return a Sendable
-        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBinding: objectBinding) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
+        
+        self.dispatcher.send(sendable: sendable)
     }
     
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
@@ -100,9 +101,11 @@ open class AutoGraph {
             self?.complete(request: request, result: result, completion: completion)
         }
         
-        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBinding: objectBinding) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
+        
+        self.dispatcher.send(sendable: sendable)
     }
     
     private func complete<R: Request>(request: R, result: Result<R.SerializedObject>, completion: @escaping RequestCompletion<R.SerializedObject>) {

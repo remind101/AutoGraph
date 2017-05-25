@@ -66,34 +66,12 @@ public class Dispatcher {
         self.responseHandler = responseHandler
     }
     
-    func send<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>
-    (request: R, objectBinding: ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
-        
-        let completion: (DataResponse<Any>) -> () = { [weak self] response in
-            self?.responseHandler.handle(response: response, objectBinding: objectBinding, preMappingHook: request.didFinishRequest)
-        }
-        
-        let earlyFailure: (Error) -> () = { [weak self] e in
-            self?.responseHandler.fail(error: e, objectBinding: objectBinding)
-        }
-        
-        let willSend: (() throws -> ())? = {
-            try globalWillSend?(request)
-            try request.willSend()
-        }
-        
-        let sendable = Sendable(query: request.query, variables: request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
-        
-        // TODO: move this to send(sendable:) return a sendable here
+    open func send(sendable: Sendable) {
         guard !self.paused else {
             self.pendingRequests.append(sendable)
             return
         }
         
-        self.send(sendable: sendable)
-    }
-    
-    open func send(sendable: Sendable) {
         do {
             try sendable.willSend?()
             let query = try sendable.query.graphQLString()
