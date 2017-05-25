@@ -10,26 +10,30 @@ public final class Sendable {
     public let query: GraphQLQuery
     public let variables: GraphQLVariables?
     public let willSend: (() throws -> ())?
-    public let completion: (DataResponse<Any>) -> ()
-    public let earlyFailure: (Error) -> ()
+    public let dispatcherCompletion: (Sendable) -> (DataResponse<Any>) -> ()
+    public let dispatcherEarlyFailure: (Sendable) -> (Error) -> ()
     
-    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, completion: @escaping (DataResponse<Any>) -> (), earlyFailure: @escaping (Error) -> ()) {
+    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) ->(DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
         self.query = query
         self.variables = variables
         self.willSend = willSend
-        self.completion = completion
-        self.earlyFailure = earlyFailure
+        self.dispatcherCompletion = dispatcherCompletion
+        self.dispatcherEarlyFailure = dispatcherEarlyFailure
     }
     
     public convenience init<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>
-        (dispatcher: Dispatcher, request: R, objectBinding: ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
+        (dispatcher: Dispatcher, request: R, objectBindingPromise: @escaping (Sendable) -> ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
         
-        let completion: (DataResponse<Any>) -> () = { [weak dispatcher] response in
-            dispatcher?.responseHandler.handle(response: response, objectBinding: objectBinding, preMappingHook: request.didFinishRequest)
+        let completion: (Sendable) -> (DataResponse<Any>) -> () = { [weak dispatcher] sendable in
+            { [weak dispatcher] response in
+                dispatcher?.responseHandler.handle(response: response, objectBinding: objectBindingPromise(sendable), preMappingHook: request.didFinishRequest)
+            }
         }
         
-        let earlyFailure: (Error) -> () = { [weak dispatcher] e in
-            dispatcher?.responseHandler.fail(error: e, objectBinding: objectBinding)
+        let earlyFailure: (Sendable) -> (Error) -> () = { [weak dispatcher] sendable in
+            { [weak dispatcher] e in
+                dispatcher?.responseHandler.fail(error: e, objectBinding: objectBindingPromise(sendable))
+            }
         }
         
         let willSend: (() throws -> ())? = {
@@ -37,7 +41,7 @@ public final class Sendable {
             try request.willSend()
         }
         
-        self.init(query: request.query, variables: request.variables, willSend: willSend, completion: completion, earlyFailure: earlyFailure)
+        self.init(query: request.query, variables: request.variables, willSend: willSend, dispatcherCompletion: completion, dispatcherEarlyFailure: earlyFailure)
     }
 }
 
@@ -79,10 +83,10 @@ public class Dispatcher {
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
                 parameters["variables"] = variables
             }
-            self.requestSender.sendRequest(url: self.url, parameters: parameters, completion: sendable.completion)
+            self.requestSender.sendRequest(url: self.url, parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
         }
         catch let e {
-            sendable.earlyFailure(e)
+            sendable.dispatcherEarlyFailure(sendable)(e)
         }
     }
     

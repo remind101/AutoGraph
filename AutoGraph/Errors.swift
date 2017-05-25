@@ -99,9 +99,9 @@ public indirect enum AutoGraphError: LocalizedError {
     }
 }
 
-public struct GraphQLError: LocalizedError {
+public struct GraphQLError: LocalizedError, Equatable {
     
-    public struct Location: CustomStringConvertible {
+    public struct Location: CustomStringConvertible, Equatable {
         public let line: Int
         public let column: Int
         
@@ -120,6 +120,10 @@ public struct GraphQLError: LocalizedError {
             
             self.line = Int(line)
             self.column = Int(column)
+        }
+        
+        public static func ==(lhs: Location, rhs: Location) -> Bool {
+            return lhs.line == rhs.line && lhs.column == rhs.column
         }
     }
     
@@ -146,5 +150,9 @@ public struct GraphQLError: LocalizedError {
             }
             return locations.flatMap { Location(json: $0) }
         }()
+    }
+    
+    public static func ==(lhs: GraphQLError, rhs: GraphQLError) -> Bool {
+        return lhs.message == rhs.message && lhs.locations == rhs.locations
     }
 }

@@ -40,7 +40,7 @@ class DispatcherTests: XCTestCase {
     
     func testForwardsRequestToSender() {
         let request = AllFilmsRequest()
-        let sendable = Sendable(dispatcher: self.subject, request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
+        let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
             return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
@@ -53,7 +53,7 @@ class DispatcherTests: XCTestCase {
     
     func testHoldsRequestsWhenPaused() {
         let request = AllFilmsRequest()
-        let sendable = Sendable(dispatcher: self.subject, request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
+        let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
         self.subject.paused = true
@@ -63,7 +63,7 @@ class DispatcherTests: XCTestCase {
     
     func testClearsRequestsOnCancel() {
         let request = AllFilmsRequest()
-        let sendable = Sendable(dispatcher: self.subject, request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
+        let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.subject.paused = true
         self.subject.send(sendable: sendable)
@@ -74,7 +74,7 @@ class DispatcherTests: XCTestCase {
     
     func testForwardsAndClearsPendingRequestsOnUnpause() {
         let request = AllFilmsRequest()
-        let sendable = Sendable(dispatcher: self.subject, request: request, objectBinding: request.generateBinding(completion: { _ in }), globalWillSend: { _ in })
+        let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
             return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
@@ -120,7 +120,7 @@ class DispatcherTests: XCTestCase {
             called = true
         }
         
-        let sendable = Sendable(dispatcher: self.subject, request: request, objectBinding: objectBinding, globalWillSend: { _ in })
+        let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in objectBinding }, globalWillSend: { _ in })
         
         self.subject.send(sendable: sendable)
         XCTAssertTrue(called)

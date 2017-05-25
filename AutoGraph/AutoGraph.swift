@@ -72,22 +72,13 @@ open class AutoGraph {
     R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
     R.Mapping.MappedObject: Equatable {
         
-//        let completionWithReauth = { [weak self] result in
-//            do {
-//                try self?.raiseAuthenticationError(from: result)
-//                completion(result)
-//            }
-//            catch {
-//                self?.handleRaisedAuthenticationError()
-//                self?.dispatcher.send(sendable: <#T##Dispatcher.Sendable#>)
-//            }
-//        }
-        
-        let objectBinding = request.generateBinding { [weak self] result in
-            self?.complete(request: request, result: result, completion: completion)
+        let objectBindingPromise = { sendable in
+            return request.generateBinding { [weak self] result in
+                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
+            }
         }
         
-        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
         
@@ -97,20 +88,33 @@ open class AutoGraph {
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where R.SerializedObject == R.Mapping.MappedObject {
         
-        let objectBinding = request.generateBinding { [weak self] result in
-            self?.complete(request: request, result: result, completion: completion)
+        let objectBindingPromise = { sendable in
+            return request.generateBinding { [weak self] result in
+                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
+            }
         }
         
-        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
         
         self.dispatcher.send(sendable: sendable)
     }
     
-    private func complete<R: Request>(request: R, result: Result<R.SerializedObject>, completion: @escaping RequestCompletion<R.SerializedObject>) {
+    private func complete<SerializedObject>(result: Result<SerializedObject>, sendable: Sendable, requestDidFinish: (Result<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+        
         do {
-            try request.didFinish(result: result)
+            try self.raiseAuthenticationError(from: result)
+        }
+        catch {
+            self.triggerReauthentication()
+            self.dispatcher.paused = true
+            self.dispatcher.send(sendable: sendable)
+            return
+        }
+        
+        do {
+            try requestDidFinish(result)
             try self.lifeCycle?.didFinish(result: result)
             completion(result)
         }
@@ -130,11 +134,6 @@ open class AutoGraph {
         }
         
         throw error
-    }
-    
-    private func handleRaisedAuthenticationError() {
-        self.triggerReauthentication()
-        self.dispatcher.paused = true
     }
     
     public func triggerReauthentication() {
