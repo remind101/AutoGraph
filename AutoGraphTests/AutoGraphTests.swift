@@ -23,6 +23,8 @@ class FilmRequestWithLifeCycle: FilmRequest {
     }
 }
 
+private let kDelay = 0.5
+
 class AutoGraphTests: XCTestCase {
     
     class MockDispatcher: Dispatcher {
@@ -74,7 +76,7 @@ class AutoGraphTests: XCTestCase {
             }
         }
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(called)
     }
     
@@ -92,7 +94,7 @@ class AutoGraphTests: XCTestCase {
             }
         }
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(called)
     }
     
@@ -110,7 +112,7 @@ class AutoGraphTests: XCTestCase {
             }
         }
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(called)
     }
     
@@ -128,7 +130,7 @@ class AutoGraphTests: XCTestCase {
             }
         }
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(called)
     }
     
@@ -159,12 +161,60 @@ class AutoGraphTests: XCTestCase {
             XCTFail()
         }
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertFalse(called)
         
         XCTAssertTrue(self.subject.dispatcher.paused)
         XCTAssertTrue(self.subject.authHandler.isRefreshing)
         XCTAssertTrue(( try! self.subject.dispatcher.pendingRequests.first!.query.graphQLString()) == (try! request.query.graphQLString()))
+    }
+    
+    func testFunctional401RequestNotHandled() {
+        class Film401Stub: FilmStub {
+            override var jsonFixtureFile: String? {
+                get { return "Film401" }
+                set { }
+            }
+        }
+        
+        self.subject.networkErrorParser = { gqlError in
+            guard gqlError.message == "401 - {\"error\":\"Unauthenticated\",\"error_code\":\"unauthenticated\"}" else {
+                return nil
+            }
+            // Not passing back a 401 status code so won't be registered as an auth error.
+            return MockNetworkError(statusCode: -1, underlyingError: gqlError)
+        }
+        
+        let stub = Film401Stub()
+        stub.registerStub()
+        
+        let request = FilmRequest()
+        
+        var called = false
+        self.subject.send(request) { result in
+            called = true
+            
+            guard
+                case .failure(let failureError) = result,
+                case let error as AutoGraphError = failureError,
+                case .network(let baseError, let statusCode, _, let underlying) = error,
+                case .some(.graphQL(errors: let underlyingErrors)) = underlying,
+                case let networkError as NetworkError = baseError,
+                networkError.statusCode == -1,
+                networkError.underlyingError == underlyingErrors.first,
+                networkError.statusCode == statusCode
+            else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(called)
+        
+        XCTAssertFalse(self.subject.dispatcher.paused)
+        XCTAssertFalse(self.subject.authHandler.isRefreshing)
+        XCTAssertEqual(self.subject.dispatcher.pendingRequests.count, 0)
     }
     
     func testFunctionalLifeCycle() {
@@ -174,7 +224,7 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequestWithLifeCycle()
         self.subject.send(request, completion: { _ in })
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(request.willSendCalled)
         XCTAssertTrue(request.didFinishCalled)
     }
@@ -204,7 +254,7 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequest()
         self.subject.send(request, completion: { _ in })
         
-        waitFor(delay: 1.0)
+        waitFor(delay: kDelay)
         XCTAssertTrue(lifeCycle.willSendCalled)
         XCTAssertTrue(lifeCycle.didFinishCalled)
     }
