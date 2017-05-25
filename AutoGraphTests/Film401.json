@@ -1,0 +1,26 @@
+{
+    "data": {
+        "film": null
+    },
+    "errors": [
+               {
+               "__restql_adapter__": {
+               "service_response": {
+               "error": "Unauthenticated",
+               "error_code": "unauthenticated"
+               },
+               "service_status": 401
+               },
+               "locations": [
+                             {
+                             "column": 1,
+                             "line": 3
+                             }
+                             ],
+               "message": "401 - {\"error\":\"Unauthenticated\",\"error_code\":\"unauthenticated\"}",
+               "path": [
+                        "film"
+                        ]
+               }
+               ]
+}

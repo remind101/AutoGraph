@@ -4,6 +4,11 @@ import Crust
 import JSONValueRX
 @testable import AutoGraphQL
 
+struct MockNetworkError: NetworkError {
+    let statusCode: Int
+    let underlyingError: GraphQLError
+}
+
 class ErrorTests: XCTestCase {
     func testGraphQLErrorUsesMessageForLocalizedDescription() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
@@ -40,11 +45,6 @@ class ErrorTests: XCTestCase {
                 ]
             ]
         ]
-        
-        struct MockNetworkError: NetworkError {
-            let statusCode: Int
-            let underlyingError: GraphQLError
-        }
         
         let json = try! JSONValue(object: jsonObj)
         let error = AutoGraphError(graphQLResponseJSON: json) { gqlError -> NetworkError? in

@@ -67,7 +67,6 @@ class AutoGraphTests: XCTestCase {
         var called = false
         self.subject.send(AllFilmsRequest()) { result in
             called = true
-            print(result)
             
             guard case .success(_) = result else {
                 XCTFail()
@@ -86,7 +85,6 @@ class AutoGraphTests: XCTestCase {
         var called = false
         self.subject.send(FilmRequest()) { result in
             called = true
-            print(result)
             
             guard case .success(_) = result else {
                 XCTFail()
@@ -105,7 +103,6 @@ class AutoGraphTests: XCTestCase {
         var called = false
         self.subject.send(FilmThreadUnconfinedRequest()) { result in
             called = true
-            print(result)
             
             guard case .success(_) = result else {
                 XCTFail()
@@ -124,7 +121,6 @@ class AutoGraphTests: XCTestCase {
         var called = false
         self.subject.send(VariableFilmRequest()) { result in
             called = true
-            print(result)
             
             guard case .success(_) = result else {
                 XCTFail()
@@ -134,6 +130,41 @@ class AutoGraphTests: XCTestCase {
         
         waitFor(delay: 1.0)
         XCTAssertTrue(called)
+    }
+    
+    func testFunctional401Request() {
+        class Film401Stub: FilmStub {
+            override var jsonFixtureFile: String? {
+                get { return "Film401" }
+                set { }
+            }
+        }
+        
+        self.subject.networkErrorParser = { gqlError in
+            guard gqlError.message == "401 - {\"error\":\"Unauthenticated\",\"error_code\":\"unauthenticated\"}" else {
+                return nil
+            }
+            return MockNetworkError(statusCode: 401, underlyingError: gqlError)
+        }
+        
+        let stub = Film401Stub()
+        stub.registerStub()
+        
+        let request = FilmRequest()
+        
+        var called = false
+        self.subject.send(request) { result in
+            called = true
+            
+            XCTFail()
+        }
+        
+        waitFor(delay: 1.0)
+        XCTAssertFalse(called)
+        
+        XCTAssertTrue(self.subject.dispatcher.paused)
+        XCTAssertTrue(self.subject.authHandler.isRefreshing)
+        XCTAssertTrue(( try! self.subject.dispatcher.pendingRequests.first!.query.graphQLString()) == (try! request.query.graphQLString()))
     }
     
     func testFunctionalLifeCycle() {
