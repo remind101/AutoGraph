@@ -12,6 +12,8 @@ public protocol ReauthenticationDelegate: class {
     func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: RefreshCompletion)
 }
 
+public let Unauthorized401StatusCode = 401
+
 // NOTE: Currently too coupled to Alamofire, will need to write an adapter and
 // move some of this into AlamofireClient eventually.
 
@@ -73,7 +75,7 @@ extension AuthHandler: RequestRetrier {
             return
         }
         
-        guard let response = request.task?.response as? HTTPURLResponse, response.statusCode == 401 else {
+        guard let response = request.task?.response as? HTTPURLResponse, response.statusCode == Unauthorized401StatusCode else {
             completion(false, 0.0)
             return
         }

@@ -13,7 +13,7 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<R> = (_ result: Result<R>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: Result<SerializedObject>) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
@@ -30,6 +30,15 @@ open class AutoGraph {
     public var authHandler: AuthHandler {
         get {
             return self.client.authHandler
+        }
+    }
+    
+    public var networkErrorParser: NetworkErrorParser? {
+        get {
+            return self.dispatcher.responseHandler.networkErrorParser
+        }
+        set {
+            self.dispatcher.responseHandler.networkErrorParser = newValue
         }
     }
     
@@ -63,39 +72,68 @@ open class AutoGraph {
     R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
     R.Mapping.MappedObject: Equatable {
         
-        let objectBinding = request.generateBinding { [weak self] result in
-            do {
-                try request.didFinish(result: result)
-                try self?.lifeCycle?.didFinish(result: result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
+        let objectBindingPromise = { sendable in
+            return request.generateBinding { [weak self] result in
+                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
             }
         }
         
-        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
+        
+        self.dispatcher.send(sendable: sendable)
     }
     
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where R.SerializedObject == R.Mapping.MappedObject {
         
-        let objectBinding = request.generateBinding { [weak self] result in
-            do {
-                try request.didFinish(result: result)
-                try self?.lifeCycle?.didFinish(result: result)
-                completion(result)
-            }
-            catch let e {
-                completion(.failure(e))
+        let objectBindingPromise = { sendable in
+            return request.generateBinding { [weak self] result in
+                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
             }
         }
         
-        self.dispatcher.send(request: request, objectBinding: objectBinding) { [weak self] request in
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
+        
+        self.dispatcher.send(sendable: sendable)
+    }
+    
+    private func complete<SerializedObject>(result: Result<SerializedObject>, sendable: Sendable, requestDidFinish: (Result<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+        
+        do {
+            try self.raiseAuthenticationError(from: result)
+        }
+        catch {
+            self.triggerReauthentication()
+            self.dispatcher.paused = true
+            self.dispatcher.send(sendable: sendable)
+            return
+        }
+        
+        do {
+            try requestDidFinish(result)
+            try self.lifeCycle?.didFinish(result: result)
+            completion(result)
+        }
+        catch let e {
+            completion(.failure(e))
+        }
+    }
+    
+    private func raiseAuthenticationError<SerializedObject>(from result: Result<SerializedObject>) throws {
+        guard
+            case .failure(let error) = result,
+            case let autoGraphError as AutoGraphError = error,
+            case let .network(error: _, statusCode: code, response: _, underlying: _) = autoGraphError,
+            code == Unauthorized401StatusCode
+        else {
+            return
+        }
+        
+        throw error
     }
     
     public func triggerReauthentication() {

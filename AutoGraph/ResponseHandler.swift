@@ -7,6 +7,7 @@ public class ResponseHandler {
     
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue
+    public var networkErrorParser: NetworkErrorParser?
     
     init(queue: OperationQueue = OperationQueue(),
          callbackQueue: OperationQueue = OperationQueue.main) {
@@ -21,12 +22,7 @@ public class ResponseHandler {
         preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
-                let value = try response.extractValue()
-                let json = try JSONValue(object: value)
-                
-                if let queryError = AutoGraphError(graphQLResponseJSON: json) {
-                    throw queryError
-                }
+                let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
                 
                 try preMappingHook(response.response, json)
                 

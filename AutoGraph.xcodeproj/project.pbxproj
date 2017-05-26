@@ -25,6 +25,7 @@
 		CD3BFF3D1E22D270008CE41A /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF391E22D270008CE41A /* RLMSupport.swift */; };
 		CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */; };
 		CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5244521E70EC6B0040771D /* ErrorTests.swift */; };
+		CD79ABF81ED7918500A10629 /* Film401.json in Resources */ = {isa = PBXBuildFile; fileRef = CD79ABF71ED7918500A10629 /* Film401.json */; };
 		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C081DB16999004BA66D /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C071DB16999004BA66D /* AutoGraphTests.swift */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -98,6 +99,7 @@
 		CD3BFF391E22D270008CE41A /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = RLMSupport.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlamofireClient.swift; sourceTree = "<group>"; };
 		CD5244521E70EC6B0040771D /* ErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorTests.swift; sourceTree = "<group>"; };
+		CD79ABF71ED7918500A10629 /* Film401.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film401.json; sourceTree = "<group>"; };
 		CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				CDE3C7221E00C4A700AB4EB1 /* Stub.swift */,
 				CDE3C7241E00D23400AB4EB1 /* AllFilms.json */,
 				CD2014251E308CB600D16F14 /* Film.json */,
+				CD79ABF71ED7918500A10629 /* Film401.json */,
 				CDFC20431EB2CADD005D09DD /* VariableFilm.json */,
 				CDA62C091DB16999004BA66D /* Info.plist */,
 				CDE3C71E1E00C3BB00AB4EB1 /* AutoGraphTests-Bridging-Header.h */,
@@ -483,6 +486,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDE3C7251E00D23400AB4EB1 /* AllFilms.json in Resources */,
+				CD79ABF81ED7918500A10629 /* Film401.json in Resources */,
 				CDFC20441EB2CADD005D09DD /* VariableFilm.json in Resources */,
 				CD2014261E308CB600D16F14 /* Film.json in Resources */,
 			);
