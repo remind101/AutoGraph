@@ -12,7 +12,7 @@ public protocol Request {
     /// will be a `String` and the instance will be `"data"`.
     associatedtype RootKey: MappingKey
     
-    /// The keys we'll use to map data out of the JSON payload retreived from the root key in `mapping`.
+    /// The keys we'll use to map data out of the JSON payload. This payload starts from the JSON retreived from the root key in `mapping`.
     associatedtype MappingKeys: KeyCollection
     
     /// The returned type for the request.
