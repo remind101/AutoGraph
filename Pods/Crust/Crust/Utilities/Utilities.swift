@@ -9,3 +9,9 @@ public extension Collection where Iterator.Element: Equatable {
         return (equality, Self.index(of:), Self.contains)
     }
 }
+
+public extension Sequence where Iterator.Element: MappingKey {
+    public func anyKeyCollection<TargetKey: MappingKey>() -> AnyKeyCollection<TargetKey>? {
+        return AnyKeyCollection.wrapAs(self)
+    }
+}
