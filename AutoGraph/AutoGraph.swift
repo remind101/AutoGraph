@@ -70,7 +70,8 @@ open class AutoGraph {
     where
     R.SerializedObject: RangeReplaceableCollection,
     R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
-    R.Mapping.MappedObject: Equatable {
+    R.Mapping.MappedObject: Equatable,
+    R.Mapping.MappingKeyType == R.MappingKeys.MappingKeyType {
         
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in
@@ -86,7 +87,7 @@ open class AutoGraph {
     }
     
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
-    where R.SerializedObject == R.Mapping.MappedObject {
+    where R.SerializedObject == R.Mapping.MappedObject, R.Mapping.MappingKeyType == R.MappingKeys.MappingKeyType {
         
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in
