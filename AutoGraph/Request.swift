@@ -9,7 +9,7 @@ public protocol Request {
     associatedtype Mapping: Crust.Mapping
     
     /// The root key into the JSON payload. E.g. If the payload has `[ "data" : [ stuff_I_want ] ]` the `RootKey`
-    /// will be `"data"`.
+    /// will be a `String` and the instance will be `"data"`.
     associatedtype RootKey: MappingKey
     
     /// The keys we'll use to map data out of the JSON payload retreived from the root key in `mapping`.
