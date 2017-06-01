@@ -77,29 +77,87 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
 
 ## How To Map
 
-1. Create your mappings for your model using `Mapping` if with storage or `AnyMapping` if without storage.
+1. Create a set of `MappingKey`s that define the key paths from the JSON payload to your model.
+    ```swift
+    enum EmployeeKey: MappingKey {
+        case uuid
+        case name
+        case employer(Set<CompanyKey>)
+
+        var keyPath: String {
+            switch self {
+            case .employer(_):          return "company"
+            case .uuid:                 return "data.uuid"  // This means our JSON has a 'data' payload we're elevating.
+            case .name:                 return "data.name"
+            }
+        }
+
+        // You can specifically specify what keys you'd like to map from in the `keyedBy` argument of the mapper. This function retrieves the nested keys.
+        func nestedMappingKeys<Key: MappingKey>() -> AnyKeyCollection<Key>? {
+            switch self {
+            case .employer(let companyKeys):
+                return companyKeys.anyKeyCollection()
+            default:
+                return nil
+            }
+        }
+    }
+
+    enum CompanyKey: MappingKey {
+        case uuid
+        case name
+        case employees(Set<EmployeeKey>)
+        case founder(Set<EmployeeKey>)
+        case foundingDate
+        case pendingLawsuits
+
+        var keyPath: String {
+            switch self {
+            case .uuid:                 "uuid"
+            case .name:                 "name"
+            case .employees(_):         "employees"
+            case .founder(_):           "founder"
+            case .foundingDate:         "data.founding_date"
+            case .pendingLawsuits:      "data.lawsuits_pending"
+            }
+        }
+
+        func nestedMappingKeys<Key: MappingKey>() -> AnyKeyCollection<Key>? {
+            switch self {
+            case .employees(let employeeKeys):
+                return employeeKeys.anyKeyCollection()
+            case .founder(let employeeKeys):
+                return employeeKeys.anyKeyCollection()
+            default:
+                return nil
+            }
+        }
+    }
+    ```
+
+2. Create your mappings for your model using `Mapping` if with storage or `AnyMapping` if without storage.
 
     With storage (assume `CoreDataAdapter` conforms to `Adapter`)
     ```swift
     class EmployeeMapping: Mapping {
     
         var adapter: CoreDataAdapter
-        var primaryKeys: [PrimaryKeyDescriptor]? {
+        var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
             // property == attribute on the model, keyPath == keypath in the JSON blob, transform == tranform to apply to data from JSON blob.
-            return [ (property: "uuid", keyPath: "data.uuid", transform: nil) ]
+            return [ (property: "uuid", keyPath: EmployeeKey.uuid.keyPath, transform: nil) ]
         }
 
         required init(adapter: CoreDataAdapter) {
             self.adapter = adapter
         }
     
-        func mapping(inout toMap: inout Employee, context: MappingContext) throws {
+        func mapping(inout toMap: inout Employee, context: MappingContext<EmployeeKey>) throws {
             // Company must be transformed into something Core Data can use in this case.
             let companyMapping = CompanyTransformableMapping()
             
             // No need to map the primary key here.
-            toMap.employer              <- .mapping("company", companyMapping) >*<
-            toMap.name                  <- "data.name" >*<
+            toMap.employer              <- .mapping(.employer(_), companyMapping) >*<
+            toMap.name                  <- .name >*<
             context
         }
     }
@@ -109,48 +167,48 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
     class CompanyMapping: AnyMapping {
         // associatedtype MappedObject = Company is inferred by `toMap`
     
-        func mapping(inout toMap: inout Company, context: MappingContext) throws {
+        func mapping(inout toMap: inout Company, context: MappingContext<CompanyKey>) throws {
             let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
         
-            toMap.employees             <- .mapping("employees", employeeMapping) >*<
-            toMap.founder               <- .mapping("founder", employeeMapping) >*<
-            toMap.uuid                  <- "uuid" >*<
-            toMap.name                  <- "name" >*<
-            toMap.foundingDate          <- "data.founding_date"  >*<
-            toMap.pendingLawsuits       <- "data.lawsuits.pending"  >*<
+            toMap.employees             <- .mapping(.employees(_), employeeMapping) >*<
+            toMap.founder               <- .mapping(.founder(_), employeeMapping) >*<
+            toMap.uuid                  <- .uuid >*<
+            toMap.name                  <- .name >*<
+            toMap.foundingDate          <- .foundingDate  >*<
+            toMap.pendingLawsuits       <- .pendingLawsuits  >*<
             context
         }
     }
     ```
 
-2. Create your Crust Mapper.
+3. Create your Crust Mapper.
     ```swift
     let mapper = Mapper()
     ```
 
-3. Use the mapper to convert to and from `JSONValue` objects
+4. Use the mapper to convert to and from `JSONValue` objects
     ```swift
     let json = try! JSONValue(object: [
                 "uuid" : "uuid123",
                 "name" : "name",
                 "employees" : [
-                    [ "name" : "Fred", "uuid" : "ABC123" ],
-                    [ "name" : "Wilma", "uuid" : "XYZ098" ]
+                    [ "data" : [ "name" : "Fred", "uuid" : "ABC123" ] ],
+                    [ "data" : [ "name" : "Wilma", "uuid" : "XYZ098" ] ]
                 ]
                 "founder" : NSNull(),
                 "data" : [
-                    "lawsuits" : [
-                        "pending" : 5
-                    ]
+                    "lawsuits_pending" : 5
                 ],
+                // Works with '.' keypaths too.
                 "data.founding_date" : NSDate().toISOString(),
             ]
     )
 
-    let company: Company = try! mapper.map(from: json, using: CompanyMapping())
+    // Just map 'uuid', 'name', 'employees.name', 'employees.uuid'
+    let company: Company = try! mapper.map(from: json, using: CompanyMapping(), keyedBy: [.uuid, .name, .employees([.name, .uuid])])
 
-    // Or if json is an array.
-    let company: [Company] = try! mapper.map(from: json, using: CompanyMapping())
+    // Or if json is an array and you'd like to map everything.
+    let company: [Company] = try! mapper.map(from: json, using: CompanyMapping(), keyedBy: AllKeys())
     ```
 
 NOTE:
@@ -160,10 +218,10 @@ NOTE:
 Crust supports nested mappings for nested models
 E.g. from above
 ```swift
-func mapping(inout toMap: Company, context: MappingContext) throws {
+func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
     let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
     
-    toMap.employees <- Binding.mapping("employees", employeeMapping) >*<
+    toMap.employees <- Binding.mapping(.employees(_), employeeMapping) >*<
     context
 }
 ```
@@ -222,17 +280,17 @@ There are two ways to include the context during mapping:
 1. Include it as a tuple.
 
    ```swift
-   func mapping(inout toMap: Company, context: MappingContext) throws {
-       toMap.uuid <- ("uuid", context)
-       toMap.name <- ("name", context)
+   func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+       toMap.uuid <- (.uuid, context)
+       toMap.name <- (.name, context)
    }
    ```
 2. Use a specially included operator `>*<` which merges the result of the right expression with the left expression into a tuple. This may be chained in succession.
 
    ```swift
-   func mapping(inout toMap: Company, context: MappingContext) throws {
-       toMap.uuid <- "uuid" >*<
-       toMap.name <- "name" >*<
+   func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+       toMap.uuid <- .uuid >*<
+       toMap.name <- .name >*<
        context
    }
    ```
@@ -251,17 +309,17 @@ and use it like any other `Mapping`.
 Multiple `Mapping`s are allowed for the same model.
 ```swift
 class CompanyMapping: AnyMapping {
-    func mapping(inout toMap: Company, context: MappingContext) throws {
-        toMap.uuid <- "uuid" >*<
-        toMap.name <- "name" >*<
+    func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+        toMap.uuid <- .uuid >*<
+        toMap.name <- .name >*<
         context
     }
 }
 
 class CompanyMappingWithNameUUIDReversed: AnyMapping {
-	func mapping(inout toMap: Company, context: MappingContext) throws {
-        toMap.uuid <- "name" >*<
-        toMap.name <- "uuid" >*<
+	func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+        toMap.uuid <- .name >*<
+        toMap.name <- .uuid >*<
         context
     }
 }
@@ -269,8 +327,8 @@ class CompanyMappingWithNameUUIDReversed: AnyMapping {
 Just use two different mappings.
 ```swift
 let mapper = Mapper()
-let company1 = try! mapper.map(from: json, using: CompanyMapping())
-let company2 = try! mapper.map(from: json, using: CompanyMappingWithNameUUIDReversed())
+let company1 = try! mapper.map(from: json, using: CompanyMapping(), keyedBy: AllKeys())
+let company2 = try! mapper.map(from: json, using: CompanyMappingWithNameUUIDReversed(), keyedBy: AllKeys())
 ```
 
 ## Storage Adapter
