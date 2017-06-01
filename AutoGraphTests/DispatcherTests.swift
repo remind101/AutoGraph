@@ -104,9 +104,11 @@ class DispatcherTests: XCTestCase {
         
         var threadAdapter: RealmThreadAdapter? = nil
         
-        var mapping: Binding<FilmMapping> {
+        var mapping: Binding<String, FilmMapping> {
             return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
         }
+        
+        let mappingKeys = AllKeys<FilmKey>()
     }
     
     func testFailureReturnsToCaller() {
