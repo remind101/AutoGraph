@@ -45,9 +45,11 @@ class AllFilmsRequest: Request {
         return RealmThreadAdapter()
     }
     
-    var mapping: Binding<FilmMapping> {
+    var mapping: Binding<String, FilmMapping> {
         return Binding.mapping("data.allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
+    
+    let mappingKeys = AllKeys<FilmKey>()
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }

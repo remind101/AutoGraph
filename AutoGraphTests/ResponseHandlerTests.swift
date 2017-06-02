@@ -103,7 +103,7 @@ class ResponseHandlerTests: XCTestCase {
     
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
-            override var mapping: Binding<FilmMapping> {
+            override var mapping: Binding<String, FilmMapping> {
                 return Binding.mapping("bad_path", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
             }
         }
@@ -138,7 +138,7 @@ class ResponseHandlerTests: XCTestCase {
                 called = !mappingCalled
             }
             
-            override var mapping: Binding<FilmMapping> {
+            override var mapping: Binding<String, FilmMapping> {
                 mappingCalled = true
                 return super.mapping
             }

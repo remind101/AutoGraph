@@ -21,8 +21,8 @@ public final class Sendable {
         self.dispatcherEarlyFailure = dispatcherEarlyFailure
     }
     
-    public convenience init<R: Request, M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>
-        (dispatcher: Dispatcher, request: R, objectBindingPromise: @escaping (Sendable) -> ObjectBinding<M, CM, C, T>, globalWillSend: ((R) throws -> ())?) {
+    public convenience init<R: Request, K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection, T: ThreadAdapter>
+        (dispatcher: Dispatcher, request: R, objectBindingPromise: @escaping (Sendable) -> ObjectBinding<K, M, CM, KC, C, T>, globalWillSend: ((R) throws -> ())?) {
         
         let completion: (Sendable) -> (DataResponse<Any>) -> () = { [weak dispatcher] sendable in
             { [weak dispatcher] response in
