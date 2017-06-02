@@ -100,6 +100,10 @@ class VariableFilmRequest: Request {
     ]
     
     let mapping = Binding.mapping("data", VariableFilmMapping())
+    let mappingKeys = SetKeyCollection<VariableFilmKey>([
+        .allFilms([.title, .episodeID, .openingCrawl, .director]),
+        .node([.title, .episodeID, .openingCrawl, .director])
+        ])
     let threadAdapter: NestedThreadAdapter<VariableFilm, RealmThreadAdapter>? = NestedThreadAdapter<VariableFilm, RealmThreadAdapter>(nestedThreadAdapter: RealmThreadAdapter())
     
     public func willSend() throws { }
@@ -107,13 +111,34 @@ class VariableFilmRequest: Request {
     public func didFinish(result: Result<Film>) throws { }
 }
 
+enum VariableFilmKey: MappingKey {
+    case allFilms(Set<FilmKey>)
+    case node(Set<FilmKey>)
+    
+    var keyPath: String {
+        switch self {
+        case .allFilms(_):  return "allFilms.films"
+        case .node(_):  return "node"
+        }
+    }
+    
+    func nestedMappingKeys<Key>() -> AnyKeyCollection<Key>? where Key : MappingKey {
+        switch self {
+        case .allFilms(let filmKeys):
+            return filmKeys.anyKeyCollection()
+        case .node(let filmKeys):
+            return filmKeys.anyKeyCollection()
+        }
+    }
+}
+
 class VariableFilmMapping: AnyMapping {
     typealias MappedObject = VariableFilm
     typealias AdapterKind = AnyAdapterImp<VariableFilm>
     
-    public func mapping(toMap: inout VariableFilm, context: MappingContext) {
-        toMap.allFilms      <- (.mapping("allFilms.films", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), context)
-        toMap.node          <- (.mapping("node", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), context)
+    public func mapping(toMap: inout VariableFilm, payload: MappingPayload<VariableFilmKey>) {
+        toMap.allFilms      <- (.mapping(.allFilms([]), FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), payload)
+        toMap.node          <- (.mapping(.node([]), FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default()))), payload)
     }
 }
 

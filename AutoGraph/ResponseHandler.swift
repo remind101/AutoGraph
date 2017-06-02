@@ -16,9 +16,9 @@ public class ResponseHandler {
         self.callbackQueue = callbackQueue
     }
     
-    func handle<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(
+    func handle<K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection, T: ThreadAdapter>(
         response: DataResponse<Any>,
-        objectBinding: ObjectBinding<M, CM, C, T>,
+        objectBinding: ObjectBinding<K, M, CM, KC, C, T>,
         preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
@@ -35,15 +35,15 @@ public class ResponseHandler {
             }
     }
     
-    private func map<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(
+    private func map<K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection, T: ThreadAdapter>(
         json: JSONValue,
-        objectBinding: ObjectBinding<M, CM, C, T>) {
+        objectBinding: ObjectBinding<K, M, CM, KC, C, T>) {
             
             do {
                 switch objectBinding {
-                case .object(let binding, let threadAdapter, let completion):
+                case .object(let binding, let threadAdapter, let keys, let completion):
                     let mapper = Mapper()
-                    let result: M.MappedObject = try mapper.map(from: json, using: binding())
+                    let result: M.MappedObject = try mapper.map(from: json, using: binding(), keyedBy: keys)
                     
                     if let threadAdapter = threadAdapter {
                         self.refetchAndComplete(result: result, json: json, mapping: binding, threadAdapter: threadAdapter, completion: completion)
@@ -54,9 +54,9 @@ public class ResponseHandler {
                         }
                     }
                     
-                case .collection(let binding, let threadAdapter, let completion):
+                case .collection(let binding, let threadAdapter, let keys, let completion):
                     let mapper = Mapper()
-                    let result: C = try mapper.map(from: json, using: binding())
+                    let result: C = try mapper.map(from: json, using: binding(), keyedBy: keys)
                     
                     if let threadAdapter = threadAdapter {
                         self.refetchAndComplete(result: result, json: json, mapping: binding, threadAdapter: threadAdapter, completion: completion)
@@ -81,19 +81,19 @@ public class ResponseHandler {
         }
     }
     
-    func fail<M: Mapping, CM: Mapping, C: RangeReplaceableCollection, T: ThreadAdapter>(error: Error, objectBinding: ObjectBinding<M, CM, C, T>) {
+    func fail<K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection, T: ThreadAdapter>(error: Error, objectBinding: ObjectBinding<K, M, CM, KC, C, T>) {
         switch objectBinding {
-        case .object(mappingBinding: _, threadAdapter: _, completion: let completion):
+        case .object(mappingBinding: _, threadAdapter: _, mappingKeys: _, completion: let completion):
             self.fail(error: error, completion: completion)
-        case .collection(mappingBinding: _, threadAdapter: _, completion: let completion):
+        case .collection(mappingBinding: _, threadAdapter: _, mappingKeys: _, completion: let completion):
             self.fail(error: error, completion: completion)
         }
     }
 
-    private func refetchAndComplete<Mapping: Crust.Mapping, Result, T: ThreadAdapter>
+    private func refetchAndComplete<RootKey: MappingKey, Mapping: Crust.Mapping, Result, T: ThreadAdapter>
         (result: Result,
          json: JSONValue,
-         mapping: @escaping () -> Binding<Mapping>,
+         mapping: @escaping () -> Binding<RootKey, Mapping>,
          threadAdapter: T,
          completion: @escaping RequestCompletion<Result>)
         where Result == Mapping.MappedObject {
@@ -121,10 +121,10 @@ public class ResponseHandler {
             }
     }
     
-    private func refetchAndComplete<Mapping: Crust.Mapping, Result: RangeReplaceableCollection, T: ThreadAdapter>
+    private func refetchAndComplete<RootKey: MappingKey, Mapping: Crust.Mapping, Result: RangeReplaceableCollection, T: ThreadAdapter>
         (result: Result,
          json: JSONValue,
-         mapping: @escaping () -> Binding<Mapping>,
+         mapping: @escaping () -> Binding<RootKey, Mapping>,
          threadAdapter: T,
          completion: @escaping RequestCompletion<Result>)
         where Result.Iterator.Element == Mapping.MappedObject, Mapping.MappedObject: Equatable {

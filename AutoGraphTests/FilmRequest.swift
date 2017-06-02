@@ -32,9 +32,11 @@ class FilmRequest: Request {
     
     let variables: [AnyHashable : Any]? = nil
     
-    var mapping: Binding<FilmMapping> {
+    var mapping: Binding<String, FilmMapping> {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
+    
+    let mappingKeys: SetKeyCollection<FilmKey> = SetKeyCollection([.director, .episodeID, .openingCrawl, .title])
     
     var threadAdapter: RealmThreadAdapter? {
         return RealmThreadAdapter()
@@ -43,6 +45,13 @@ class FilmRequest: Request {
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
     public func didFinish(result: Result<Film>) throws { }
+}
+
+enum FilmKey: String, RawMappingKey {
+    case title
+    case episodeID
+    case openingCrawl
+    case director
 }
 
 class FilmMapping: RealmMapping {
@@ -57,11 +66,11 @@ class FilmMapping: RealmMapping {
         self.adapter = adapter
     }
     
-    public func mapping(toMap: inout Film, context: MappingContext) {
-        toMap.title         <- ("title", context)
-        toMap.episode       <- ("episodeID", context)
-        toMap.openingCrawl  <- ("openingCrawl", context)
-        toMap.director      <- ("director", context)
+    public func mapping(toMap: inout Film, payload: MappingPayload<FilmKey>) {
+        toMap.title         <- (.title, payload)
+        toMap.episode       <- (.episodeID, payload)
+        toMap.openingCrawl  <- (.openingCrawl, payload)
+        toMap.director      <- (.director, payload)
     }
 }
 
@@ -122,9 +131,11 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
     
     let variables: [AnyHashable : Any]? = nil
     
-    var mapping: Binding<FilmThreadUnconfinedMapping> {
+    var mapping: Binding<String, FilmThreadUnconfinedMapping> {
         return Binding.mapping("data.film", FilmThreadUnconfinedMapping())
     }
+    
+    var mappingKeys: SetKeyCollection<FilmKey> = SetKeyCollection([.director, .episodeID, .openingCrawl, .title])
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
@@ -134,11 +145,11 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
 class FilmThreadUnconfinedMapping: AnyMapping {
     typealias AdapterKind = AnyAdapterImp<FilmThreadUnconfined>
     
-    public func mapping(toMap: inout FilmThreadUnconfined, context: MappingContext) {
-        toMap.title         <- ("title", context)
-        toMap.episode       <- ("episodeID", context)
-        toMap.openingCrawl  <- ("openingCrawl", context)
-        toMap.director      <- ("director", context)
+    public func mapping(toMap: inout FilmThreadUnconfined, payload: MappingPayload<FilmKey>) {
+        toMap.title         <- (.title, payload)
+        toMap.episode       <- (.episodeID, payload)
+        toMap.openingCrawl  <- (.openingCrawl, payload)
+        toMap.director      <- (.director, payload)
     }
 }
 

@@ -9,17 +9,26 @@ public enum CollectionInsertionMethod<Element> {
 public typealias CollectionUpdatePolicy<Element> =
     (insert: CollectionInsertionMethod<Element>, unique: Bool, nullable: Bool)
 
-public enum Binding<M: Mapping> {
+public enum Binding<K: MappingKey, M: Mapping> {
     
-    case mapping(Keypath, M)
-    case collectionMapping(Keypath, M, CollectionUpdatePolicy<M.MappedObject>)
+    case mapping(K, M)
+    case collectionMapping(K, M, CollectionUpdatePolicy<M.MappedObject>)
     
     public var keyPath: String {
         switch self {
-        case .mapping(let keyPath, _):
-            return keyPath.keyPath
-        case .collectionMapping(let keyPath, _, _):
-            return keyPath.keyPath
+        case .mapping(let key, _):
+            return key.keyPath
+        case .collectionMapping(let key, _, _):
+            return key.keyPath
+        }
+    }
+    
+    public var key: K {
+        switch self {
+        case .mapping(let key, _):
+            return key
+        case .collectionMapping(let key, _, _):
+            return key
         }
     }
     
@@ -40,6 +49,16 @@ public enum Binding<M: Mapping> {
             return method
         }
     }
+    
+    internal func nestedBinding(`for` nestedKeys: M.MappingKeyType)
+        -> Binding<M.MappingKeyType, M> {
+            switch self {
+            case .mapping(_, let mapping):
+                return .mapping(nestedKeys, mapping)
+            case .collectionMapping(_, let mapping, let method):
+                return .collectionMapping(nestedKeys, mapping, method)
+            }
+    }
 }
 
 public protocol Mapping {
@@ -48,6 +67,8 @@ public protocol Mapping {
     
     /// The DB adapter type.
     associatedtype AdapterKind: Adapter
+    
+    associatedtype MappingKeyType: MappingKey
     
     var adapter: AdapterKind { get }
     
@@ -59,14 +80,14 @@ public protocol Mapping {
     ///             JSON returned from `keyPath` is passed into this transform. A `nil` 
     ///             or `nil` returned value means the JSON value is not tranformed before
     ///             being used. Can `throw` an error which stops mapping and return the error to the caller.
-    typealias PrimaryKeyDescriptor = (property: String, keyPath: Keypath?, transform: ((JSONValue) throws -> CVarArg?)?)
+    typealias PrimaryKeyDescriptor = (property: String, keyPath: String?, transform: ((JSONValue) throws -> CVarArg?)?)
     
     /// The primaryKeys on `MappedObject`. Primary keys are mapped separately from what is mapped in
-    /// `mapping(toMap:context:)` and are never remapped to objects fetched from the database.
+    /// `mapping(toMap:payload:)` and are never remapped to objects fetched from the database.
     var primaryKeys: [PrimaryKeyDescriptor]? { get }
     
     /// Override to perform mappings to properties.
-    func mapping(toMap: inout MappedObject, context: MappingContext) throws
+    func mapping(toMap: inout MappedObject, payload: MappingPayload<MappingKeyType>) throws
 }
 
 public enum DefaultDatabaseTag: String {
@@ -144,21 +165,23 @@ public protocol Adapter {
 }
 
 public protocol Transform: AnyMapping {
+    associatedtype MappingKeyType = RootKey
+    
     func fromJSON(_ json: JSONValue) throws -> MappedObject
     func toJSON(_ obj: MappedObject) -> JSONValue
 }
 
 public extension Transform {
-    func mapping(toMap: inout MappedObject, context: MappingContext) {
-        switch context.dir {
+    func mapping(toMap: inout MappedObject, payload: MappingPayload<RootKey>) {
+        switch payload.dir {
         case .fromJSON:
             do {
-                try toMap = self.fromJSON(context.json)
+                try toMap = self.fromJSON(payload.json)
             } catch let err as NSError {
-                context.error = err
+                payload.error = err
             }
         case .toJSON:
-            context.json = self.toJSON(toMap)
+            payload.json = self.toJSON(toMap)
         }
     }
 }
