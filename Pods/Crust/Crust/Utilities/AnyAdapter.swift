@@ -1,3 +1,5 @@
+import JSONValueRX
+
 /// `MappedObject` type constraint required in `AnyMapping`.
 public protocol AnyMappable {
     init()
@@ -15,7 +17,7 @@ public extension AnyMapping {
         return AnyAdapterImp<MappedObject>()
     }
     
-    var primaryKeys: [Mapping.PrimaryKeyDescriptor]? {
+    var primaryKeys: [PrimaryKeyDescriptor]? {
         return nil
     }
 }
