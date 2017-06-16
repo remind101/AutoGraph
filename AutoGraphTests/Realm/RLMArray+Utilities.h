@@ -9,6 +9,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (nullable Class)getTypeOfProperty:(NSString *)propertyName;
 
+- (void)sanitizeValuesInRealm:(RLMRealm *)realm;
+
+@end
+
+@interface RLMProperty (Utilities)
+
+- (BOOL)isNumber;
+
 @end
 
 @interface RLMArray (Utilities)

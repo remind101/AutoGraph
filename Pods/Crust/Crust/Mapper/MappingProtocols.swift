@@ -72,15 +72,17 @@ public protocol Mapping {
     
     var adapter: AdapterKind { get }
     
+    typealias PrimaryKeyTransform = (JSONValue, MappingPayload<AnyMappingKey>?) throws -> CVarArg?
     /// Describes a primary key on the `MappedObject`.
     /// - property: Primary key property name on `MappedObject`.
     /// - keyPath: The key path into the JSON blob to retrieve the primary key's value.
     ///             A `nil` value returns the whole JSON blob for this object.
     /// - transform: Transform executed on the retrieved primary key's value before usage. The
-    ///             JSON returned from `keyPath` is passed into this transform. A `nil` 
-    ///             or `nil` returned value means the JSON value is not tranformed before
-    ///             being used. Can `throw` an error which stops mapping and return the error to the caller.
-    typealias PrimaryKeyDescriptor = (property: String, keyPath: String?, transform: ((JSONValue) throws -> CVarArg?)?)
+    ///             JSON returned from `keyPath` is passed into this transform. The full parent payload is additionally
+    ///             handed in for arbitrary usage, such as mapping from a uuid in the parent object.
+    ///             A `nil` `transform` or `nil` returned value means the JSON value is not tranformed before
+    ///             being used. Can `throw` an error which stops mapping and returns the error to the caller.
+    typealias PrimaryKeyDescriptor = (property: String, keyPath: String?, transform: PrimaryKeyTransform?)
     
     /// The primaryKeys on `MappedObject`. Primary keys are mapped separately from what is mapped in
     /// `mapping(toMap:payload:)` and are never remapped to objects fetched from the database.

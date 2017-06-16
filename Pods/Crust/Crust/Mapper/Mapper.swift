@@ -99,11 +99,12 @@ public struct Mapper {
     public func map<M: Mapping, K: MappingKey, KP: MappingKey, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         
         let baseJson = try baseJSON(from: json, via: binding.key, ifIn: SetKeyCollection([binding.key])) ?? json
+        let parent = parentPayload?.typeErased()
         
-        var object = try binding.mapping.fetchOrCreateObject(from: baseJson)
+        var object = try binding.mapping.fetchOrCreateObject(from: baseJson, in: parent)
         let codingKey = NestedMappingKey(rootKey: binding.key, nestedKeys: keys)
         let payload = MappingPayload(withObject: object, json: json, keys: codingKey, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
-        payload.parent = parentPayload?.typeErased()
+        payload.parent = parent
         
         let mapping = binding.mapping
         try mapping.start(payload: payload)
@@ -124,7 +125,7 @@ public struct Mapper {
     }
     
     public func map<M: Mapping, KP: MappingKey, KC: KeyCollection>(from json: JSONValue, using mapping: M, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
-        let object = try mapping.fetchOrCreateObject(from: json)
+        let object = try mapping.fetchOrCreateObject(from: json, in: parentPayload?.typeErased())
         return try self.map(from: json, to: object, using: mapping, keyedBy: keys, parentPayload: parentPayload)
     }
     
@@ -155,13 +156,13 @@ public struct Mapper {
 }
 
 public extension Mapping {
-    public func fetchOrCreateObject(from json: JSONValue) throws -> MappedObject {
-        guard let primaryKeyValues = try self.primaryKeyValuePairs(from: json) else {
+    public func fetchOrCreateObject(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> MappedObject {
+        guard let primaryKeyValues = try self.primaryKeyValuePairs(from: json, in: parentPayload) else {
             return try self.generateNewInstance()
         }
         
         let (object, newInstance) = try { () -> (MappedObject, Bool) in
-            guard let object = try self.fetchExistingInstance(json: json, primaryKeyValues: primaryKeyValues) else {
+            guard let object = try self.fetchExistingInstance(json: json, primaryKeyValues: primaryKeyValues, parentPayload: parentPayload) else {
                 return try (self.generateNewInstance(), true)
             }
             return (object, false)
@@ -176,7 +177,7 @@ public extension Mapping {
         return object
     }
     
-    public func primaryKeyValuePairs(from json: JSONValue) throws -> [String: CVarArg]? {
+    public func primaryKeyValuePairs(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> [String: CVarArg]? {
         guard let primaryKeys = self.primaryKeys else {
             return nil
         }
@@ -188,7 +189,7 @@ public extension Mapping {
             let key = keyPath?.keyPath
             let baseJson = key != nil ? json[key!] : json
             if let val = baseJson {
-                let transformedVal: CVarArg = try transform?(val) ?? val.valuesAsNSObjects()
+                let transformedVal: CVarArg = try transform?(val, parentPayload) ?? val.valuesAsNSObjects()
                 let sanitizedVal = self.adapter.sanitize(primaryKeyProperty: primaryKey,
                                                          forValue: transformedVal,
                                                          ofType: MappedObject.self as! AdapterKind.BaseType.Type)
@@ -203,11 +204,11 @@ public extension Mapping {
         return keyValues
     }
     
-    func fetchExistingInstance(json: JSONValue, primaryKeyValues: [String : CVarArg]?) throws -> MappedObject? {
+    func fetchExistingInstance(json: JSONValue, primaryKeyValues: [String : CVarArg]?, parentPayload: MappingPayload<AnyMappingKey>?) throws -> MappedObject? {
         
         try self.checkForAdapterBaseTypeConformance()
         
-        guard let keyValues = try (primaryKeyValues ?? self.primaryKeyValuePairs(from: json)) else {
+        guard let keyValues = try (primaryKeyValues ?? self.primaryKeyValuePairs(from: json, in: parentPayload)) else {
             return nil
         }
         

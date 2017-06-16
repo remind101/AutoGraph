@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
         return value;
     }
     
-    if (([self isProperty:property ofType:[NSNumber class]] && [value isKindOfClass:[NSString class]]) || [value isKindOfClass:[NSNumber class]])
+    if ([self isProperty:property ofType:[NSNumber class]] && ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]))
     {
         RLMPropertyType type = [[[realm.schema schemaForClassName:NSStringFromClass(self)] objectForKeyedSubscript:property] type];
         switch (type)
@@ -110,6 +110,51 @@ NS_ASSUME_NONNULL_BEGIN
     }
     
     return nil;
+}
+
+- (void)sanitizeValuesInRealm:(RLMRealm *)realm
+{
+    for (RLMProperty *property in self.objectSchema.properties)
+    {
+        if ([property isNumber])
+        {
+            [self setValue:[[self class] sanitizeValue:[self valueForKey:property.name]
+                                          fromProperty:property.name
+                                                 realm:realm]
+                    forKey:property.name];
+        }
+    }
+}
+
+@end
+
+@implementation RLMProperty (Utilities)
+
+- (BOOL)isNumber
+{
+    switch (self.type)
+    {
+        case RLMPropertyTypeInt:
+        {
+            return YES;
+        }
+        case RLMPropertyTypeFloat:
+        {
+            return YES;
+        }
+        case RLMPropertyTypeDouble:
+        {
+            return YES;
+        }
+        case RLMPropertyTypeBool:
+        {
+            return YES;
+        }
+        default:
+        {
+            return NO;
+        }
+    }
 }
 
 @end
