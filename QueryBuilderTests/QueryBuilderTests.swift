@@ -50,7 +50,7 @@ class AcceptsFieldsTests: XCTestCase {
         
         let scalar1 = Scalar(name: "scalar1", alias: nil)
         let scalar2 = Scalar(name: "scalar2", alias: "derp")
-        let object = Object(name: "obj", alias: "cool", fields: [scalar2], fragments: nil, arguments: ["key" : "value"])
+        let object = Object(name: "obj", alias: "cool", arguments: ["key" : "value"], fields: [scalar2], fragments: nil)
         
         self.subject.fields = [ scalar1, object ]
         XCTAssertEqual(try! self.subject.serializedFields(), "scalar1\ncool: obj(key: \"value\") {\nderp: scalar2\n}")
@@ -63,7 +63,7 @@ class AcceptsFieldsTests: XCTestCase {
         let scalar1 = Scalar(name: "scalar1", alias: nil, directives: [directive1])
         let scalar2 = Scalar(name: "scalar2", alias: "derp")
         let objDirective = Directive(name: "obj", arguments: ["best" : "objDirective"])
-        let object = Object(name: "obj", alias: "cool", fields: [scalar2], fragments: nil, arguments: ["key" : "value"], directives: [objDirective])
+        let object = Object(name: "obj", alias: "cool", arguments: ["key" : "value"], fields: [scalar2], fragments: nil, directives: [objDirective])
         
         self.subject.fields = [ scalar1, object ]
         XCTAssertEqual(try! self.subject.serializedFields(), "scalar1 @cool(best: \"directive\")\ncool: obj(key: \"value\") @obj(best: \"objDirective\") {\nderp: scalar2\n}")
@@ -99,12 +99,12 @@ class ObjectTests: XCTestCase {
     }
     
     func testGraphQLStringWithAlias() {
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: ["scalar"], fragments: nil, arguments: nil)
+        self.subject = Object(name: "obj", alias: "cool_alias", fields: ["scalar"])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\nscalar\n}")
     }
     
     func testGraphQLStringWithoutAlias() {
-        self.subject = Object(name: "obj", alias: nil, fields: ["scalar"], fragments: nil, arguments: nil)
+        self.subject = Object(name: "obj", alias: nil, fields: ["scalar"])
         XCTAssertEqual(try! self.subject.graphQLString(), "obj {\nscalar\n}")
     }
     
@@ -112,16 +112,16 @@ class ObjectTests: XCTestCase {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: [scalar1, scalar2], fragments: nil, arguments: nil)
+        self.subject = Object(name: "obj", alias: "cool_alias", fields: [scalar1, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_scalar: scalar1\nscalar2\n}")
     }
     
     func testGraphQLStringWithObjectFields() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1], fragments: nil, arguments: nil)
+        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
         
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2], fragments: nil, arguments: nil)
+        self.subject = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
     }
 }
@@ -151,7 +151,7 @@ class FragmentDefinitionTests: XCTestCase {
     func testGraphQLStringWithObjectFields() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1], fragments: nil, arguments: nil)
+        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
         
         self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: [subobj, scalar2], fragments: nil)
         XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")

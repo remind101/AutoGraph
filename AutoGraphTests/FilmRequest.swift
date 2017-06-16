@@ -7,6 +7,7 @@ class FilmRequest: Request {
     /*
      query film {
         film(id: "ZmlsbXM6MQ==") {
+            id
             title
             episodeID
             director
@@ -20,13 +21,13 @@ class FilmRequest: Request {
                           fields: [
                             Object(name: "film",
                                    alias: nil,
+                                   arguments: ["id" : "ZmlsbXM6MQ=="],
                                    fields: [
                                     "id",
                                     Scalar(name: "title", alias: nil),
                                     Scalar(name: "episodeID", alias: nil),
                                     Scalar(name: "director", alias: nil),
-                                    Scalar(name: "openingCrawl", alias: nil)],
-                                   arguments: ["id" : "ZmlsbXM6MQ=="])
+                                    Scalar(name: "openingCrawl", alias: nil)])
                             ],
                           fragments: nil)
     
@@ -120,13 +121,13 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
                           fields: [
                             Object(name: "film",
                                    alias: nil,
+                                   arguments: ["id" : "ZmlsbXM6MQ=="],
                                    fields: [
                                     "id",
                                     Scalar(name: "title", alias: nil),
                                     Scalar(name: "episodeID", alias: nil),
                                     Scalar(name: "director", alias: nil),
-                                    Scalar(name: "openingCrawl", alias: nil)],
-                                   arguments: ["id" : "ZmlsbXM6MQ=="])
+                                    Scalar(name: "openingCrawl", alias: nil)])
                         ])
     
     let variables: [AnyHashable : Any]? = nil
