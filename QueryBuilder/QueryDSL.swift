@@ -356,17 +356,17 @@ public struct Scalar: Field {
 public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirectives {
     public let name: String
     public let alias: String?
+    public let arguments: [String : InputValue]?
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
-    public let arguments: [String : InputValue]?
     public let directives: [Directive]?
     
-    public init(name: String, alias: String? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, arguments: [String : InputValue]? = nil, directives: [Directive]? = nil) {
+    public init(name: String, alias: String? = nil, arguments: [String : InputValue]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
         self.name = name
         self.alias = alias
+        self.arguments = arguments
         self.fields = fields
         self.fragments = fragments
-        self.arguments = arguments
         self.directives = directives
     }
     

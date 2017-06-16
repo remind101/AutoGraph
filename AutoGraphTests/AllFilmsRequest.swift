@@ -25,6 +25,7 @@ class AllFilmsRequest: Request {
                           fields: [
                             Object(name: "allFilms",
                                    alias: nil,
+                                   arguments: nil,
                                    fields: [
                                     Object(name: "films",
                                            alias: nil,
@@ -32,11 +33,9 @@ class AllFilmsRequest: Request {
                                             Scalar(name: "title", alias: nil),
                                             Scalar(name: "episodeID", alias: nil),
                                             Scalar(name: "openingCrawl", alias: nil),
-                                            Scalar(name: "director", alias: nil)],
-                                           fragments: nil,
-                                           arguments: nil)],
-                                   fragments: nil,
-                                   arguments: nil)
+                                            Scalar(name: "director", alias: nil)]
+                                           )],
+                                   fragments: nil)
                             ])
     
     let variables: [AnyHashable : Any]? = nil

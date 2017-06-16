@@ -65,6 +65,7 @@ class VariableFilmRequest: Request {
                         ],
                           fields: [
                             Object(name: "allFilms",
+                                   arguments: [ "last" : lastVariable ],
                                    fields: [
                                     Object(name: "films",
                                            fields: [
@@ -74,17 +75,16 @@ class VariableFilmRequest: Request {
                                             "openingCrawl",
                                             "director"
                                            ])
-                                ],
-                                   arguments: [ "last" : lastVariable ]),
+                                ]),
                             Object(name: "node",
+                                   arguments: [ "id" : nodeIdVariable ],
                                    fields: [
                                     "id",
                                     "title",
                                     "episodeID",
                                     "openingCrawl",
                                     "director"
-                                    ],
-                                   arguments: [ "id" : nodeIdVariable ])
+                                    ])
     ])
     
     /*
