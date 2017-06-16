@@ -209,7 +209,7 @@ class FilmRequest: Request {
     let variables: [AnyHashable : Any]? = nil
     
     // This is the `Mapping` that takes the returned JSON payload and converts it to a Film.
-    var mapping: Binding<FilmMapping> {
+    var mapping: Binding<String, FilmMapping> {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
@@ -261,7 +261,7 @@ AutoGraph:
 class MySweetRequest: Request {
     ...
     
-    var mapping: Binding<AuthorMapping> {
+    var mapping: Binding<String, AuthorMapping> {
         return Binding.mapping("data.user.authors", AuthorMapping())
     }
 }
