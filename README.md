@@ -100,6 +100,12 @@ AutoGraph
 AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
                             Object(
                             name: "updateFavoriteAuthor",
+                            arguments: [ // Continues "updateFavoriteAuthor".
+                                "uuid" : "long_id",
+                                "input" : [
+                                   "name" : "My Cool Class"
+                                ]
+                            ],
                             fields: [
                                 Object(
                                 name: "favorite_author",
@@ -108,12 +114,6 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
                                     "name"
                                     ])
                                 ]
-                            arguments: [ // Continues "updateFavoriteAuthor".
-                                "uuid" : "long_id",
-                                "input" : [
-                                   "name" : "My Cool Class"
-                                ]
-                            ]
                         ])
 ```
 
@@ -197,13 +197,13 @@ class FilmRequest: Request {
                           fields: [
                             Object(name: "film",
                                    alias: nil,
+                                   arguments: ["id" : "ZmlsbXM6MQ=="],
                                    fields: [
                                     "id",  // May use string literal or Scalar.
                                     "title",
                                     Scalar(name: "episodeID", alias: nil),
                                     Scalar(name: "director", alias: nil),
-                                    Scalar(name: "openingCrawl", alias: nil)],
-                                   arguments: ["id" : "ZmlsbXM6MQ=="])
+                                    Scalar(name: "openingCrawl", alias: nil)])
                             ])
     
     let variables: [AnyHashable : Any]? = nil
