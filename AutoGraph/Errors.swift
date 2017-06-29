@@ -94,7 +94,7 @@ public indirect enum AutoGraphError: LocalizedError {
             return "Type \(from) cannot be cast to type \(to)"
             
         case .invalidResponse:
-            return self.localizedDescription
+            return "Invalid Response"
         }
     }
 }
