@@ -38,7 +38,7 @@ NS_ASSUME_NONNULL_BEGIN
     
     if ([self isProperty:property ofType:[NSNumber class]] && ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]))
     {
-        RLMPropertyType type = [[[realm.schema schemaForClassName:NSStringFromClass(self)] objectForKeyedSubscript:property] type];
+        RLMPropertyType type = [[[realm.schema schemaForClassName:[self className]] objectForKeyedSubscript:property] type];
         switch (type)
         {
             case RLMPropertyTypeInt:
@@ -116,7 +116,7 @@ NS_ASSUME_NONNULL_BEGIN
 {
     for (RLMProperty *property in self.objectSchema.properties)
     {
-        if ([property isNumber])
+        if ([property isNumber] && (!self.objectSchema.primaryKeyProperty || ![self.objectSchema.primaryKeyProperty isEqualToProperty:property]))
         {
             [self setValue:[[self class] sanitizeValue:[self valueForKey:property.name]
                                           fromProperty:property.name
