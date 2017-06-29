@@ -10,6 +10,11 @@ struct MockNetworkError: NetworkError {
 }
 
 class ErrorTests: XCTestCase {
+    func testInvalidResponseLocalizedErrorDoesntCrash() {
+        let description = AutoGraphError.invalidResponse.localizedDescription
+        XCTAssertGreaterThan(description.characters.count, 0)
+    }
+    
     func testGraphQLErrorUsesMessageForLocalizedDescription() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18
