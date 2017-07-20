@@ -132,7 +132,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 - [x] [Fragments](https://facebook.github.io/graphql/#sec-Language.Fragments)
     - [x] Fragment Spread
     - [x] Fragment Definition
-- [ ] [Inline Fragments](https://facebook.github.io/graphql/#sec-Inline-Fragments)
+- [x] [Inline Fragments](https://facebook.github.io/graphql/#sec-Inline-Fragments)
 - [x] [Directives](https://facebook.github.io/graphql/#sec-Language.Directives)
 
 ## Crust for type safe Mapping
