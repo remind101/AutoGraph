@@ -39,6 +39,28 @@ public extension AcceptsFields {
     }
 }
 
+/// Defines an _InlineFragment_ from the GraphQL language.
+public struct InlineFragment: AcceptsSelectionSet, AcceptsDirectives, QueryConvertible {
+    public let typeName: String
+    public let directives: [Directive]?
+    public let fields: [Field]?
+    public let fragments: [FragmentSpread]?
+    public let inlineFragments: [InlineFragment]?
+    public var name: String { return self.typeName }
+    
+    public init(typeName: String, directives: [Directive]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil) {
+        self.typeName = typeName
+        self.directives = directives
+        self.fields = fields
+        self.fragments = fragments
+        self.inlineFragments = inlineFragments
+    }
+    
+    public func graphQLString() throws -> String {
+        return "... on \(self.typeName)\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+    }
+}
+
 /// Defines a _FragmentSpread_ from the GraphQL language. Must reference a `fragmentDefinition`.
 /// Accepted by any type which inherits `AcceptsSelectionSet`.
 public struct FragmentSpread: AcceptsDirectives {
@@ -65,9 +87,10 @@ public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryC
     public let type: String
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
+    public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
     
-    public init?(name: String, type: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
+    public init?(name: String, type: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         guard name != "on" else {
             return nil
         }
@@ -78,6 +101,7 @@ public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryC
         self.type = type
         self.fields = fields
         self.fragments = fragments
+        self.inlineFragments = inlineFragments
         self.directives = directives
     }
     
@@ -94,6 +118,7 @@ public protocol AcceptsSelectionSet: AcceptsFields {
     var name: String { get }
     var fields: [Field]? { get }
     var fragments: [FragmentSpread]? { get }
+    var inlineFragments: [InlineFragment]? { get }
     func serializedFragments() throws -> String
     func serializedSelectionSet() throws -> String
 }
@@ -102,7 +127,8 @@ public extension AcceptsSelectionSet {
     public func serializedSelectionSet() throws -> String {
         let fields = try self.serializedFields()
         let fragments = try self.serializedFragments()
-        let selectionSet = [fields, fragments].flatMap { selection -> String? in
+        let inlineFragments = try self.serializedInlineFragments()
+        let selectionSet = [fields, fragments, inlineFragments].flatMap { selection -> String? in
             guard selection.characters.count > 0 else {
                 return nil
             }
@@ -114,6 +140,14 @@ public extension AcceptsSelectionSet {
         }
         
         return " {\n\(selectionSet)\n}"
+    }
+    
+    public func serializedInlineFragments() throws -> String {
+        guard let inlineFragments = self.inlineFragments else {
+            return ""
+        }
+        
+        return try inlineFragments.map { try $0.graphQLString() }.joined(separator: "\n")
     }
     
     public func serializedFragments() throws -> String {
@@ -359,14 +393,16 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirec
     public let arguments: [String : InputValue]?
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
+    public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
     
-    public init(name: String, alias: String? = nil, arguments: [String : InputValue]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
+    public init(name: String, alias: String? = nil, arguments: [String : InputValue]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         self.name = name
         self.alias = alias
         self.arguments = arguments
         self.fields = fields
         self.fragments = fragments
+        self.inlineFragments = inlineFragments
         self.directives = directives
     }
     
@@ -434,17 +470,19 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
     
     public let type: OperationType
     public let name: String
+    public let variableDefinitions: [AnyVariableDefinition]?
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
-    public let variableDefinitions: [AnyVariableDefinition]?
+    public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
     
-    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, directives: [Directive]? = nil) {
+    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         self.type = type
         self.name = name
+        self.variableDefinitions = variableDefinitions
         self.fields = fields
         self.fragments = fragments
-        self.variableDefinitions = variableDefinitions
+        self.inlineFragments = inlineFragments
         self.directives = directives
     }
     
