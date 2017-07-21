@@ -62,3 +62,14 @@ extension DataResponse {
         return json
     }
 }
+
+public protocol GraphQLKey: MappingKey {
+    var graphQLSelection: Selection { get }
+}
+
+extension SelectionSet {
+    public init<Key: GraphQLKey>(keys: [Key]) {
+        let selections = keys.map { $0.graphQLSelection }
+        self.init(selections)
+    }
+}

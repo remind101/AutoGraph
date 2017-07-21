@@ -6,6 +6,7 @@ enum QueryBuilderError: LocalizedError {
     case incorrectArgumentValue(value: Any)
     case incorrectInputType(message: String)
     case missingFields(selectionSetName: String)
+    case selectionMergeFailure(selection1: Selection, selection2: Selection)
     
     public var errorDescription: String? {
         switch self {
@@ -17,6 +18,8 @@ enum QueryBuilderError: LocalizedError {
             return message
         case .missingFields(selectionSetName: let selectionSetName):
             return "Selection Set on \(selectionSetName) must have either `fields` or `fragments` or both"
+        case .selectionMergeFailure(selection1: let selection1, selection2: let selection2):
+            return "Cannot merge selection \(selection1.key) of kind \(selection1.kind) with selection \(selection2.key) of kind \(selection2.kind)"
         }
     }
 }

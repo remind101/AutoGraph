@@ -6,14 +6,13 @@ public protocol QueryConvertible {
     func graphQLString() throws -> String
 }
 
-/// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
-public protocol Field: AcceptsDirectives, QueryConvertible {
+public protocol FieldSerializable {
     var name: String { get }
     var alias: String? { get }
     func serializedAlias() throws -> String
 }
 
-public extension Field {
+public extension FieldSerializable {
     func serializedAlias() throws -> String {
         guard let alias = self.alias else {
             return ""
@@ -21,6 +20,9 @@ public extension Field {
         return "\(alias.withoutWhitespace): "
     }
 }
+
+/// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
+public protocol Field: FieldSerializable, AcceptsDirectives, QueryConvertible { }
 
 /// Any type that accepts `Field`s. Inherited by `AcceptsSelectionSet`.
 public protocol AcceptsFields {
@@ -39,16 +41,28 @@ public extension AcceptsFields {
     }
 }
 
+public protocol InlineFragmentSerializable: SelectionSetSerializable, AcceptsDirectives, QueryConvertible { }
+
+public func inlineFragmentGraphQLString(for inlineFragment: InlineFragmentSerializable, with typeName: String?) throws -> String {
+    let typeCondition: String = {
+        guard let typeName = typeName else {
+            return ""
+        }
+        return "on \(typeName)"
+    }()
+    return "... \(typeCondition)\(try inlineFragment.serializedDirectives())\(try inlineFragment.serializedSelectionSet())"
+}
+
 /// Defines an _InlineFragment_ from the GraphQL language.
-public struct InlineFragment: AcceptsSelectionSet, AcceptsDirectives, QueryConvertible {
-    public let typeName: String
+public struct InlineFragment: AcceptsSelectionSet, InlineFragmentSerializable {
+    public let typeName: String?
     public let directives: [Directive]?
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
     public let inlineFragments: [InlineFragment]?
-    public var name: String { return self.typeName }
+    public var selectionSetName: String { return self.typeName ?? "..." }
     
-    public init(typeName: String, directives: [Directive]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil) {
+    public init(typeName: String?, directives: [Directive]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil) {
         self.typeName = typeName
         self.directives = directives
         self.fields = fields
@@ -57,27 +71,27 @@ public struct InlineFragment: AcceptsSelectionSet, AcceptsDirectives, QueryConve
     }
     
     public func graphQLString() throws -> String {
-        return "... on \(self.typeName)\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+        return try inlineFragmentGraphQLString(for: self, with: self.typeName)
     }
 }
 
-/// Defines a _FragmentSpread_ from the GraphQL language. Must reference a `fragmentDefinition`.
+/// Defines a _FragmentSpread_ from the GraphQL language.
 /// Accepted by any type which inherits `AcceptsSelectionSet`.
-public struct FragmentSpread: AcceptsDirectives {
-    public let fragment: FragmentDefinition
+public struct FragmentSpread: AcceptsDirectives, QueryConvertible {
+    public let name: String
     public let directives: [Directive]?
     
     public init(fragment: FragmentDefinition, directives: [Directive]? = nil) {
-        self.fragment = fragment
+        self.init(name: fragment.name, directives: directives)
+    }
+    
+    public init(name: String, directives: [Directive]? = nil) {
+        self.name = name
         self.directives = directives
     }
     
-    public init?(name: String, type: String, directives: [Directive]? = nil) {
-        guard let fragment = FragmentDefinition(name: name, type: type) else {
-            return nil
-        }
-        self.fragment = fragment
-        self.directives = directives
+    public func graphQLString() throws -> String {
+        return "...\(self.name)\(try self.serializedDirectives())"
     }
 }
 
@@ -89,6 +103,10 @@ public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryC
     public let fragments: [FragmentSpread]?
     public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
+    
+    public var selectionSetName: String {
+        return self.name
+    }
     
     public init?(name: String, type: String, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         guard name != "on" else {
@@ -110,12 +128,41 @@ public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryC
     }
 }
 
+public protocol SelectionSetSerializable {
+    var selectionSetName: String { get }
+    func serializedSelectionSet() throws -> String
+    func serializedSelectionSetComponents() throws -> (fields: String?, fragmentSpreads: String?, inlineFragments: String?)
+}
+
+public extension SelectionSetSerializable {
+    public func serializedSelectionSet() throws -> String {
+        let (fields, fragments, inlineFragments) = try self.serializedSelectionSetComponents()
+        return try self.serializedSelectionSet(serializedFields: fields ?? "",
+                                               serializedFragments: fragments ?? "",
+                                               serializedInlineFragments: inlineFragments ?? "")
+    }
+    
+    public func serializedSelectionSet(serializedFields: String, serializedFragments: String, serializedInlineFragments: String) throws -> String {
+        let selectionSet = [serializedFields, serializedFragments, serializedInlineFragments].flatMap { selection -> String? in
+            guard selection.characters.count > 0 else {
+                return nil
+            }
+            return selection
+        }.joined(separator: "\n")
+        
+        guard selectionSet.characters.count > 0 else {
+            throw QueryBuilderError.missingFields(selectionSetName: self.selectionSetName)
+        }
+        
+        return " {\n\(selectionSet)\n}"
+    }
+}
+
 /// Any type that accepts a _SelectionSet_ from the GraphQL Language.
 ///
 /// This type must accept `Field`s and `Fragment`s and must include either a set of
 /// `fragments` _(FragmentSpread)_ or a set of `fields` or both.
-public protocol AcceptsSelectionSet: AcceptsFields {
-    var name: String { get }
+public protocol AcceptsSelectionSet: AcceptsFields, SelectionSetSerializable {
     var fields: [Field]? { get }
     var fragments: [FragmentSpread]? { get }
     var inlineFragments: [InlineFragment]? { get }
@@ -124,22 +171,11 @@ public protocol AcceptsSelectionSet: AcceptsFields {
 }
 
 public extension AcceptsSelectionSet {
-    public func serializedSelectionSet() throws -> String {
+    public func serializedSelectionSetComponents() throws -> (fields: String?, fragmentSpreads: String?, inlineFragments: String?) {
         let fields = try self.serializedFields()
         let fragments = try self.serializedFragments()
         let inlineFragments = try self.serializedInlineFragments()
-        let selectionSet = [fields, fragments, inlineFragments].flatMap { selection -> String? in
-            guard selection.characters.count > 0 else {
-                return nil
-            }
-            return selection
-        }.joined(separator: "\n")
-        
-        guard selectionSet.characters.count > 0 else {
-            throw QueryBuilderError.missingFields(selectionSetName: self.name)
-        }
-        
-        return " {\n\(selectionSet)\n}"
+        return (fields, fragments, inlineFragments)
     }
     
     public func serializedInlineFragments() throws -> String {
@@ -155,8 +191,181 @@ public extension AcceptsSelectionSet {
             return ""
         }
         
-        let fragmentsList = try fragments.map { "...\($0.fragment.name)\(try $0.serializedDirectives())" }.joined(separator: "\n")
+        let fragmentsList = try fragments.map { try $0.graphQLString() }.joined(separator: "\n")
         return fragmentsList
+    }
+}
+
+/// Represents a _SelectionSet_ from the GraphQL Language.
+public struct SelectionSet: ExpressibleByArrayLiteral {
+    private(set) var selectionSet = [String : Selection]()
+    public var selections: [Selection] {
+        return self.selectionSet.map { $0.value }
+    }
+    
+    public init(selectionSet: [String : Selection]) {
+        self.selectionSet = selectionSet
+    }
+    
+    public init(_ selection: Selection) {
+        self.init([selection])
+    }
+    
+    public init(_ selections: [Selection]) {
+        var selectionSet = [String : Selection]()
+        for element in selections {
+            try! SelectionSet.insert(selection: element, into: &selectionSet)
+        }
+        self.selectionSet = selectionSet
+    }
+    
+    public init(arrayLiteral elements: Selection...) {
+        self.init(elements)
+    }
+    
+    public mutating func insert(_ other: Selection) throws {
+        try SelectionSet.insert(selection: other, into: &self.selectionSet)
+    }
+    
+    public mutating func insert(contentsOf contents: SelectionSet) throws {
+        for (_, selection) in contents.selectionSet {
+            try self.insert(selection)
+        }
+    }
+    
+    static func insert(selection: Selection, into selectionSet: inout [String : Selection]) throws {
+        let key = selection.key
+        if let existing = selectionSet.removeValue(forKey: key) {
+            let merged = try existing.merge(selection: selection)
+            selectionSet[key] = merged.selectionSet[key]
+        }
+        else {
+            selectionSet[key] = selection
+        }
+    }
+}
+
+/// Represents a _Selection_ from the GraphQL Language.
+public enum Selection: ObjectSerializable, InlineFragmentSerializable {
+    case scalar(name: String, alias: String?)
+    case object(name: String, alias: String?, arguments: [String : InputValue]?, directives: [Directive]?, selectionSet: SelectionSet)
+    case fragmentSpread(name: String, directives: [Directive]?)
+    case inlineFragment(namedType: String?, directives: [Directive]?, selectionSet: SelectionSet)
+    
+    // MARK: - Protocol conformances
+    
+    public var selectionSetName: String {
+        return self.name
+    }
+    
+    public var name: String {
+        switch self {
+        case .scalar(name: let name, alias: _): return name
+        case .object(name: let name, alias: _, arguments: _, directives: _, selectionSet: _): return name
+        case .fragmentSpread(name: let name, directives: _): return name
+        case .inlineFragment(namedType: let namedType, directives: _, selectionSet: _): return namedType ?? ""
+        }
+    }
+    
+    public var alias: String? {
+        switch self {
+        case .scalar(name: _, alias: let alias): return alias
+        case .object(name: _, alias: let alias, arguments: _, directives: _, selectionSet: _): return alias
+        case .fragmentSpread(_): return nil
+        case .inlineFragment(_): return nil
+        }
+    }
+    
+    public var arguments: [String : InputValue]? {
+        switch self {
+        case .scalar(_): return nil
+        case .object(name: _, alias: _, arguments: let args, directives: _, selectionSet: _): return args
+        case .fragmentSpread(_): return nil
+        case .inlineFragment(_): return nil
+        }
+    }
+    
+    public var directives: [Directive]? {
+        switch self {
+        case .scalar(_): return nil
+        case .object(name: _, alias: _, arguments: _, directives: let dirs, selectionSet: _): return dirs
+        case .fragmentSpread(name: _, directives: let dirs): return dirs
+        case .inlineFragment(namedType: _, directives: let dirs, selectionSet: _): return dirs
+        }
+    }
+    
+    // MARK: - Utility
+    
+    public var key: String {
+        switch self {
+        case .scalar(let name, let alias): return alias != nil ? "\(alias!): \(name)" : name
+        case .object(let name, let alias, _, _, _): return alias != nil ? "\(alias!): \(name)" : name
+        case .fragmentSpread(let name, _): return name
+        case .inlineFragment(let type, _, _): return "... on " + (type ?? "")
+        }
+    }
+    
+    public var kind: String {
+        switch self {
+        case .scalar(_): return "scalar"
+        case .object(_): return "object"
+        case .fragmentSpread(_): return "fragmentSpread"
+        case .inlineFragment(_): return "inlineFragment"
+        }
+    }
+    
+    public func serializedSelectionSetComponents() throws -> (fields: String?, fragmentSpreads: String?, inlineFragments: String?) {
+        switch self {
+        case .scalar(_): return (try self.graphQLString(), nil, nil)
+        case .object(_): return (try self.graphQLString(), nil, nil)
+        case .fragmentSpread(_): return (nil, try self.graphQLString(), nil)
+        case .inlineFragment(_): return (nil, nil, try self.graphQLString())
+        }
+    }
+    
+    public func graphQLString() throws -> String {
+        switch self {
+        case .scalar(name: let name, alias: let alias):
+            return try Scalar(name: name, alias: alias).graphQLString()
+        case .object(_):
+            return try objectGraphQLString(for: self)
+        case .fragmentSpread(name: let name, directives: let directives):
+            return try FragmentSpread(name: name, directives: directives).graphQLString()
+        case .inlineFragment(namedType: let namedType, directives: _, selectionSet: _):
+            return try inlineFragmentGraphQLString(for: self, with: namedType)
+        }
+    }
+    
+    public func merge(selection: Selection) throws -> SelectionSet {
+        let lkey = self.key
+        let rkey = selection.key
+        
+        guard lkey == rkey else {
+            let selections = [lkey : self, rkey : selection]
+            return SelectionSet(selectionSet: selections)
+        }
+        
+        // TODO: need better handling of differing arguments or directives.
+        switch (self, selection) {
+        case (.object(let lname, let lalias, let largs, let ldirs, var lfields), .object(_, _, _, _, let rfields)):
+            try lfields.insert(contentsOf: rfields)
+            let mergedObject: Selection = .object(name: lname, alias: lalias, arguments: largs, directives: ldirs, selectionSet: lfields)
+            return SelectionSet(mergedObject)
+            
+        case (.scalar(_), .scalar(_)):
+            return SelectionSet(self)
+            
+        case (.fragmentSpread(_), .fragmentSpread(_)):
+            return SelectionSet(self)
+            
+        case (.inlineFragment(let lname, let ldirs, var lfields), .inlineFragment(_, _, let rfields)):
+            try lfields.insert(contentsOf: rfields)
+            let mergedFragment: Selection = .inlineFragment(namedType: lname, directives: ldirs, selectionSet: lfields)
+            return SelectionSet(mergedFragment)
+            
+        default:
+            throw QueryBuilderError.selectionMergeFailure(selection1: self, selection2: selection)
+        }
     }
 }
 
@@ -386,8 +595,14 @@ public struct Scalar: Field {
     }
 }
 
+public typealias ObjectSerializable = FieldSerializable & SelectionSetSerializable & AcceptsArguments & AcceptsDirectives & QueryConvertible
+
+public func objectGraphQLString(for object: ObjectSerializable) throws -> String {
+    return "\(try object.serializedAlias())\(object.name)\(try object.serializedArguments())\(try object.serializedDirectives())\(try object.serializedSelectionSet())"
+}
+
 /// Represents a `Field` which is an object type in the schema.
-public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirectives {
+public struct Object: Field, AcceptsSelectionSet, ObjectSerializable {
     public let name: String
     public let alias: String?
     public let arguments: [String : InputValue]?
@@ -395,6 +610,10 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirec
     public let fragments: [FragmentSpread]?
     public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
+    
+    public var selectionSetName: String {
+        return self.name
+    }
     
     public init(name: String, alias: String? = nil, arguments: [String : InputValue]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         self.name = name
@@ -407,7 +626,7 @@ public struct Object: Field, AcceptsArguments, AcceptsSelectionSet, AcceptsDirec
     }
     
     public func graphQLString() throws -> String {
-        return "\(try self.serializedAlias())\(name)\(try self.serializedArguments())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+        return try objectGraphQLString(for: self)
     }
 }
 
@@ -434,7 +653,13 @@ public protocol AcceptsDirectives {
 
 public extension AcceptsDirectives {
     func serializedDirectives() throws -> String {
-        guard let directives = self.directives else {
+        return try self.directives.serializedDirectives()
+    }
+}
+
+public extension Optional where Wrapped == Array<Directive> {
+    func serializedDirectives() throws -> String {
+        guard let directives = self else {
             return ""
         }
         
@@ -475,6 +700,10 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
     public let fragments: [FragmentSpread]?
     public let inlineFragments: [InlineFragment]?
     public let directives: [Directive]?
+    
+    public var selectionSetName: String {
+        return self.name
+    }
     
     public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
         self.type = type
