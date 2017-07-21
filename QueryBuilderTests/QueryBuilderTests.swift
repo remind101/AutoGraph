@@ -151,6 +151,71 @@ class InlineFragmentTests: XCTestCase {
     }
 }
 
+class SelectionSetTests: XCTestCase {
+    var subject: SelectionSet!
+    
+    func testMergingSelections() {
+        let scalar1: Selection = .scalar(name: "scalar1", alias: "alias")
+        let scalar2: Selection = .scalar(name: "scalar2", alias: nil)
+        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar1])
+        let dupe: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar2])
+        
+        try! self.subject = scalar1.merge(selection: object)
+        try! self.subject.insert(dupe)
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [object.key, scalar1.key])
+    }
+    
+    func testMergingSelectionsOfSameKeyButDifferentTypeFails() {
+        let scalar: Selection = .scalar(name: "key", alias: nil)
+        let object: Selection = .object(name: "key", alias: nil, arguments: nil, directives: nil, selectionSet: [scalar])
+        XCTAssertThrowsError(try scalar.merge(selection: object))
+    }
+    
+    func testGraphQLString() {
+        let scalar: Selection = .scalar(name: "scalar", alias: "alias")
+        let directive = Directive(name: "cool", arguments: ["best" : "directive"])
+        
+        let internalScalar: Selection = .scalar(name: "internalScalar", alias: nil)
+        let internalInternalObject: Selection = .object(name: "internalInternalObject", alias: "anAlias", arguments: ["arg" : "value"], directives: nil, selectionSet: [internalScalar])
+        let internalInlineFragment: Selection = .inlineFragment(namedType: "SomeType", directives: [directive], selectionSet: [internalInternalObject])
+        let internalFragment: Selection = .fragmentSpread(name: "fraggie", directives: nil)
+        let internalObject: Selection = .object(name: "internalObject", alias: nil, arguments: nil, directives: [directive], selectionSet: [internalScalar, internalInternalObject, internalFragment])
+        
+        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalObject])
+        let dupeObject: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalInlineFragment])
+        
+        let inlineFragmentScalar1: Selection = .scalar(name: "inlineFragmentScalar1", alias: "alias")
+        let inlineFragmentScalar2: Selection = .scalar(name: "inlineFragmentScalar2", alias: nil)
+        let inlineFragment1: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1, inlineFragmentScalar2])
+        let inlineFragment2: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1])
+        
+        let selectionSet = SelectionSet([inlineFragment1, inlineFragment2, object, dupeObject, scalar])
+        let gqlString = try! selectionSet.graphQLString()
+        
+        XCTAssertEqual(gqlString, " {\n" +
+            "...  {\n" +
+            "alias: inlineFragmentScalar1\n" +
+            "inlineFragmentScalar2\n" +
+            "}\n" +
+            "object: object(arg: 1) {\n" +
+            "... on SomeType @cool(best: \"directive\") {\n" +
+            "anAlias: internalInternalObject(arg: \"value\") {\n" +
+            "internalScalar\n" +
+            "}\n" +
+            "}\n" +
+            "internalObject @cool(best: \"directive\") {\n" +
+            "...fraggie\n" +
+            "internalScalar\n" +
+            "anAlias: internalInternalObject(arg: \"value\") {\n" +
+            "internalScalar\n" +
+            "}\n" +
+            "}\n" +
+            "}\n" +
+            "alias: scalar\n" +
+    "}")
+    }
+}
+
 class FragmentDefinitionTests: XCTestCase {
     var subject: FragmentDefinition!
     
