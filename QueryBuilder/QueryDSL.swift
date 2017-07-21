@@ -721,23 +721,30 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
     public let fields: [Field]?
     public let fragments: [FragmentSpread]?
     public let inlineFragments: [InlineFragment]?
+    public let selectionSet: SelectionSet?
     public let directives: [Directive]?
     
     public var selectionSetName: String {
         return self.name
     }
     
-    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil) {
+    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, fields: [Field]? = nil, fragments: [FragmentSpread]? = nil, inlineFragments: [InlineFragment]? = nil, directives: [Directive]? = nil, selectionSet: SelectionSet? = nil) {
         self.type = type
         self.name = name
         self.variableDefinitions = variableDefinitions
         self.fields = fields
         self.fragments = fragments
         self.inlineFragments = inlineFragments
+        self.selectionSet = selectionSet
         self.directives = directives
     }
     
     public func graphQLString() throws -> String {
         return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedVariableDefinitions())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
+    }
+    
+    public func serializedSelections() throws -> [String] {
+        let (fields, fragments, inlineFragments) = try self.serializedSelectionSetComponents()
+        return [fields, fragments, inlineFragments].flatMap { $0 } + (try self.selectionSet?.serializedSelections() ?? [])
     }
 }

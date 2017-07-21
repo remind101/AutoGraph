@@ -347,6 +347,34 @@ class OperationTests: XCTestCase {
         
         XCTAssertThrowsError(try variableVariable.typeErase())
     }
+    
+    func testSelectionSet() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        let subobj = Object(name: "object1", alias: "cool_obj", fields: [scalar1])
+        
+        self.subject = QueryBuilder.Operation(type: .mutation,
+                                              name: "Mutation",
+                                              fields: [subobj, scalar2],
+                                              selectionSet: [.object(
+                                                name: "object2",
+                                                alias: nil,
+                                                arguments: ["key" : "val"],
+                                                directives: nil,
+                                                selectionSet: [
+                                                    .scalar(name: "scalar", alias: "cool")
+                                                ])])
+        
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation {\n" +
+            "cool_obj: object1 {\n" +
+            "cool_scalar: scalar1\n" +
+            "}\n" +
+            "scalar2\n" +
+            "object2(key: \"val\") {\n" +
+            "cool: scalar\n" +
+        "}\n" +
+    "}")
+    }
 }
 
 class InputValueTests: XCTestCase {
