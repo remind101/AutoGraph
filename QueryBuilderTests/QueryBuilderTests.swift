@@ -126,6 +126,31 @@ class ObjectTests: XCTestCase {
     }
 }
 
+class InlineFragmentTests: XCTestCase {
+    var subject: InlineFragment!
+    
+    func testInlineFragment() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        let fragment = FragmentDefinition(name: "frag", type: "Fraggie", fields: [scalar2], fragments: nil)!
+        let directive = Directive(name: "cool", arguments: ["best" : "directive"])
+        let inlineFrag = InlineFragment(typeName: "Derp", fields: [scalar1])
+        self.subject = InlineFragment(typeName: "InlineFrag", directives: [directive], fields: [scalar1], fragments: [FragmentSpread(fragment: fragment)], inlineFragments: [inlineFrag])
+        
+        XCTAssertEqual(try! self.subject.graphQLString(), "... on InlineFrag @cool(best: \"directive\") {\ncool_scalar: scalar1\n...frag\n... on Derp {\ncool_scalar: scalar1\n}\n}")
+    }
+    
+    func testObjectWithInlineFragment() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
+        let inlineFrag = InlineFragment(typeName: "Derp", fields: [scalar1])
+        
+        let obj = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2], inlineFragments: [inlineFrag])
+        XCTAssertEqual(try! obj.graphQLString(), "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n... on Derp {\ncool_scalar: scalar1\n}\n}")
+    }
+}
+
 class FragmentDefinitionTests: XCTestCase {
     var subject: FragmentDefinition!
     
