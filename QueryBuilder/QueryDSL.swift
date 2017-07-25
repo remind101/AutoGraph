@@ -47,7 +47,7 @@ public struct InlineFragment: SelectionSetSerializable, InlineFragmentSerializab
     public let typeName: String?
     public let directives: [Directive]?
     public let selectionSet: SelectionSet?
-    public var selectionSetName: String { return self.typeName ?? "..." }
+    public var selectionSetName: String { return self.asSelection.key }
     public var asSelection: Selection {
         return .inlineFragment(namedType: self.typeName, directives: self.directives, selectionSet: self.selectionSet!)
     }
@@ -158,7 +158,7 @@ public extension AcceptsSelectionSet {
     }
 }
 
-/// Represents a _SelectionSet_ from the GraphQL Language.
+/// Represents a _SelectionSet_ from the GraphQL Language. Preserves order of selection insertion and array initialization.
 public struct SelectionSet: ExpressibleByArrayLiteral, SelectionSetSerializable, QueryConvertible {
     private(set) var selectionSet = OrderedDictionary<String, Selection>()
     public var selections: [Selection] {
@@ -335,8 +335,8 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
         let rkey = selection.key
         
         guard lkey == rkey else {
-            let selections = [lkey : self, rkey : selection]
-            return SelectionSet(selectionSet: selections)
+            let selections = [self, selection]
+            return SelectionSet(selections)
         }
         
         // TODO: need better handling of differing arguments or directives.
