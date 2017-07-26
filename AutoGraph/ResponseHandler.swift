@@ -9,7 +9,7 @@ open class ResponseHandler {
     private let callbackQueue: OperationQueue
     public var networkErrorParser: NetworkErrorParser?
     
-    init(queue: OperationQueue = OperationQueue(),
+    public init(queue: OperationQueue = OperationQueue(),
          callbackQueue: OperationQueue = OperationQueue.main) {
         
         self.queue = queue
