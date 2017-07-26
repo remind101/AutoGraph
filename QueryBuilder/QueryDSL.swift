@@ -58,6 +58,10 @@ public struct InlineFragment: SelectionSetSerializable, InlineFragmentSerializab
         self.selectionSet = selectionSet
     }
     
+    public init(typeName: String?, directives: [Directive]? = nil, selectionSet: [SelectionType]) {
+        self.init(typeName: typeName, directives: directives, selectionSet: SelectionSet(selectionSet))
+    }
+    
     public func serializedSelections() throws -> [String] {
         return try self.selectionSet?.selections.map { try $0.graphQLString() } ?? []
     }
@@ -113,6 +117,10 @@ public struct FragmentDefinition: AcceptsSelectionSet, AcceptsDirectives, QueryC
         self.type = type
         self.directives = directives
         self.selectionSet = selectionSet
+    }
+    
+    public init?(name: String, type: String, directives: [Directive]? = nil, selectionSet: [SelectionType]) {
+        self.init(name: name, type: type, directives: directives, selectionSet: SelectionSet(selectionSet))
     }
     
     public func graphQLString() throws -> String {
@@ -623,6 +631,10 @@ public struct Object: Field, AcceptsSelectionSet, ObjectSerializable {
         self.selectionSet = selectionSet
     }
     
+    public init(name: String, alias: String? = nil, arguments: [String : InputValue]? = nil, directives: [Directive]? = nil, selectionSet: [SelectionType]) {
+        self.init(name: name, alias: alias, arguments: arguments, directives: directives, selectionSet: SelectionSet(selectionSet))
+    }
+    
     public func graphQLString() throws -> String {
         return try objectGraphQLString(for: self)
     }
@@ -707,6 +719,10 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
         self.variableDefinitions = variableDefinitions
         self.selectionSet = selectionSet
         self.directives = directives
+    }
+    
+    public init(type: OperationType, name: String, variableDefinitions: [AnyVariableDefinition]? = nil, directives: [Directive]? = nil, selectionSet: [SelectionType]) {
+        self.init(type: type, name: name, variableDefinitions: variableDefinitions, directives: directives, selectionSet: SelectionSet(selectionSet))
     }
     
     public func graphQLString() throws -> String {
