@@ -13,7 +13,7 @@ public final class Sendable {
     public let dispatcherCompletion: (Sendable) -> (DataResponse<Any>) -> ()
     public let dispatcherEarlyFailure: (Sendable) -> (Error) -> ()
     
-    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) ->(DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
+    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) -> (DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
         self.query = query
         self.variables = variables
         self.willSend = willSend

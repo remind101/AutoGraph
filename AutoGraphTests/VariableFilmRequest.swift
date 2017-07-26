@@ -63,12 +63,12 @@ class VariableFilmRequest: Request {
                             try! nodeIdVariable.typeErase(),
                             try! lastVariable.typeErase()
                         ],
-                          fields: [
+                          selectionSet: [
                             Object(name: "allFilms",
                                    arguments: [ "last" : lastVariable ],
-                                   fields: [
+                                   selectionSet: [
                                     Object(name: "films",
-                                           fields: [
+                                           selectionSet: [
                                             "id",
                                             "title",
                                             "episodeID",
@@ -78,7 +78,7 @@ class VariableFilmRequest: Request {
                                 ]),
                             Object(name: "node",
                                    arguments: [ "id" : nodeIdVariable ],
-                                   fields: [
+                                   selectionSet: [
                                     "id",
                                     "title",
                                     "episodeID",

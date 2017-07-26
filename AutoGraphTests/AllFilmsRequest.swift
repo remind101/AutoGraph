@@ -22,20 +22,19 @@ class AllFilmsRequest: Request {
     
     let query = Operation(type: .query,
                           name: "filmRequest",
-                          fields: [
+                          selectionSet: [
                             Object(name: "allFilms",
                                    alias: nil,
                                    arguments: nil,
-                                   fields: [
+                                   selectionSet: [
                                     Object(name: "films",
                                            alias: nil,
-                                           fields: [
+                                           selectionSet: [
                                             Scalar(name: "title", alias: nil),
                                             Scalar(name: "episodeID", alias: nil),
                                             Scalar(name: "openingCrawl", alias: nil),
                                             Scalar(name: "director", alias: nil)]
-                                           )],
-                                   fragments: nil)
+                                           )])
                             ])
     
     let variables: [AnyHashable : Any]? = nil

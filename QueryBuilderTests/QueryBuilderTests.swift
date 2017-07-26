@@ -3,7 +3,7 @@ import XCTest
 
 class FieldTests: XCTestCase {
     
-    class FieldMock: Field {
+    class FieldMock: ScalarField {
         var directives: [Directive]?
 
         var name: String {
@@ -31,45 +31,6 @@ class FieldTests: XCTestCase {
     }
 }
 
-class AcceptsFieldsTests: XCTestCase {
-    
-    class AcceptsFieldsMock: AcceptsFields {
-        var fields: [Field]?
-    }
-    
-    var subject: AcceptsFieldsMock!
-    
-    override func setUp() {
-        super.setUp()
-        
-        self.subject = AcceptsFieldsMock()
-    }
-    
-    func testSerializedFields() {
-        XCTAssertEqual(try! self.subject.serializedFields(), "")
-        
-        let scalar1 = Scalar(name: "scalar1", alias: nil)
-        let scalar2 = Scalar(name: "scalar2", alias: "derp")
-        let object = Object(name: "obj", alias: "cool", arguments: ["key" : "value"], fields: [scalar2], fragments: nil)
-        
-        self.subject.fields = [ scalar1, object ]
-        XCTAssertEqual(try! self.subject.serializedFields(), "scalar1\ncool: obj(key: \"value\") {\nderp: scalar2\n}")
-    }
-    
-    func testSerializedFieldsWithDirectives() {
-        XCTAssertEqual(try! self.subject.serializedFields(), "")
-        
-        let directive1 = Directive(name: "cool", arguments: ["best" : "directive"])
-        let scalar1 = Scalar(name: "scalar1", alias: nil, directives: [directive1])
-        let scalar2 = Scalar(name: "scalar2", alias: "derp")
-        let objDirective = Directive(name: "obj", arguments: ["best" : "objDirective"])
-        let object = Object(name: "obj", alias: "cool", arguments: ["key" : "value"], fields: [scalar2], fragments: nil, directives: [objDirective])
-        
-        self.subject.fields = [ scalar1, object ]
-        XCTAssertEqual(try! self.subject.serializedFields(), "scalar1 @cool(best: \"directive\")\ncool: obj(key: \"value\") @obj(best: \"objDirective\") {\nderp: scalar2\n}")
-    }
-}
-
 class ScalarTests: XCTestCase {
     
     var subject: Scalar!
@@ -94,17 +55,17 @@ class ObjectTests: XCTestCase {
     var subject: Object!
     
     func testThrowsIfNoFieldsOrFragments() {
-        self.subject = Object(name: "obj", alias: "cool_alias")
+        self.subject = Object(name: "obj", alias: "cool_alias", selectionSet: [])
         XCTAssertThrowsError(try self.subject.graphQLString())
     }
     
     func testGraphQLStringWithAlias() {
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: ["scalar"])
+        self.subject = Object(name: "obj", alias: "cool_alias", selectionSet: ["scalar"])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\nscalar\n}")
     }
     
     func testGraphQLStringWithoutAlias() {
-        self.subject = Object(name: "obj", alias: nil, fields: ["scalar"])
+        self.subject = Object(name: "obj", alias: nil, selectionSet: ["scalar"])
         XCTAssertEqual(try! self.subject.graphQLString(), "obj {\nscalar\n}")
     }
     
@@ -112,16 +73,16 @@ class ObjectTests: XCTestCase {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: [scalar1, scalar2])
+        self.subject = Object(name: "obj", alias: "cool_alias", selectionSet: [scalar1, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_scalar: scalar1\nscalar2\n}")
     }
     
     func testGraphQLStringWithObjectFields() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
+        let subobj = Object(name: "subobj", alias: "cool_obj", selectionSet: [scalar1])
         
-        self.subject = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2])
+        self.subject = Object(name: "obj", alias: "cool_alias", selectionSet: [subobj, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
     }
 }
@@ -129,13 +90,18 @@ class ObjectTests: XCTestCase {
 class InlineFragmentTests: XCTestCase {
     var subject: InlineFragment!
     
+    func testSelectionSetName() {
+        let inlineFrag = InlineFragment(typeName: "Derp", selectionSet: [])
+        XCTAssertEqual(inlineFrag.selectionSetName, "... on Derp")
+    }
+    
     func testInlineFragment() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let fragment = FragmentDefinition(name: "frag", type: "Fraggie", fields: [scalar2], fragments: nil)!
+        let fragment = FragmentDefinition(name: "frag", type: "Fraggie", selectionSet: [scalar2])!
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        let inlineFrag = InlineFragment(typeName: "Derp", fields: [scalar1])
-        self.subject = InlineFragment(typeName: "InlineFrag", directives: [directive], fields: [scalar1], fragments: [FragmentSpread(fragment: fragment)], inlineFragments: [inlineFrag])
+        let inlineFrag = InlineFragment(typeName: "Derp", selectionSet: [scalar1])
+        self.subject = InlineFragment(typeName: "InlineFrag", directives: [directive], selectionSet: [scalar1, FragmentSpread(fragment: fragment), inlineFrag])
         
         XCTAssertEqual(try! self.subject.graphQLString(), "... on InlineFrag @cool(best: \"directive\") {\ncool_scalar: scalar1\n...frag\n... on Derp {\ncool_scalar: scalar1\n}\n}")
     }
@@ -143,11 +109,153 @@ class InlineFragmentTests: XCTestCase {
     func testObjectWithInlineFragment() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
-        let inlineFrag = InlineFragment(typeName: "Derp", fields: [scalar1])
+        let subobj = Object(name: "subobj", alias: "cool_obj", selectionSet: [scalar1])
+        let inlineFrag = InlineFragment(typeName: "Derp", selectionSet: [scalar1])
         
-        let obj = Object(name: "obj", alias: "cool_alias", fields: [subobj, scalar2], inlineFragments: [inlineFrag])
-        XCTAssertEqual(try! obj.graphQLString(), "cool_alias: obj {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n... on Derp {\ncool_scalar: scalar1\n}\n}")
+        let obj = Object(name: "obj", alias: "cool_alias", selectionSet: [inlineFrag, subobj, scalar2])
+        XCTAssertEqual(try! obj.graphQLString(), "cool_alias: obj {\n... on Derp {\ncool_scalar: scalar1\n}\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
+    }
+}
+
+class SelectionSetTests: XCTestCase {
+    var subject: SelectionSet!
+    
+    func testMergingSelections() {
+        let scalar1: Selection = .scalar(name: "scalar1", alias: "alias")
+        let scalar2: Selection = .scalar(name: "scalar2", alias: nil)
+        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar1])
+        let dupe: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar2])
+        
+        try! self.subject = scalar1.merge(selection: object)
+        try! self.subject.insert(dupe)
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [scalar1.key, object.key])
+    }
+    
+    func testMergingScalars() {
+        let scalar1: Selection = .scalar(name: "scalar", alias: "alias")
+        let scalar2: Selection = .scalar(name: "scalar", alias: nil)
+        let scalar3: Selection = .scalar(name: "scalar", alias: nil)
+        
+        try! self.subject = scalar1.merge(selection: scalar2)
+        try! self.subject.insert(scalar3)
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [scalar1.key, scalar2.key])
+    }
+    
+    func testMergingFragmentSpreads() {
+        let fragment1: Selection = .fragmentSpread(name: "frag", directives: nil)
+        let fragment2: Selection = .fragmentSpread(name: "frag", directives: nil)
+        
+        try! self.subject = fragment1.merge(selection: fragment2)
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [fragment1.key])
+    }
+    
+    func testMergingSelectionsOfSameKeyButDifferentTypeFails() {
+        let scalar: Selection = .scalar(name: "key", alias: nil)
+        let object: Selection = .object(name: "key", alias: nil, arguments: nil, directives: nil, selectionSet: [scalar])
+        XCTAssertThrowsError(try scalar.merge(selection: object))
+    }
+    
+    func testGraphQLString() {
+        let scalar: Selection = .scalar(name: "scalar", alias: "alias")
+        let directive = Directive(name: "cool", arguments: ["best" : "directive"])
+        
+        let internalScalar: Selection = .scalar(name: "internalScalar", alias: nil)
+        let internalInternalObject: Selection = .object(name: "internalInternalObject", alias: "anAlias", arguments: ["arg" : "value"], directives: nil, selectionSet: [internalScalar])
+        let internalInlineFragment: Selection = .inlineFragment(namedType: "SomeType", directives: [directive], selectionSet: [internalInternalObject])
+        let internalFragment: Selection = .fragmentSpread(name: "fraggie", directives: nil)
+        let internalObject: Selection = .object(name: "internalObject", alias: nil, arguments: nil, directives: [directive], selectionSet: [internalScalar, internalInternalObject, internalFragment])
+        
+        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalObject])
+        let dupeObject: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalInlineFragment])
+        
+        let inlineFragmentScalar1: Selection = .scalar(name: "inlineFragmentScalar1", alias: "alias")
+        let inlineFragmentScalar2: Selection = .scalar(name: "inlineFragmentScalar2", alias: nil)
+        let inlineFragment1: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1, inlineFragmentScalar2])
+        let inlineFragment2: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1])
+        
+        let selectionSet = SelectionSet([inlineFragment1, inlineFragment2, object, dupeObject, scalar])
+        let gqlString = try! selectionSet.graphQLString()
+
+        XCTAssertEqual(gqlString, " {\n" +
+            "...  {\n" +
+                "alias: inlineFragmentScalar1\n" +
+                "inlineFragmentScalar2\n" +
+            "}\n" +
+            "object: object(arg: 1) {\n" +
+                "internalObject @cool(best: \"directive\") {\n" +
+                    "internalScalar\n" +
+                    "anAlias: internalInternalObject(arg: \"value\") {\n" +
+                        "internalScalar\n" +
+                    "}\n" +
+                    "...fraggie\n" +
+                "}\n" +
+                "... on SomeType @cool(best: \"directive\") {\n" +
+                    "anAlias: internalInternalObject(arg: \"value\") {\n" +
+                        "internalScalar\n" +
+                    "}\n" +
+                "}\n" +
+            "}\n" +
+            "alias: scalar\n" +
+        "}")
+    }
+    
+    func testSerializedSelections() {
+        let scalar: Selection = .scalar(name: "scalar", alias: "alias")
+        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar])
+        XCTAssertEqual(try! selection.serializedSelections(), ["alias: scalar"])
+        
+        selection = .scalar(name: "scalar", alias: "scalar")
+        XCTAssertEqual(try! selection.serializedSelections(), [])
+        
+        selection = .fragmentSpread(name: "frag", directives: nil)
+        XCTAssertEqual(try! selection.serializedSelections(), [])
+        
+        selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [scalar])
+        XCTAssertEqual(try! selection.serializedSelections(), ["alias: scalar"])
+    }
+    
+    func testKind() {
+        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [])
+        XCTAssertEqual(selection.kind, .object)
+        
+        selection = .scalar(name: "scalar", alias: "scalar")
+        XCTAssertEqual(selection.kind, .scalar)
+        
+        selection = .fragmentSpread(name: "frag", directives: nil)
+        XCTAssertEqual(selection.kind, .fragmentSpread)
+        
+        selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [])
+        XCTAssertEqual(selection.kind, .inlineFragment)
+    }
+    
+    func testSelectionSetName() {
+        let selection: Selection = .scalar(name: "scalar", alias: "scalar")
+        XCTAssertEqual(selection.selectionSetName, "scalar: scalar")
+        
+        let scalar1: Selection = .scalar(name: "scalar1", alias: "alias")
+        let scalar2: Selection = .scalar(name: "scalar2", alias: "alias")
+        let selectionSet = try! scalar1.merge(selection: scalar2)
+        XCTAssertEqual(selectionSet.selectionSetName, "alias: scalar1, alias: scalar2")
+    }
+    
+    func testKey() {
+        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [])
+        XCTAssertEqual(selection.key, "object: object")
+        
+        selection = .scalar(name: "scalar", alias: "scalar")
+        XCTAssertEqual(selection.key, "scalar: scalar")
+        
+        selection = .scalar(name: "scalar", alias: nil)
+        XCTAssertEqual(selection.key, "scalar")
+        
+        selection = .fragmentSpread(name: "frag", directives: nil)
+        XCTAssertEqual(selection.key, "frag")
+        
+        selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [])
+        XCTAssertEqual(selection.key, "... on ")
+        
+        selection = .inlineFragment(namedType: "name", directives: nil, selectionSet: [])
+        XCTAssertEqual(selection.key, "... on name")
     }
 }
 
@@ -155,13 +263,13 @@ class FragmentDefinitionTests: XCTestCase {
     var subject: FragmentDefinition!
     
     func testWithoutSelectionSetIsNil() {
-        self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: nil, fragments: nil)
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [])
         XCTAssertNil(self.subject)
     }
     
     func testFragmentNamedOnIsNil() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
-        self.subject = FragmentDefinition(name: "on", type: "CoolType", fields: [scalar1], fragments: nil)
+        self.subject = FragmentDefinition(name: "on", type: "CoolType", selectionSet: [scalar1])
         XCTAssertNil(self.subject)
     }
     
@@ -169,26 +277,26 @@ class FragmentDefinitionTests: XCTestCase {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
-        self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: [scalar1, scalar2], fragments: nil)
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [scalar1, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\ncool_scalar: scalar1\nscalar2\n}")
     }
     
     func testGraphQLStringWithObjectFields() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let subobj = Object(name: "subobj", alias: "cool_obj", fields: [scalar1])
+        let subobj = Object(name: "subobj", alias: "cool_obj", selectionSet: [scalar1])
         
-        self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: [subobj, scalar2], fragments: nil)
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [subobj, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\ncool_obj: subobj {\ncool_scalar: scalar1\n}\nscalar2\n}")
     }
     
     func testGraphQLStringWithFragments() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
-        let fragment1 = FragmentDefinition(name: "frag1", type: "Fraggie", fields: [scalar1], fragments: nil)!
+        let fragment1 = FragmentDefinition(name: "frag1", type: "Fraggie", selectionSet: [scalar1])!
         let scalar2 = Scalar(name: "scalar2", alias: nil)
-        let fragment2 = FragmentDefinition(name: "frag2", type: "Freggie", fields: [scalar2], fragments: nil)!
+        let fragment2 = FragmentDefinition(name: "frag2", type: "Freggie", selectionSet: [scalar2])!
         
-        self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: nil, fragments: [FragmentSpread(fragment: fragment1), FragmentSpread(fragment: fragment2)])
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [FragmentSpread(fragment: fragment1), FragmentSpread(fragment: fragment2)])
         XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType {\n...frag1\n...frag2\n}")
     }
     
@@ -197,8 +305,16 @@ class FragmentDefinitionTests: XCTestCase {
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
         
-        self.subject = FragmentDefinition(name: "frag", type: "CoolType", fields: [scalar1, scalar2], fragments: nil, directives: [directive])
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", directives: [directive], selectionSet: [scalar1, scalar2])
         XCTAssertEqual(try! self.subject.graphQLString(), "fragment frag on CoolType @cool(best: \"directive\") {\ncool_scalar: scalar1\nscalar2\n}")
+    }
+    
+    func testSelectionSetName() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        
+        self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [scalar1, scalar2])
+        XCTAssertEqual(self.subject.selectionSetName, "frag")
     }
 }
 
@@ -207,14 +323,14 @@ class OperationTests: XCTestCase {
     
     func testQueryForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .query, name: "Query", fields: [scalar], fragments: nil)
+        self.subject = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "query Query {\nname\n}")
     }
     
     func testMutationForms() {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], fields: [scalar], fragments: nil)
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
@@ -222,7 +338,7 @@ class OperationTests: XCTestCase {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], fields: [scalar], fragments: nil, directives: [directive])
+        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], directives: [directive], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
     }
     
@@ -267,11 +383,8 @@ class OperationTests: XCTestCase {
                                                 try! objectVariable.typeErase(),
                                                 try! nonOptionalListVariable.typeErase(),
                                                 try! optionalListObjectVariable.typeErase(),
-                                                try! enumVariable.typeErase()
-            ],
-                                              fields: ["name"],
-                                              fragments: nil
-                                              )
+                                                try! enumVariable.typeErase()],
+                                              selectionSet: ["name"])
         
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($stringVariable: String = \"best_string\", $variableVariable: String, $userInput: UserInput, $nonOptionalListVariable: [Int!]!, $optionalListObjectVariable: [UserInput], $enumVariable: UserEnumInput) {\nname\n}")
     }
@@ -281,6 +394,42 @@ class OperationTests: XCTestCase {
         let variableVariable = VariableDefinition<VariableDefinition<String>>(name: "variableVariable", defaultValue: stringVariable)
         
         XCTAssertThrowsError(try variableVariable.typeErase())
+    }
+    
+    func testSelectionSet() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        let subobj = Object(name: "object1", alias: "cool_obj", selectionSet: [scalar1])
+        
+        self.subject = QueryBuilder.Operation(type: .mutation,
+                                              name: "Mutation",
+                                              selectionSet: [
+                                                subobj,
+                                                scalar2,
+                                                Selection.object(
+                                                    name: "object2",
+                                                    alias: nil,
+                                                    arguments: ["key" : "val"],
+                                                    directives: nil,
+                                                    selectionSet: [
+                                                        "scalar",
+                                                        Selection.scalar(name: "scalar", alias: "cool"),
+                                                        Object(name: "object", selectionSet: ["objectScalar"])
+                                                    ])])
+        
+        XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation {\n" +
+            "cool_obj: object1 {\n" +
+            "cool_scalar: scalar1\n" +
+            "}\n" +
+            "scalar2\n" +
+            "object2(key: \"val\") {\n" +
+            "scalar\n" +
+            "cool: scalar\n" +
+            "object {\n" +
+                "objectScalar\n" +
+            "}\n" +
+        "}\n" +
+    "}")
     }
 }
 

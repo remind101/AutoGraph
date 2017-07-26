@@ -6,6 +6,7 @@ enum QueryBuilderError: LocalizedError {
     case incorrectArgumentValue(value: Any)
     case incorrectInputType(message: String)
     case missingFields(selectionSetName: String)
+    case selectionMergeFailure(selection1: Selection, selection2: Selection)
     
     public var errorDescription: String? {
         switch self {
@@ -17,11 +18,103 @@ enum QueryBuilderError: LocalizedError {
             return message
         case .missingFields(selectionSetName: let selectionSetName):
             return "Selection Set on \(selectionSetName) must have either `fields` or `fragments` or both"
+        case .selectionMergeFailure(selection1: let selection1, selection2: let selection2):
+            return "Cannot merge selection \(selection1.key) of kind \(selection1.kind) with selection \(selection2.key) of kind \(selection2.kind)"
         }
     }
 }
 
-extension String: Field, InputValue, GraphQLQuery {
+public struct OrderedDictionary<Key: Hashable, Value> {
+    public var dictionary = [Key : Value]()
+    public var keys = [Key]()
+    public var values: [Value] {
+        return self.keys.flatMap { dictionary[$0] }
+    }
+    
+    public var count: Int {
+        assert(keys.count == dictionary.count, "Keys and values array out of sync")
+        return self.keys.count
+    }
+    
+    public init() {}
+    public init(_ dictionary: [Key : Value]) {
+        for (key, value) in dictionary {
+            self.keys.append(key)
+            self.dictionary[key] = value
+        }
+    }
+    
+    public subscript(index: Int) -> Value? {
+        get {
+            let key = self.keys[index]
+            return self.dictionary[key]
+        }
+        set(newValue) {
+            let key = self.keys[index]
+            if newValue != nil {
+                self.dictionary[key] = newValue
+            }
+            else {
+                self.dictionary.removeValue(forKey: key)
+                self.keys.remove(at: index)
+            }
+        }
+    }
+    
+    public subscript(key: Key) -> Value? {
+        get {
+            return self.dictionary[key]
+        }
+        set(newValue) {
+            if let newValue = newValue {
+                if self.dictionary.updateValue(newValue, forKey: key) == nil {
+                    self.keys.append(key)
+                }
+            }
+            else {
+                if self.dictionary.removeValue(forKey: key) != nil {
+                    guard let index = self.keys.index(of: key) else {
+                        fatalError("OrderedDictionary attempted to remove value for key \"\(key)\" that has no index.")
+                    }
+                    self.keys.remove(at: index)
+                }
+            }
+        }
+    }
+    
+    public mutating func insert(contentsOf contents: OrderedDictionary<Key, Value>) throws {
+        for key in contents.keys {
+            self[key] = contents.dictionary[key]
+        }
+    }
+    
+    public mutating func removeValue(forKey key: Key) -> Value? {
+        let value = self[key]
+        self[key] = nil
+        return value
+    }
+    
+    public func map<T>(_ transform: ((key: Key, value: Value)) throws -> T) rethrows -> [T] {
+        var output = [T]()
+        for key in keys {
+            if let value = self.dictionary[key] {
+                output.append(try transform((key, value)))
+            }
+        }
+        return output
+    }
+    
+    var description: String {
+        var result = "{\n"
+        for i in 0..<self.count {
+            result += "[\(i)]: \(self.keys[i]) => \(String(describing: self[i]))\n"
+        }
+        result += "}"
+        return result
+    }
+}
+
+extension String: ScalarField, InputValue, GraphQLQuery {
     public static func inputType() throws -> InputType {
         return .scalar(.string)
     }

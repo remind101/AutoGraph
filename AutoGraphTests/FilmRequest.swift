@@ -18,18 +18,17 @@ class FilmRequest: Request {
     
     let query = Operation(type: .query,
                           name: "film",
-                          fields: [
+                          selectionSet: [
                             Object(name: "film",
                                    alias: nil,
                                    arguments: ["id" : "ZmlsbXM6MQ=="],
-                                   fields: [
+                                   selectionSet: [
                                     "id",
                                     Scalar(name: "title", alias: nil),
                                     Scalar(name: "episodeID", alias: nil),
                                     Scalar(name: "director", alias: nil),
                                     Scalar(name: "openingCrawl", alias: nil)])
-                            ],
-                          fragments: nil)
+        ])
     
     let variables: [AnyHashable : Any]? = nil
     
@@ -118,11 +117,11 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
     
     let query = Operation(type: .query,
                           name: "film",
-                          fields: [
+                          selectionSet: [
                             Object(name: "film",
                                    alias: nil,
                                    arguments: ["id" : "ZmlsbXM6MQ=="],
-                                   fields: [
+                                   selectionSet: [
                                     "id",
                                     Scalar(name: "title", alias: nil),
                                     Scalar(name: "episodeID", alias: nil),
