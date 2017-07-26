@@ -60,7 +60,7 @@ open class AutoGraph {
         self.init(client: client, dispatcher: dispatcher)
     }
     
-    internal init(client: Client, dispatcher: Dispatcher) {
+    public init(client: Client, dispatcher: Dispatcher) {
         self.client = client
         self.dispatcher = dispatcher
         self.client.authHandler.delegate = self

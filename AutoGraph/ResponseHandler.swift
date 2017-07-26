@@ -3,7 +3,7 @@ import Crust
 import Foundation
 import JSONValueRX
 
-public class ResponseHandler {
+open class ResponseHandler {
     
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue

@@ -45,7 +45,7 @@ public final class Sendable {
     }
 }
 
-public class Dispatcher {
+open class Dispatcher {
         
     public let url: String
     public let responseHandler: ResponseHandler
