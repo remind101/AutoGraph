@@ -431,6 +431,15 @@ class OperationTests: XCTestCase {
         "}\n" +
     "}")
     }
+    
+    func testInitializersOnSelectionTypeArray() {
+        let fields: [Field] = ["scalar"]
+        let _ = Object(name: "object", selectionSet: fields)
+        let _ = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: fields)
+        let _ = InlineFragment(typeName: "Derp", selectionSet: fields)
+        let frag = FragmentDefinition(name: "frag", type: "Fraggie", selectionSet: fields)
+        XCTAssertNotNil(frag)
+    }
 }
 
 class InputValueTests: XCTestCase {
