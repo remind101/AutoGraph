@@ -507,3 +507,14 @@ class InputValueTests: XCTestCase {
         }
     }
 }
+
+class VariableTest: XCTestCase {
+    func testVariableInputValue() {
+        let variable = Variable(name: "myVar")
+        XCTAssertEqual(try variable.graphQLInputValue(), "$myVar")
+    }
+    
+    func testVariableTypeThrows() {
+        XCTAssertThrowsError(try Variable.inputType())
+    }
+}

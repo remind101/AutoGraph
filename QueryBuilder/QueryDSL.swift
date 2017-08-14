@@ -550,6 +550,21 @@ public struct AnyVariableDefinition: VariableDefinitionType {
     }
 }
 
+public struct Variable: InputValue {
+    public let name: String
+    public init(name: String) {
+        self.name = name
+    }
+    
+    public static func inputType() throws -> InputType {
+        throw QueryBuilderError.incorrectInputType(message: "`Variable` does not have a defined `InputType` and may only be used as an arbitrary variable for an `Argument` value. If you are attempting to construct a variable definition for an operation use `VariableDefinition` instead.")
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return "$" + self.name
+    }
+}
+
 /// Any type that accepts _VariableDefinition_ from the GraphQL language.
 public protocol AcceptsVariableDefinitions {
     var variableDefinitions: [AnyVariableDefinition]? { get }
