@@ -15,6 +15,40 @@ class ErrorTests: XCTestCase {
         XCTAssertGreaterThan(description.characters.count, 0)
     }
     
+    func testAutoGraphErrorGraphQLErrorUsesMessages() {
+        let message1 = "Cannot query field \"d\" on type \"Planet\"."
+        let message2 = "401 - {\"error\":\"Unauthenticated\",\"error_code\":\"unauthenticated\"}"
+        let line = 18
+        let column = 7
+        let jsonObj: [AnyHashable : Any] = [
+            "errors" : [
+                [
+                    "message": message1,
+                    "locations": [
+                        [
+                            "line": line,
+                            "column": column
+                        ]
+                    ]
+                ],
+                [
+                    "message": message2,
+                    "locations": [
+                        [
+                            "line": line,
+                            "column": column
+                        ]
+                    ]
+                ]
+            ]
+        ]
+        
+        let json = try! JSONValue(object: jsonObj)
+        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil)!
+        XCTAssertEqual(error.errorDescription!, "\(message1)\n\(message2)")
+        XCTAssertEqual(error.localizedDescription, "\(message1)\n\(message2)")
+    }
+    
     func testGraphQLErrorUsesMessageForLocalizedDescription() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18
@@ -31,6 +65,7 @@ class ErrorTests: XCTestCase {
         
         let error = GraphQLError(json: try! JSONValue(object: jsonObj))
         XCTAssertEqual(error.errorDescription!, message)
+        XCTAssertEqual(error.localizedDescription, message)
     }
     
     func testAutoGraphErrorProducesNetworkErrorForNetworkErrorParserMatch() {
