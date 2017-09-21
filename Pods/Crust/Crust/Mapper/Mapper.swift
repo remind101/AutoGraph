@@ -46,13 +46,13 @@ public struct Mapper {
     // MARK: - Map Collections.
     
     // Equatable Collections.
-    public func map<M: Mapping, C: RangeReplaceableCollection, K: MappingKey>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C
+    public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C
         where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
             
             return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys))
     }
     
-    public func map<M: Mapping, C: RangeReplaceableCollection, K: MappingKey, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
+    public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
     where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, KC.MappingKeyType == M.MappingKeyType {
         
         var collection = C()
@@ -67,12 +67,12 @@ public struct Mapper {
     }
     
     // Non-equatable Collections.
-    public func map<M: Mapping, C: RangeReplaceableCollection, K: MappingKey>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C where M.MappedObject == C.Iterator.Element {
+    public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C where M.MappedObject == C.Iterator.Element {
         
         return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys))
     }
     
-    public func map<M: Mapping, C: RangeReplaceableCollection, K: MappingKey, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
+    public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
         where M.MappedObject == C.Iterator.Element, KC.MappingKeyType == M.MappingKeyType {
             
             var collection = C()
@@ -88,15 +88,15 @@ public struct Mapper {
     
     // MARK: - Map using Binding.
     
-    public func map<M: Mapping, K: MappingKey>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> M.MappedObject {
+    public func map<M, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> M.MappedObject {
         return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
-    public func map<M: Mapping, K: MappingKey, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
+    public func map<M, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         return try self.map(from: json, using: binding, keyedBy: keys, parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
-    public func map<M: Mapping, K: MappingKey, KP: MappingKey, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
+    public func map<M, K, KP, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         
         let baseJson = try baseJSON(from: json, via: binding.key, ifIn: SetKeyCollection([binding.key])) ?? json
         let parent = parentPayload?.typeErased()
@@ -124,7 +124,7 @@ public struct Mapper {
         return try self.map(from: json, using: mapping, keyedBy: keys, parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
-    public func map<M: Mapping, KP: MappingKey, KC: KeyCollection>(from json: JSONValue, using mapping: M, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
+    public func map<M: Mapping, KP, KC: KeyCollection>(from json: JSONValue, using mapping: M, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         let object = try mapping.fetchOrCreateObject(from: json, in: parentPayload?.typeErased())
         return try self.map(from: json, to: object, using: mapping, keyedBy: keys, parentPayload: parentPayload)
     }
@@ -133,7 +133,7 @@ public struct Mapper {
         return try map(from: json, to: object, using: mapping, keyedBy: keys, parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
-    public func map<M: Mapping, KP: MappingKey, KC: KeyCollection>(from json: JSONValue, to object: M.MappedObject, using mapping: M, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
+    public func map<M: Mapping, KP, KC: KeyCollection>(from json: JSONValue, to object: M.MappedObject, using mapping: M, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         var object = object
         let payload = MappingPayload(withObject: object, json: json, keys: keys, adapterType: mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
         payload.parent = parentPayload?.typeErased()
@@ -243,7 +243,7 @@ public extension Mapping {
         }
     }
     
-    internal func start<K: MappingKey>(payload: MappingPayload<K>) throws {
+    internal func start<K>(payload: MappingPayload<K>) throws {
         try self.checkForAdapterBaseTypeConformance()
         if payload.parent == nil || !self.adapter.isInTransaction {
             var underlyingError: NSError?
@@ -260,7 +260,7 @@ public extension Mapping {
         }
     }
     
-    internal func endMapping<K: MappingKey>(payload: MappingPayload<K>) throws {
+    internal func endMapping<K>(payload: MappingPayload<K>) throws {
         let shouldCallEndMapping = { () -> Bool in 
             guard payload.parent != nil else {
                 return true
@@ -303,17 +303,17 @@ public extension Mapping {
         }
     }
     
-    internal func complete<K: MappingKey>(object: inout MappedObject, payload: MappingPayload<K>) throws {
+    internal func complete<K>(object: inout MappedObject, payload: MappingPayload<K>) throws {
         try self.completeMapping(objects: [object], payload: payload)
         payload.object = object
     }
     
-    internal func completeMapping<C: Sequence, K: MappingKey>(collection: C, payload: MappingPayload<K>) throws where C.Iterator.Element == MappedObject {
+    internal func completeMapping<C: Sequence, K>(collection: C, payload: MappingPayload<K>) throws where C.Iterator.Element == MappedObject {
         try self.completeMapping(objects: collection, payload: payload)
         payload.object = collection
     }
     
-    internal func completeMapping<C: Sequence, K: MappingKey>(objects: C, payload: MappingPayload<K>) throws where C.Iterator.Element == MappedObject {
+    internal func completeMapping<C: Sequence, K>(objects: C, payload: MappingPayload<K>) throws where C.Iterator.Element == MappedObject {
         if payload.error == nil {
             do {
                 try self.checkForAdapterBaseTypeConformance()
