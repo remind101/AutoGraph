@@ -16,12 +16,12 @@ infix operator <- : AssignmentPrecedence
 // MARK: - Map a JSONable.
 
 @discardableResult
-public func <- <T: JSONable, K: MappingKey, MC: MappingPayload<K>>(field: inout T, keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
+public func <- <T: JSONable, K, MC: MappingPayload<K>>(field: inout T, keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
     return map(to: &field, via: keyPath)
 }
 
 @discardableResult
-public func <- <T: JSONable, K: MappingKey, MC: MappingPayload<K>>(field: inout T?, keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
+public func <- <T: JSONable, K, MC: MappingPayload<K>>(field: inout T?, keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
     return map(to: &field, via: keyPath)
 }
 
@@ -77,24 +77,34 @@ private func map<T: JSONable>(from json: JSONValue) throws -> T where T.Conversi
 // MARK: - Map with a generic binding.
 
 @discardableResult
-public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+    return map(to: &field, using: binding)
+}
+
+@discardableResult
+public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+    return map(to: &field, using: binding)
+}
+
+@discardableResult
+public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
     return map(to: &field, using: binding)
 }
 
 // Transform.
 
 @discardableResult
-public func <- <T: JSONable, TF: Transform, K: MappingKey, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
+public func <- <T: JSONable, TF: Transform, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T: JSONable, TF: Transform, K: MappingKey, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
+public func <- <T: JSONable, TF: Transform, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
     return map(to: &field, using: binding)
 }
 
@@ -124,7 +134,7 @@ internal func baseJSON<KC: KeyCollection>(from json: JSONValue, via key: KC.Mapp
 }
 
 // Arbitrary object.
-public func map<T: JSONable, K: MappingKey, MC: MappingPayload<K>>(to field: inout T, via keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
+public func map<T: JSONable, K, MC: MappingPayload<K>>(to field: inout T, via keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
     
     let payload = keyPath.payload
     let key = keyPath.key
@@ -154,7 +164,7 @@ public func map<T: JSONable, K: MappingKey, MC: MappingPayload<K>>(to field: ino
 }
 
 // Arbitrary Optional.
-public func map<T: JSONable, K: MappingKey, MC: MappingPayload<K>>(to field: inout T?, via keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
+public func map<T: JSONable, K, MC: MappingPayload<K>>(to field: inout T?, via keyPath:(key: K, payload: MC)) -> MC where T == T.ConversionType {
     
     let payload = keyPath.payload
     let key = keyPath.key
@@ -184,36 +194,76 @@ public func map<T: JSONable, K: MappingKey, MC: MappingPayload<K>>(to field: ino
 }
 
 // Mapping.
-public func map<T, M: Mapping, K: MappingKey, MC: MappingPayload<K>>(to field: inout T, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
-    
-    let payload = binding.payload
-    let binding = binding.key
-    
-    guard payload.error == nil else {
-        return payload
-    }
-    
-    guard case .mapping(let key, let mapping) = binding else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected KeyExtension.mapping to map type \(T.self)" ]
-        payload.error = NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
-        return payload
-    }
-    
-    do {
-        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
-            return payload
+fileprivate enum ResolvedBinding<K: MappingKey, M: Mapping> {
+    case toJSON(json: JSONValue, key: K, inKeys: AnyKeyCollection<K>, mapping: M, nestedKeys: AnyKeyCollection<M.MappingKeyType>)
+    case fromJSON(baseJSON: JSONValue, mapping: M, nestedKeys: AnyKeyCollection<M.MappingKeyType>)
+    case skip
+}
+
+extension MappingPayload {
+    fileprivate func resolve<T, M>(binding: Binding<K, M>, fieldType: T.Type) throws -> ResolvedBinding<K, M> {
+        guard self.error == nil else {
+            throw self.error!
         }
         
-        switch payload.dir {
+        let (key, mapping) = try self.deconstruct(binding: binding, fieldType: fieldType)
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: self) else {
+            return .skip
+        }
+        
+        return try resolve(keyedBinding: keyedBinding, key: key, inKeys: self.keys, mapping: mapping)
+    }
+    
+    private func deconstruct<T, K, M>(binding: Binding<K, M>, fieldType: T.Type) throws -> (key: K, mapping: M) {
+        guard case .mapping(let key, let mapping) = binding else {
+            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected Binding.mapping to map type \(fieldType)" ]
+            throw NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
+        }
+        
+        return (key, mapping)
+    }
+    
+    private func resolve<K, M>(keyedBinding: KeyedBinding<K, M>, key: K, inKeys: AnyKeyCollection<K>, mapping: M) throws -> ResolvedBinding<K, M> {
+        switch self.dir {
         case .toJSON:
-            let json = payload.json
-            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: payload.keys, using: mapping, keyedBy: keyedBinding.codingKeys)
+            return .toJSON(json: self.json, key: key, inKeys: inKeys, mapping: mapping, nestedKeys: keyedBinding.codingKeys)
         case .fromJSON:
-            guard let baseJSON = try baseJSON(from: payload.json, via: key, ifIn: payload.keys) else {
-                return payload
+            guard let baseJSON = try baseJSON(from: self.json, via: key, ifIn: inKeys) else {
+                return .skip
             }
-            
-            try map(from: baseJSON, to: &field, using: mapping, keyedBy: keyedBinding.codingKeys, payload: payload)
+            return .fromJSON(baseJSON: baseJSON, mapping: mapping, nestedKeys: keyedBinding.codingKeys)
+        }
+    }
+    
+    fileprivate func resolve<T, M>(binding: Binding<RootedKey<K>, M>, fieldType: T.Type) throws -> ResolvedBinding<RootKey, M> {
+        guard self.error == nil else {
+            throw self.error!
+        }
+        
+        let (_, mapping) = try self.deconstruct(binding: binding, fieldType: fieldType)
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: self) else {
+            return .skip
+        }
+        
+        let rootKey = RootKey()
+        let inKeys = AnyKeyCollection([rootKey])
+        
+        return try resolve(keyedBinding: keyedBinding, key: rootKey, inKeys: inKeys, mapping: mapping)
+    }
+}
+
+public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+    let payload = binding.payload
+    let binding = binding.key
+    do {
+        let resolvedBinding = try payload.resolve(binding: binding, fieldType: type(of: field))
+        switch resolvedBinding {
+        case let .toJSON(json: json, key: key, inKeys: keys, mapping: mapping, nestedKeys: nestedKeys):
+            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: keys, using: mapping, keyedBy: nestedKeys)
+        case let .fromJSON(baseJSON: baseJSON, mapping: mapping, nestedKeys: nestedKeys):
+            try map(from: baseJSON, to: &field, using: mapping, keyedBy: nestedKeys, payload: payload)
+        case .skip:
+            break
         }
     }
     catch let error {
@@ -223,36 +273,60 @@ public func map<T, M: Mapping, K: MappingKey, MC: MappingPayload<K>>(to field: i
     return payload
 }
 
-public func map<T, M: Mapping, K: MappingKey, MC: MappingPayload<K>>(to field: inout T?, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
-    
+public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
     let payload = binding.payload
     let binding = binding.key
-    
-    guard payload.error == nil else {
-        return payload
-    }
-    
-    guard case .mapping(let key, let mapping) = binding else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected KeyExtension.mapping to map type \(T.self)" ]
-        payload.error = NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
-        return payload
-    }
-    
     do {
-        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
-            return payload
+        let resolvedBinding = try payload.resolve(binding: binding, fieldType: type(of: field))
+        switch resolvedBinding {
+        case let .toJSON(json: json, key: key, inKeys: keys, mapping: mapping, nestedKeys: nestedKeys):
+            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: keys, using: mapping, keyedBy: nestedKeys)
+        case let .fromJSON(baseJSON: baseJSON, mapping: mapping, nestedKeys: nestedKeys):
+            try map(from: baseJSON, to: &field, using: mapping, keyedBy: nestedKeys, payload: payload)
+        case .skip:
+            break
         }
-        
-        switch payload.dir {
-        case .toJSON:
-            let json = payload.json
-            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: payload.keys, using: mapping, keyedBy: keyedBinding.codingKeys)
-        case .fromJSON:
-            guard let baseJSON = try baseJSON(from: payload.json, via: key, ifIn: payload.keys) else {
-                return payload
-            }
-            
-            try map(from: baseJSON, to: &field, using: mapping, keyedBy: keyedBinding.codingKeys, payload: payload)
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
+public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+    let payload = binding.payload
+    let binding = binding.key
+    do {
+        let resolvedBinding = try payload.resolve(binding: binding, fieldType: type(of: field))
+        switch resolvedBinding {
+        case let .toJSON(json: json, key: key, inKeys: keys, mapping: mapping, nestedKeys: nestedKeys):
+            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: keys, using: mapping, keyedBy: nestedKeys)
+        case let .fromJSON(baseJSON: baseJSON, mapping: mapping, nestedKeys: nestedKeys):
+            try map(from: baseJSON, to: &field, using: mapping, keyedBy: nestedKeys, payload: payload)
+        case .skip:
+            break
+        }
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
+public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+    let payload = binding.payload
+    let binding = binding.key
+    do {
+        let resolvedBinding = try payload.resolve(binding: binding, fieldType: type(of: field))
+        switch resolvedBinding {
+        case let .toJSON(json: json, key: key, inKeys: keys, mapping: mapping, nestedKeys: nestedKeys):
+            payload.json = try Crust.map(to: json, from: field, via: key, ifIn: keys, using: mapping, keyedBy: nestedKeys)
+        case let .fromJSON(baseJSON: baseJSON, mapping: mapping, nestedKeys: nestedKeys):
+            try map(from: baseJSON, to: &field, using: mapping, keyedBy: nestedKeys, payload: payload)
+        case .skip:
+            break
         }
     }
     catch let error {
@@ -275,20 +349,21 @@ private func map<T, M: Mapping, KC: KeyCollection>(to json: JSONValue, from fiel
         json[key] = .null()
         return json
     }
-        
+    
+    // TODO: Needs to handle insertion at root key case. Something to add to JSONValue lib.
     json[key] = try Mapper().mapFromObjectToJSON(field, mapping: mapping, keyedBy: nestedKeys)
     return json
 }
 
 // MARK: - From JSON
 
-private func map<T, M: Mapping, K: MappingKey>(from json: JSONValue, to field: inout T, using mapping: M, keyedBy keys: AnyKeyCollection<M.MappingKeyType>, payload: MappingPayload<K>) throws where M.MappedObject == T {
+private func map<T, M: Mapping, K>(from json: JSONValue, to field: inout T, using mapping: M, keyedBy keys: AnyKeyCollection<M.MappingKeyType>, payload: MappingPayload<K>) throws where M.MappedObject == T {
     
     let mapper = Mapper()
     field = try mapper.map(from: json, using: mapping, keyedBy: keys, parentPayload: payload)
 }
 
-private func map<T, M: Mapping, K: MappingKey>(from json: JSONValue, to field: inout T?, using mapping: M, keyedBy keys: AnyKeyCollection<M.MappingKeyType>, payload: MappingPayload<K>) throws where M.MappedObject == T {
+private func map<T, M: Mapping, K>(from json: JSONValue, to field: inout T?, using mapping: M, keyedBy keys: AnyKeyCollection<M.MappingKeyType>, payload: MappingPayload<K>) throws where M.MappedObject == T {
     
     if case .null = json {
         field = nil
@@ -302,7 +377,7 @@ private func map<T, M: Mapping, K: MappingKey>(from json: JSONValue, to field: i
 // MARK: - RangeReplaceableCollection (Array and Realm List follow this protocol).
 
 /// The set of functions required to perform uniquing when inserting objects into a collection.
-public typealias UniquingFunctions<T, RRC: RangeReplaceableCollection> = (
+public typealias UniquingFunctions<T, RRC: Collection> = (
     elementEquality: ((T) -> (T) -> Bool),
     indexOf: ((RRC) -> (T) -> RRC.Index?),
     contains: ((RRC) -> (T) -> Bool)
@@ -310,14 +385,14 @@ public typealias UniquingFunctions<T, RRC: RangeReplaceableCollection> = (
 
 /// This handles the case where our Collection contains Equatable objects, and thus can be uniqued during insertion and deletion.
 @discardableResult
-public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
     
     return map(toCollection: &field, using: binding)
 }
 
 /// This is for Collections with non-Equatable objects.
 @discardableResult
-public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
     
     return map(toCollection: &field, using: binding, uniquing: nil)
 }
@@ -325,21 +400,21 @@ public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeR
 //// Optional types.
 
 @discardableResult
-public func <- <T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
     
     return map(toCollection: &field, using: binding, uniquing: RRC.defaultUniquingFunctions())
 }
 
 /// This is for Collections with non-Equatable objects.
 @discardableResult
-public func <- <M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject {
     
     return map(toCollection: &field, using: binding, uniquing: nil)
 }
 
 /// Map into a `RangeReplaceableCollection` with `Equatable` `Element`.
 @discardableResult
-public func map<T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
+public func map<T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC,
      using binding:(key: Binding<K, M>, payload: MC))
     -> MC
@@ -353,7 +428,7 @@ public func map<T, M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeR
 /// Providing uniqing functions for equality comparison, fetching by index, and checking existence of elements allows
 /// for uniquing during insertion (merging/eliminating duplicates).
 @discardableResult
-public func map<M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
+public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC,
      using binding:(key: Binding<K, M>, payload: MC),
      uniquing: UniquingFunctions<M.MappedObject, RRC>?)
@@ -386,7 +461,7 @@ public func map<M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeRepl
 }
 
 @discardableResult
-public func map<M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
+public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC?,
      using binding:(key: Binding<K, M>, payload: MC),
      uniquing: UniquingFunctions<M.MappedObject, RRC>?)
@@ -467,7 +542,7 @@ private func map<T, M: Mapping, KC: KeyCollection, S: Sequence>(
 }
 
 /// Our top level mapping function for mapping from JSON into a collection.
-private func mapFromJSON<M: Mapping, K: MappingKey, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
+private func mapFromJSON<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC,
      using binding:(key: KeyedBinding<K, M>, payload: MC),
      uniquing: UniquingFunctions<M.MappedObject, RRC>?) throws
@@ -600,7 +675,7 @@ private func baseJSONForCollection<KC: KeyCollection>(json: JSONValue, via key: 
 /// we're mapping into.
 ///
 /// - returns: The array of mapped values, `nil` if JSON is "null".
-private func generateNewValues<T, M: Mapping, K: MappingKey>(
+private func generateNewValues<T, M: Mapping, K>(
     fromJsonArray json: JSONValue,
     with updatePolicy: CollectionUpdatePolicy<M.MappedObject>,
     using mapping: M,
@@ -619,9 +694,7 @@ private func generateNewValues<T, M: Mapping, K: MappingKey>(
             let userInfo = [ NSLocalizedFailureReasonErrorKey : "Trying to map json of type \(type(of: json)) to Collection of <\(T.self)>" ]
             throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
         }
-        
-        let mapper = Mapper()
-        
+                
         let isUnique = { (val: T, newValues: [T], fieldContains: (T) -> Bool) -> Bool in
             let newValuesContainsVal = newValues.contains(where: newValuesContains(val))
             
@@ -636,7 +709,7 @@ private func generateNewValues<T, M: Mapping, K: MappingKey>(
         var newValues = [T]()
         
         for json in jsonArray {
-            let val = try mapper.map(from: json, using: mapping, keyedBy: codingKeys, parentPayload: payload)
+            let val = try Mapper().map(from: json, using: mapping, keyedBy: codingKeys, parentPayload: payload)
             
             if updatePolicy.unique {
                 if isUnique(val, newValues, fieldContains) {

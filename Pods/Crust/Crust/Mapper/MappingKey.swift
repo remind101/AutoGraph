@@ -49,12 +49,26 @@ public extension RawRepresentable where Self: MappingKey, RawValue == String {
     }
 }
 
+/// Use this as a key if you intend to map the whole json payload.
 public struct RootKey: MappingKey {
-    public let keyPath: String = ""
+    public let keyPath = ""
     public init() { }
     
     public func nestedMappingKeys<K: MappingKey>() -> AnyKeyCollection<K>? {
         return [self].anyKeyCollection()
+    }
+}
+
+/// Like `RootKey` but will use the `nestedMappingKeys` of the internal key.
+public struct RootedKey<K: MappingKey>: MappingKey {
+    public let keyPath = ""
+    public let rootedKey: K
+    public init(_ rootedKey: K) {
+        self.rootedKey = rootedKey
+    }
+    
+    public func nestedMappingKeys<K: MappingKey>() -> AnyKeyCollection<K>? {
+        return self.rootedKey.nestedMappingKeys()
     }
 }
 
@@ -327,7 +341,7 @@ internal struct NestedMappingKey<RootKey: MappingKey, NestedCollection: KeyColle
         self.nestedKeys = nestedKeys
     }
     
-    @available(*, unavailable)
+    //@available(*, unavailable)
     init<Source>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == (RootKey) {
         fatalError("Don't use this.")
     }
@@ -345,7 +359,7 @@ internal struct NestedMappingKey<RootKey: MappingKey, NestedCollection: KeyColle
     }
 }
 
-public struct KeyedBinding<K: MappingKey, M: Mapping> {
+internal struct KeyedBinding<K: MappingKey, M: Mapping> {
     public let binding: Binding<K, M>
     public let codingKeys: AnyKeyCollection<M.MappingKeyType>
     
@@ -372,6 +386,25 @@ public struct KeyedBinding<K: MappingKey, M: Mapping> {
             return try payload.keys.nestedKeyCollection(for: binding.key)
         }()
         
+        self.init(binding: binding, codingKeys: codingKeys)
+    }
+    
+    init?<BindingK>(binding: Binding<RootedKey<BindingK>, M>, payload: MappingPayload<BindingK>) throws where K == RootKey {
+        let rootedKey = binding.key.rootedKey
+        guard payload.keys.containsKey(rootedKey) else {
+            return nil
+        }
+        
+        let binding: Binding<RootKey, M> = {
+            switch binding {
+            case .mapping(_, let mapping):
+                return .mapping(RootKey(), mapping)
+            case .collectionMapping(_, let mapping, let updatePolicy):
+                return .collectionMapping(RootKey(), mapping, updatePolicy)
+            }
+        }()
+        
+        let codingKeys: AnyKeyCollection<M.MappingKeyType> = try payload.keys.nestedKeyCollection(for: rootedKey)
         self.init(binding: binding, codingKeys: codingKeys)
     }
 }

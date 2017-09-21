@@ -11,7 +11,7 @@ A flexible Swift framework for converting classes and structs to and from JSON w
 - [How To Map](#how-to-map)
   - [Nested Mappings](#nested-mappings)
   - [Binding and Collections](#binding-and-collections)
-  - [Mapping Context](#mapping-context)
+  - [Mapping Payload](#mapping-payload)
   - [Custom Transformations](#custom-transformations)
   - [Different Mappings for Same Model](#different-mappings-for-same-model)
 - [Storage Adapter](#storage-adapter)
@@ -151,14 +151,14 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
             self.adapter = adapter
         }
     
-        func mapping(inout toMap: inout Employee, context: MappingContext<EmployeeKey>) throws {
+        func mapping(inout toMap: inout Employee, payload: MappingPayload<EmployeeKey>) throws {
             // Company must be transformed into something Core Data can use in this case.
             let companyMapping = CompanyTransformableMapping()
             
             // No need to map the primary key here.
-            toMap.employer              <- .mapping(.employer(_), companyMapping) >*<
+            toMap.employer              <- .mapping(.employer([]), companyMapping) >*<
             toMap.name                  <- .name >*<
-            context
+            payload
         }
     }
     ```
@@ -167,16 +167,16 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
     class CompanyMapping: AnyMapping {
         // associatedtype MappedObject = Company is inferred by `toMap`
     
-        func mapping(inout toMap: inout Company, context: MappingContext<CompanyKey>) throws {
+        func mapping(inout toMap: inout Company, payload: MappingPayload<CompanyKey>) throws {
             let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
         
-            toMap.employees             <- .mapping(.employees(_), employeeMapping) >*<
-            toMap.founder               <- .mapping(.founder(_), employeeMapping) >*<
+            toMap.employees             <- .mapping(.employees([]), employeeMapping) >*<
+            toMap.founder               <- .mapping(.founder([]), employeeMapping) >*<
             toMap.uuid                  <- .uuid >*<
             toMap.name                  <- .name >*<
             toMap.foundingDate          <- .foundingDate  >*<
             toMap.pendingLawsuits       <- .pendingLawsuits  >*<
-            context
+            payload
         }
     }
     ```
@@ -218,11 +218,11 @@ NOTE:
 Crust supports nested mappings for nested models
 E.g. from above
 ```swift
-func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
     let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
     
-    toMap.employees <- Binding.mapping(.employees(_), employeeMapping) >*<
-    context
+    toMap.employees <- Binding.mapping(.employees([]), employeeMapping) >*<
+    payload
 }
 ```
 
@@ -268,30 +268,30 @@ Usage:
 ```swift
 let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
 let binding = Binding.collectionMapping("", employeeMapping, (.replace(delete: nil), true, true))
-toMap.employees <- (binding, context)
+toMap.employees <- (binding, payload)
 ```
 Look in ./Mapper/MappingProtocols.swift for more.
 
-### Mapping Context
-Every `mapping` passes through a `context: MappingContext` which must be included during the mapping. The `context` includes error information that is propagated back from the mapping to the caller and contextual information about the json and object being mapped to/from.
+### Mapping Payload
+Every `mapping` passes through a `Payload: MappingPayload<T>` which must be included during the mapping. The `payload` includes error information that is propagated back from the mapping to the caller and contextual information about the json and object being mapped to/from.
 
-There are two ways to include the context during mapping:
+There are two ways to include the payload during mapping:
 
 1. Include it as a tuple.
 
    ```swift
-   func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
-       toMap.uuid <- (.uuid, context)
-       toMap.name <- (.name, context)
+   func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
+       toMap.uuid <- (.uuid, payload)
+       toMap.name <- (.name, payload)
    }
    ```
 2. Use a specially included operator `>*<` which merges the result of the right expression with the left expression into a tuple. This may be chained in succession.
 
    ```swift
-   func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+   func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
        toMap.uuid <- .uuid >*<
        toMap.name <- .name >*<
-       context
+       payload
    }
    ```
 
@@ -309,18 +309,18 @@ and use it like any other `Mapping`.
 Multiple `Mapping`s are allowed for the same model.
 ```swift
 class CompanyMapping: AnyMapping {
-    func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+    func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
         toMap.uuid <- .uuid >*<
         toMap.name <- .name >*<
-        context
+        payload
     }
 }
 
 class CompanyMappingWithNameUUIDReversed: AnyMapping {
-	func mapping(inout toMap: Company, context: MappingContext<CompanyKey>) throws {
+	func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
         toMap.uuid <- .name >*<
         toMap.name <- .uuid >*<
-        context
+        payload
     }
 }
 ```
