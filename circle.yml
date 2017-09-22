@@ -3,7 +3,7 @@ machine:
     XCODE_WORKSPACE: AutoGraph.xcworkspace
     XCODE_SCHEME: "AutoGraph"
   xcode:
-    version: "9"
+    version: "9.0"
 
 dependencies:
   pre:
