@@ -297,13 +297,13 @@ public extension Binding where M: RealmMapping, M.MappedObject: RLMObject {
 }
 
 @discardableResult
-public func <- <U: RealmMapping, K: MappingKey, C: MappingPayload<K>>(field: RLMArray<U.MappedObject>, binding:(key: Binding<K, U>, payload: C)) -> C {
+public func <- <U: RealmMapping, K, C: MappingPayload<K>>(field: RLMArray<U.MappedObject>, binding:(key: Binding<K, U>, payload: C)) -> C {
     
     return map(toRLMArray: field, using: binding)
 }
 
 @discardableResult
-public func map<U: RealmMapping, K: MappingKey, C: MappingPayload<K>>(toRLMArray field: RLMArray<U.MappedObject>, using binding:(key: Binding<K, U>, payload: C)) -> C {
+public func map<U: RealmMapping, K, C: MappingPayload<K>>(toRLMArray field: RLMArray<U.MappedObject>, using binding:(key: Binding<K, U>, payload: C)) -> C {
     
     var variableList = RLMArrayBridge(rlmArray: field)
     let bridge = binding.key.generateRLMArrayMappingBridge()

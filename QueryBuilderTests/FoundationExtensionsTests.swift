@@ -12,7 +12,8 @@ class FoundationExtensionsTests: XCTestCase {
     }
     
     func testNSNumberJsonEncodes() {
-        XCTAssertEqual(try! (1.1).graphQLInputValue(), "1.1")
+        // 1.1 -> "1.1000000000000001" https://bugs.swift.org/browse/SR-5961
+        XCTAssertEqual(try! (1.2).graphQLInputValue(), "1.2")
     }
 }
 

@@ -7,9 +7,8 @@ public protocol AnyMappable {
 
 /// A `Mapping` that does not require an adapter of `typealias AdapterKind`.
 /// Use for structs or classes that require no storage when mapping.
-public protocol AnyMapping: Mapping {
+public protocol AnyMapping: Mapping where MappedObject: AnyMappable {
     associatedtype AdapterKind: AnyAdapter = AnyAdapterImp<MappedObject>
-    associatedtype MappedObject: AnyMappable
 }
 
 public extension AnyMapping {
@@ -34,8 +33,8 @@ public struct AnyAdapterImp<T: AnyMappable>: AnyAdapter {
 ///
 /// Conforming to `AnyAdapter` automatically implements the requirements for `Adapter`
 /// outside of specifying the `BaseType`.
-public protocol AnyAdapter: Adapter {
-    associatedtype BaseType: AnyMappable
+public protocol AnyAdapter: Adapter where BaseType: AnyMappable {
+    
     associatedtype ResultsType = [BaseType]
 }
 

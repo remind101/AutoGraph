@@ -535,8 +535,8 @@ public struct AnyVariableDefinition: VariableDefinitionType {
     public let typeName: InputType
     public let defaultValue: InputValue?
     
-    public init<T: InputValue>(variableDefinition: VariableDefinition<T>) throws {
-        try self.init(name: variableDefinition.name, typeName: try T.inputType(), defaultValue: variableDefinition.defaultValue)
+    public init<_InputValue>(variableDefinition: VariableDefinition<_InputValue>) throws {
+        try self.init(name: variableDefinition.name, typeName: try _InputValue.inputType(), defaultValue: variableDefinition.defaultValue)
     }
     
     public init(name: String, typeName: InputType, defaultValue: InputValue? = nil) throws {

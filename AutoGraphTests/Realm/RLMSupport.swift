@@ -46,7 +46,7 @@ import Realm
     }
     
     public final class RLMArrayIterator: IteratorProtocol {
-        private let iteratorBase: NSFastEnumerationIterator
+        private var iteratorBase: NSFastEnumerationIterator
         
         internal init(collection: RLMCollection) {
             iteratorBase = NSFastEnumerationIterator(collection)

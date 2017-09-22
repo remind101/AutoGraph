@@ -1,7 +1,7 @@
 import RealmSwift
 
 public final class RLMArrayBridgeIterator<T: RLMObject>: IteratorProtocol {
-    private let iteratorBase: NSFastEnumerationIterator
+    private var iteratorBase: NSFastEnumerationIterator
     
     internal init(collection: RLMCollection) {
         iteratorBase = NSFastEnumerationIterator(collection)
