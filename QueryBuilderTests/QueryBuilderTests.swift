@@ -474,7 +474,9 @@ class InputValueTests: XCTestCase {
     
     func testDoubleInputValue() {
         XCTAssertEqual(try Double.inputType().typeName, "Float")
-        XCTAssertEqual(try (1.1 as Double).graphQLInputValue(), "1.1")
+        
+        // 1.1 -> "1.1000000000000001" https://bugs.swift.org/browse/SR-5961
+        XCTAssertEqual(try (1.2 as Double).graphQLInputValue(), "1.2")
     }
     
     func testNSNullInputValue() {
