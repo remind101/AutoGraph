@@ -91,7 +91,7 @@ class AlamofireClientTests: XCTestCase {
         XCTAssertFalse(delegate.called)
         
         let request = Mock401Request(session: self.subject.sessionManager.session, requestTask: .data(nil, nil))
-        self.subject.authHandler.should(self.subject.sessionManager, retry: request, with: NSError(domain: "", code: 0, userInfo: nil)) { _ in }
+        self.subject.authHandler.should(self.subject.sessionManager, retry: request, with: NSError(domain: "", code: 0, userInfo: nil)) { (_, _) in }
         
         XCTAssertTrue(self.subject.authHandler.isRefreshing)
         

@@ -209,7 +209,7 @@ where A.BaseType == T.ThreadConfinedPayload.Iterator.Element, A.CollectionType =
         self.nestedThreadAdapter = nestedThreadAdapter
     }
     
-    public func threadSafeRepresentations(`for` objects: [T], ofType type: Any.Type) throws -> [(T.ThreadSafePayload, [[A.ThreadSafeRepresentation]])] {
+    public func threadSafeRepresentations(`for` objects: [T], ofType: Any.Type) throws -> [(T.ThreadSafePayload, [[A.ThreadSafeRepresentation]])] {
         return try objects.map { object in
             let threadConfinedPayload = object.threadConfinedPayload
             var safe = Array<[A.ThreadSafeRepresentation]>()    // Type inference is failing here.

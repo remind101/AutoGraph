@@ -221,7 +221,7 @@ extension NSNull: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.null().encodeAsString()
+        return try JSONValue.null.encodeAsString()
     }
 }
 
@@ -235,7 +235,7 @@ extension NSNumber: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(Double(self)).encodeAsString()
+        return try JSONValue.number(Double(truncating: self)).encodeAsString()
     }
 }
 

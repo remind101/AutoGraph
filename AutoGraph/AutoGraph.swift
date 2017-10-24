@@ -46,7 +46,7 @@ open class AutoGraph {
     public let dispatcher: Dispatcher
     public var lifeCycle: GlobalLifeCycle?
     
-    private static let localHost = "http://localhost:8080/graphql"
+    public static let localHost = "http://localhost:8080/graphql"
     
     public required init(client: Client = AlamofireClient(baseUrl: localHost)) {
         self.client = client

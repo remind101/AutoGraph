@@ -73,7 +73,7 @@ class ResponseHandlerTests: XCTestCase {
             let location = gqlError.locations[0]
             XCTAssertEqual(location.line, line)
             XCTAssertEqual(location.column, column)
-        }, preMappingHook: { _ in })
+        }, preMappingHook: { (_, _) in })
         
         XCTAssertTrue(called)
     }
@@ -96,7 +96,7 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.network` error")
                 return
             }
-        }, preMappingHook: { _ in })
+        }, preMappingHook: { (_, _) in })
         
         XCTAssertTrue(called)
     }
@@ -125,7 +125,7 @@ class ResponseHandlerTests: XCTestCase {
                 XCTFail("`error` should be an `.mapping` error")
                 return
             }
-        }, preMappingHook: { _ in })
+        }, preMappingHook: { (_, _) in })
         
         XCTAssertTrue(called)
     }
