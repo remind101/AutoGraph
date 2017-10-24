@@ -134,7 +134,7 @@ public extension KeyCollection {
     }
     
     public func anyKeyCollection<TargetKey: MappingKey>() -> AnyKeyCollection<TargetKey>? {
-        return AnyKeyCollection.wrapAs(self)
+        return AnyKeyCollection(self) as? AnyKeyCollection<TargetKey>
     }
     
     func nestedKeyCollection<Key: MappingKey>(`for` key: MappingKeyType) throws -> AnyKeyCollection<Key> {
@@ -157,24 +157,6 @@ public struct AnyKeyCollection<K: MappingKey>: KeyCollection {
     public let keyCollectionType: Any.Type
     private let _containsKey: (K) -> Bool
     private let dynamicKeyCollection: DynamicKeyCollection
-    
-    /// This function is really dumb. `AnyKeyCollection<K> as? AnyKeyCollection<TargetKey>` always fails (though `Set<K> as? Set<TargetKey>` doesn't)
-    /// so we check and force cast here. This should be fixed in Swift 4.
-    public static func wrapAs<KC: KeyCollection, TargetKey: MappingKey>(_ keyCollection: KC) -> AnyKeyCollection<TargetKey>? where KC.MappingKeyType == K {
-        guard K.self is TargetKey.Type else {
-            return nil
-        }
-        let provider = AnyKeyCollection(keyCollection)
-        return unsafeBitCast(provider, to: AnyKeyCollection<TargetKey>.self)
-    }
-    
-    public static func wrapAs<Source: Sequence, TargetKey: MappingKey>(_ keys: Source) -> AnyKeyCollection<TargetKey>? where Source.Iterator.Element == K {
-        guard K.self is TargetKey.Type else {
-            return nil
-        }
-        let provider = AnyKeyCollection(SetKeyCollection(keys))
-        return unsafeBitCast(provider, to: AnyKeyCollection<TargetKey>.self)
-    }
     
     public init?(_ anyMappingKeyKeyCollection: AnyMappingKeyKeyCollection) {
         guard case let mappingKeyType as K.Type = anyMappingKeyKeyCollection.mappingKeyType else {
@@ -295,7 +277,8 @@ public struct AllKeys<K: MappingKey>: KeyCollection {
 
 /// A `Set` of `MappingKey`s.
 ///
-/// TODO: Can make Set follow `KeyCollection` protocol once conditional conformances are available in Swift 4.
+/// TODO: Can make Set follow `KeyCollection` protocol once conditional conformances are available in Swift 4.1
+/// https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md .
 public struct SetKeyCollection<K: MappingKey>: KeyCollection, ExpressibleByArrayLiteral {
     public let keys: Set<K>
     
@@ -341,7 +324,7 @@ internal struct NestedMappingKey<RootKey: MappingKey, NestedCollection: KeyColle
         self.nestedKeys = nestedKeys
     }
     
-    //@available(*, unavailable)
+    // NOTE: cannot mark @available(*, unavailable) in Swift 4.
     init<Source>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == (RootKey) {
         fatalError("Don't use this.")
     }
@@ -351,11 +334,11 @@ internal struct NestedMappingKey<RootKey: MappingKey, NestedCollection: KeyColle
     }
     
     func nestedKeyCollection<Key: MappingKey>(for key: RootKey) -> AnyKeyCollection<Key>? {
-        return AnyKeyCollection.wrapAs(self.nestedKeys)
+        return AnyKeyCollection(self.nestedKeys) as? AnyKeyCollection<Key>
     }
     
     func nestedMappingKeys<Key: MappingKey>() -> AnyKeyCollection<Key>? {
-        return AnyKeyCollection.wrapAs(self.nestedKeys)
+        return AnyKeyCollection(self.nestedKeys) as? AnyKeyCollection<Key>
     }
 }
 

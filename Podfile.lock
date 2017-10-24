@@ -1,8 +1,8 @@
 PODS:
   - Alamofire (4.5.1)
-  - Crust (0.6.0):
-    - JSONValueRX (~> 1.6)
-  - JSONValueRX (1.6)
+  - Crust (0.7.0):
+    - JSONValueRX (~> 2.1.0)
+  - JSONValueRX (2.1.0)
   - OHHTTPStubs (6.0.0):
     - OHHTTPStubs/Default (= 6.0.0)
   - OHHTTPStubs/Core (6.0.0)
@@ -16,16 +16,16 @@ PODS:
   - OHHTTPStubs/NSURLSession (6.0.0):
     - OHHTTPStubs/Core
   - OHHTTPStubs/OHPathHelpers (6.0.0)
-  - Realm (2.10.1):
-    - Realm/Headers (= 2.10.1)
-  - Realm/Headers (2.10.1)
-  - RealmSwift (2.10.1):
-    - Realm (= 2.10.1)
+  - Realm (3.0.0):
+    - Realm/Headers (= 3.0.0)
+  - Realm/Headers (3.0.0)
+  - RealmSwift (3.0.0):
+    - Realm (= 3.0.0)
 
 DEPENDENCIES:
-  - Alamofire (~> 4.5.0)
-  - Crust (~> 0.6.0)
-  - JSONValueRX (~> 1)
+  - Alamofire (~> 4.5.1)
+  - Crust (~> 0.7.0)
+  - JSONValueRX (~> 2)
   - OHHTTPStubs (from `https://github.com/AliSoftware/OHHTTPStubs.git`)
   - RealmSwift
 
@@ -35,17 +35,17 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   OHHTTPStubs:
-    :commit: 4dc6f36375f78c0b3cfe58d90bb8a4e21df5196e
+    :commit: aa3625962f35855086b483ba8618d0b93362d419
     :git: https://github.com/AliSoftware/OHHTTPStubs.git
 
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
-  Crust: ede65cee0f9fadbd25dbd81d75396f6d3149466f
-  JSONValueRX: 4d83c27abde8ea97abbdff3e8649e65368ea9250
+  Crust: 093ee014b445da2fd0f4dff6c673cd79b5dc60ed
+  JSONValueRX: ff68ab6e5e8decde9ef43911f37091cdf2efb6a2
   OHHTTPStubs: dbe7fc78b805b075ff74bb20922854d0dca8679b
-  Realm: fc7a317a5c2c9ba91f5f235ede4e2ea76e9eba0c
-  RealmSwift: 505ed6c15942a2e76f5cfa78a8667cfa997ee75b
+  Realm: dec0de73be8c57506e39db72694d513c189493b3
+  RealmSwift: 44a7090b16d1b22a406c6bf129bdd602db1bbecc
 
-PODFILE CHECKSUM: 46dd11775c58d1cb843577389ebfc69a6c633381
+PODFILE CHECKSUM: 90cdf976971764172bd231f9e408fa1b0a545531
 
 COCOAPODS: 1.3.1

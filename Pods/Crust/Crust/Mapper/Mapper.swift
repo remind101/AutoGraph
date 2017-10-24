@@ -212,7 +212,7 @@ public extension Mapping {
             return nil
         }
         
-        guard let obj = self.adapter.fetchObjects(type: MappedObject.self as! AdapterKind.BaseType.Type, primaryKeyValues: [keyValues], isMapping: true)?.first else {
+        guard let obj = self.adapter.fetchObjects(baseType: MappedObject.self as! AdapterKind.BaseType.Type, primaryKeyValues: [keyValues], isMapping: true)?.first else {
             return nil
         }
         
@@ -223,7 +223,7 @@ public extension Mapping {
         
         try self.checkForAdapterBaseTypeConformance()
         
-        let obj = try self.adapter.createObject(type: MappedObject.self as! AdapterKind.BaseType.Type)
+        let obj = try self.adapter.createObject(baseType: MappedObject.self as! AdapterKind.BaseType.Type)
         return unsafeBitCast(obj, to: MappedObject.self)
     }
     
@@ -252,7 +252,7 @@ public extension Mapping {
             } catch let err as NSError {    // We can handle NSErrors higher up.
                 underlyingError = err
             } catch {
-                var userInfo = [AnyHashable : Any]()
+                var userInfo = [String : Any]()
                 userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingWillBegin for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
@@ -286,7 +286,7 @@ public extension Mapping {
             } catch let err as NSError {
                 underlyingError = err
             } catch {
-                var userInfo = [AnyHashable : Any]()
+                var userInfo = [String : Any]()
                 userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingDidEnd for adapter \(self.adapter)"
                 userInfo[NSUnderlyingErrorKey] = underlyingError
                 throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
