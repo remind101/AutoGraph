@@ -154,6 +154,8 @@ public protocol RealmMapping: Mapping where MappedObject: RLMObject, AdapterKind
 public class RealmThreadAdapter: ThreadAdapter {
     public typealias BaseType = RLMObject
     
+    public init() { }
+    
     public func threadSafeRepresentations(`for` objects: [RLMObject], ofType type: Any.Type) throws -> [RLMThreadSafeReference<RLMThreadConfined>] {
         return objects.map { RLMThreadSafeReference(threadConfined: $0) }
     }
