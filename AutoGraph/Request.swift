@@ -13,7 +13,7 @@ public protocol Request {
     associatedtype RootKey: MappingKey
     
     /// The keys we'll use to map data out of the JSON payload. This payload starts from the JSON retreived from the root key in `mapping`.
-    associatedtype MappingKeys: KeyCollection
+    associatedtype MappingKeys: KeyCollection where MappingKeys.MappingKeyType == Mapping.MappingKeyType
     
     /// The returned type for the request.
     /// E.g if the requests returns an array then change to `[Mapping.MappedObject]`.
@@ -43,10 +43,7 @@ public protocol Request {
     /// across threads unless it inherits from `ThreadUnsafe`.
     var mapping: Binding<RootKey, Mapping> { get }
     
-    // TODO: Use associatedtype where clauses in Swift 4.
     /// The collection of keys / fields that will be mapped from the query for this request.
-    ///
-    /// `MappingKeys.MappingKeyType` must equal `Mapping.MappingKeyType` or an "ambiguous reference" error will be thrown by the compiler when trying to send.
     var mappingKeys: MappingKeys { get }
     
     /// Our `ThreadAdapter`. Its `typealias BaseType` must be a the same type or a super type of `Mapping.MappedObject`
@@ -105,6 +102,8 @@ public class UnsafeThreadAdapter<T>: ThreadAdapter {
 
 // TODO: We should support non-equatable collections.
 // TOOD: We should better apply currying and futures to clean some of this up.
+
+/// A weird enum that attempts to act like a GADT for object vs collection requests.
 public enum ObjectBinding<K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection,
     T: ThreadAdapter>
 where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable, M.MappingKeyType == KC.MappingKeyType, CM.MappingKeyType == KC.MappingKeyType {
@@ -116,15 +115,14 @@ where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable, M.Mappi
 extension Request
     where SerializedObject: RangeReplaceableCollection,
     SerializedObject.Iterator.Element == Mapping.MappedObject,
-    Mapping.MappedObject: Equatable,
-    Mapping.MappingKeyType == MappingKeys.MappingKeyType {
+    Mapping.MappedObject: Equatable {
     
     func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, Mapping, MappingKeys, SerializedObject, ThreadAdapterType> {
         return ObjectBinding<RootKey, Mapping, Mapping, MappingKeys, SerializedObject, ThreadAdapterType>.collection(mappingBinding: { self.mapping }, threadAdapter: self.threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
     }
 }
 
-extension Request where SerializedObject == Mapping.MappedObject, Mapping.MappingKeyType == MappingKeys.MappingKeyType {
+extension Request where SerializedObject == Mapping.MappedObject {
     func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, Array<Int>, ThreadAdapterType> {
         return ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, Array<Int>, ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
     }
