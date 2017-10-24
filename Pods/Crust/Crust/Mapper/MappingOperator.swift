@@ -42,7 +42,7 @@ private func map<T: JSONable, KC: KeyCollection>(to json: JSONValue, from field:
         json[key] = T.toJSON(field)
     }
     else {
-        json[key] = .null()
+        json[key] = .null
     }
     
     return json
@@ -346,7 +346,7 @@ private func map<T, M: Mapping, KC: KeyCollection>(to json: JSONValue, from fiel
     }
     
     guard let field = field else {
-        json[key] = .null()
+        json[key] = .null
         return json
     }
     
@@ -493,7 +493,7 @@ public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
                         ifIn: payload.keys,
                         keyedBy: keyedBinding.codingKeys)
                 case .none:
-                    payload.json = .null()
+                    payload.json = .null
                 }
                 
             case .fromJSON:
@@ -504,7 +504,7 @@ public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
                 // even in "null" case to handle deletes.
                 try mapFromJSON(toCollection: &field!, using: (keyedBinding, payload), uniquing: uniquing)
                 
-                if case .null() = baseJSON {
+                if case .null = baseJSON {
                     field = nil
                 }
             }
@@ -686,7 +686,7 @@ private func generateNewValues<T, M: Mapping, K>(
     throws -> [T]?
     where M.MappedObject == T {
         
-        if case .null() = json, updatePolicy.nullable {
+        if case .null = json, updatePolicy.nullable {
             return nil
         }
     

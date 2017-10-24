@@ -29,7 +29,7 @@ extension Dictionary: JSONable {
         do {
             return try JSONValue(dict: x)
         } catch {
-            return JSONValue.null()
+            return JSONValue.null
         }
     }
 }
@@ -194,7 +194,7 @@ extension Array: JSONable {
         do {
             return try JSONValue(array: x)
         } catch {
-            return JSONValue.null()
+            return JSONValue.null
         }
     }
 }
@@ -322,7 +322,7 @@ extension NSDate: JSONable {
 extension NSNull: JSONable {
     public class func fromJSON(_ x: JSONValue) -> NSNull? {
         switch x {
-        case .null():
+        case .null:
             return NSNull()
         default:
             return nil
@@ -330,6 +330,6 @@ extension NSNull: JSONable {
     }
     
     public class func toJSON(_ xs: NSNull) -> JSONValue {
-        return JSONValue.null()
+        return JSONValue.null
     }
 }
