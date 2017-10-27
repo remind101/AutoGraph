@@ -1,16 +1,15 @@
 /// Include this file and `RLMSupport.swift` in order to use `RealmMapping` and `RealmAdapter` and map to `RLMObject` using `Crust`.
 
-import Foundation
 import AutoGraphQL
 import Crust
+import Foundation
 import JSONValueRX
 import Realm
 import RealmSwift
 
 public let RealmAdapterDomain = "RealmAdapterDomain"
 
-public class RealmAdapter: Adapter {
-    
+public class RealmAdapter: PersistanceAdapter {
     public typealias BaseType = RLMObject
     public typealias ResultsType = [BaseType]
     
@@ -48,7 +47,7 @@ public class RealmAdapter: Adapter {
         self.cache.removeAll()
     }
     
-    public func createObject(type: RLMObject.Type) throws -> RLMObject {
+    public func createObject(baseType type: RLMObject.Type) throws -> RLMObject {
         let obj = type.init()
         self.cache.insert(obj)
         return obj
@@ -107,14 +106,14 @@ public class RealmAdapter: Adapter {
     
     // TODO: This should throw and we should check that the primary key's type and value's sanitized type match.
     // Otherwise we get an exception from Realm here.
-    public func fetchObjects(type: RLMObject.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
+    public func fetchObjects(baseType: RLMObject.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
         
         var totalPredicate = [NSPredicate]()
         
         for keyValues in primaryKeyValues {
             var objectPredicates = [NSPredicate]()
             for (key, var value) in keyValues {
-                value = self.sanitize(primaryKeyProperty: key, forValue: value, ofType: type) ?? value
+                value = self.sanitize(primaryKeyProperty: key, forValue: value, ofType: baseType) ?? value
                 let predicate = NSPredicate(format: "%K == %@", key, value)
                 objectPredicates.append(predicate)
             }
@@ -124,15 +123,15 @@ public class RealmAdapter: Adapter {
         
         let orPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: totalPredicate)
         
-        return fetchObjects(type: type, predicate: orPredicate, isMapping: isMapping)
+        return fetchObjects(baseType: baseType, predicate: orPredicate, isMapping: isMapping)
     }
     
-    public func fetchObjects(type: BaseType.Type, predicate: NSPredicate, isMapping: Bool) -> ResultsType? {
+    public func fetchObjects(baseType: BaseType.Type, predicate: NSPredicate, isMapping: Bool) -> ResultsType? {
         
         var objects = self.cache.filter {
-            type(of: $0) == type
-            }
-            .filter {
+            type(of: $0) == baseType
+        }
+        .filter {
                 predicate.evaluate(with: $0)
         }
         
@@ -140,21 +139,22 @@ public class RealmAdapter: Adapter {
             return Array(objects)
         }
         
-        let results = type.objects(in: realm, with: predicate)
+        let results = baseType.objects(in: realm, with: predicate)
         for obj in results {
-            objects.append(obj)
+            objects.insert(obj)
         }
-        return objects
+        return Array(objects)
     }
 }
 
-public protocol RealmMapping: Mapping {
-    associatedtype AdapterKind = RealmAdapter
+public protocol RealmMapping: Mapping where MappedObject: RLMObject, AdapterKind: RealmAdapter {
     init(adapter: AdapterKind)
 }
 
 public class RealmThreadAdapter: ThreadAdapter {
     public typealias BaseType = RLMObject
+    
+    public init() { }
     
     public func threadSafeRepresentations(`for` objects: [RLMObject], ofType type: Any.Type) throws -> [RLMThreadSafeReference<RLMThreadConfined>] {
         return objects.map { RLMThreadSafeReference(threadConfined: $0) }
@@ -167,7 +167,7 @@ public class RealmThreadAdapter: ThreadAdapter {
 }
 
 extension RLMArray {
-    public func findIndex(of object: RLMObject) -> UInt {
+    @objc public func findIndex(of object: RLMObject) -> UInt {
         guard case let index as UInt = self.index(ofObjectNonGeneric: object) else {
             return UInt.max
         }
@@ -176,26 +176,26 @@ extension RLMArray {
     
     public typealias Index = UInt
     
-    public func append(_ newElement: RLMObject) {
+    @objc public func append(_ newElement: RLMObject) {
         self.addObjectNonGeneric(newElement)
     }
     
-    public func append(contentsOf newElements: [RLMObject]) {
+    @objc public func append(contentsOf newElements: [RLMObject]) {
         for obj in newElements {
             self.addObjectNonGeneric(obj)
         }
     }
     
-    public func remove(at i: UInt) {
+    @objc public func remove(at i: UInt) {
         self.removeObject(at: i)
     }
     
-    public func removeAll(keepingCapacity keepCapacity: Bool) {
+    @objc public func removeAll(keepingCapacity keepCapacity: Bool) {
         self.removeAllObjects()
     }
 }
 
-public class RealmSwiftObjectAdapterBridge<T>: Adapter {
+public class RealmSwiftObjectAdapterBridge<T>: PersistanceAdapter {
     public typealias BaseType = T
     public typealias ResultsType = [BaseType]
     
@@ -224,8 +224,8 @@ public class RealmSwiftObjectAdapterBridge<T>: Adapter {
         self.realmObjCAdapter.mappingErrored(error)
     }
     
-    public func createObject(type: BaseType.Type) throws -> BaseType {
-        let obj = try self.realmObjCAdapter.createObject(type: self.rlmObjectType)
+    public func createObject(baseType type: BaseType.Type) throws -> BaseType {
+        let obj = try self.realmObjCAdapter.createObject(baseType: self.rlmObjectType)
         return unsafeBitCast(obj, to: BaseType.self)
     }
     
@@ -243,8 +243,8 @@ public class RealmSwiftObjectAdapterBridge<T>: Adapter {
         return self.realmObjCAdapter.sanitize(primaryKeyProperty: property, forValue: value, ofType: type as! RLMObject.Type)
     }
     
-    public func fetchObjects(type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
-        guard let rlmObjects = self.realmObjCAdapter.fetchObjects(type: self.rlmObjectType,
+    public func fetchObjects(baseType type: BaseType.Type, primaryKeyValues: [[String : CVarArg]], isMapping: Bool) -> ResultsType? {
+        guard let rlmObjects = self.realmObjCAdapter.fetchObjects(baseType: self.rlmObjectType,
                                                                   primaryKeyValues: primaryKeyValues,
                                                                   isMapping: isMapping)
             else {
@@ -263,9 +263,9 @@ public class RLMArrayMappingBridge<T: RLMObject, K: MappingKey>: Mapping {
     public let primaryKeys: [Mapping.PrimaryKeyDescriptor]?
     public let rlmObjectMapping: (inout MappedObject, MappingPayload<K>) throws -> Void
     
-    public required init<OGMapping: RealmMapping>(rlmObjectMapping: OGMapping) where OGMapping.MappedObject: RLMObject, OGMapping.MappedObject == T, OGMapping.MappingKeyType == K {
+    public required init<OGMapping: RealmMapping>(rlmObjectMapping: OGMapping) where OGMapping.MappedObject == T, OGMapping.MappingKeyType == K {
         
-        self.adapter = RealmSwiftObjectAdapterBridge(realmObjCAdapter: rlmObjectMapping.adapter as! RealmAdapter,
+        self.adapter = RealmSwiftObjectAdapterBridge(realmObjCAdapter: rlmObjectMapping.adapter as RealmAdapter,
                                                      rlmObjectType: OGMapping.MappedObject.self)
         self.primaryKeys = rlmObjectMapping.primaryKeys
         
@@ -280,10 +280,8 @@ public class RLMArrayMappingBridge<T: RLMObject, K: MappingKey>: Mapping {
     }
 }
 
-public extension Binding where M: RealmMapping, M.MappedObject: RLMObject {
-    
+public extension Binding where M: RealmMapping {
     func generateRLMArrayMappingBridge() -> Binding<K, RLMArrayMappingBridge<M.MappedObject, M.MappingKeyType>> {
-        
         switch self {
         case .mapping(let keyPath, let mapping):
             let bridge = RLMArrayMappingBridge(rlmObjectMapping: mapping)
@@ -298,7 +296,6 @@ public extension Binding where M: RealmMapping, M.MappedObject: RLMObject {
 
 @discardableResult
 public func <- <U: RealmMapping, K, C: MappingPayload<K>>(field: RLMArray<U.MappedObject>, binding:(key: Binding<K, U>, payload: C)) -> C {
-    
     return map(toRLMArray: field, using: binding)
 }
 
@@ -308,4 +305,110 @@ public func map<U: RealmMapping, K, C: MappingPayload<K>>(toRLMArray field: RLMA
     var variableList = RLMArrayBridge(rlmArray: field)
     let bridge = binding.key.generateRLMArrayMappingBridge()
     return map(toCollection: &variableList, using: (bridge, binding.payload))
+}
+
+// NSNumber<RLMInt>
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMInt), keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMInt)?, keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMInt), via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+    
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMInt)?, via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber? = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+}
+
+// NSNumber<RLMBool>
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMBool), keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMBool)?, keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMBool), via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+    
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMBool)?, via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber? = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+}
+
+// NSNumber<RLMDouble>
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMDouble), keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMDouble)?, keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMDouble), via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMDouble)?, via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber? = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+}
+
+// NSNumber<RLMFloat>
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMFloat), keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+@discardableResult
+public func <- <K, MC: MappingPayload<K>>(field: inout (NSNumber & RLMFloat)?, keyPath:(key: K, payload: MC)) -> MC {
+    return map(to: &field, via: keyPath)
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMFloat), via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
+}
+
+public func map<K, MC: MappingPayload<K>>(to field: inout (NSNumber & RLMFloat)?, via keyPath:(key: K, payload: MC)) -> MC {
+    var realmNumber: NSNumber? = field
+    realmNumber <- keyPath
+    field = realmNumber
+    return keyPath.payload
 }
