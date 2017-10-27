@@ -6,7 +6,7 @@ public enum JSONValue: CustomStringConvertible {
     case number(Double)
     case string(String)
     case bool(Bool)
-    case null()
+    case null
     
     public func values() -> AnyObject {
         switch self {
@@ -20,7 +20,7 @@ public enum JSONValue: CustomStringConvertible {
             return s as AnyObject
         case let .bool(b):
             return b as AnyObject
-        case .null():
+        case .null:
             return NSNull()
         }
     }
@@ -37,7 +37,7 @@ public enum JSONValue: CustomStringConvertible {
             return NSString(string: s)
         case let .bool(b):
             return NSNumber(value: b as Bool)
-        case .null():
+        case .null:
             return NSNull()
         }
     }
@@ -101,7 +101,7 @@ public enum JSONValue: CustomStringConvertible {
             self = .string(String(val))
             
         case is NSNull:
-            self = .null()
+            self = .null
             
         default:
             // TODO: Generate an enum of standard errors.
@@ -133,7 +133,7 @@ public enum JSONValue: CustomStringConvertible {
             let start = string.index(string.startIndex, offsetBy: 1)
             let end = string.index(string.endIndex, offsetBy: -1)
             let range = start..<end
-            string = string.substring(with: range)
+            string = String(string[range])
         }
         
         return string
@@ -163,8 +163,8 @@ public enum JSONValue: CustomStringConvertible {
                 default:
                     return self[index.keyPath]
                 }
-            case .null():
-                return .null()
+            case .null:
+                return .null
             default:
                 return nil
             }
@@ -225,8 +225,8 @@ public enum JSONValue: CustomStringConvertible {
                 }
             case .array(let arr):
                 return .array(arr.flatMap { $0[index] })
-            case .null():
-                return .null()
+            case .null:
+                return .null
             default:
                 return nil
             }
@@ -267,7 +267,7 @@ public enum JSONValue: CustomStringConvertible {
     
     public var description: String {
         switch self {
-        case .null():
+        case .null:
             return "JSONNull()"
         case let .bool(b):
             return "JSONBool(\(b))"
@@ -294,7 +294,7 @@ extension JSONValue: Hashable {
     
     public var hashValue: Int {
         switch self {
-        case .null():
+        case .null:
             return JSONValue.prime
         case let .bool(b):
             return b ? JSONValue.truePrime: JSONValue.falsePrime
@@ -316,7 +316,7 @@ extension JSONValue: Hashable {
 
 public func ==(lhs: JSONValue, rhs: JSONValue) -> Bool {
     switch (lhs, rhs) {
-    case (.null(), .null()):
+    case (.null, .null):
         return true
     case let (.bool(l), .bool(r)) where l == r:
         return true

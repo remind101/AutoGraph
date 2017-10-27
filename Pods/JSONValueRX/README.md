@@ -11,12 +11,12 @@ enum JSONValue: CustomStringConvertible {
     case number(Double)
     case string(String)
     case bool(Bool)
-    case null()
+    case null
 }
 ```
 #Requirements
 iOS 8.0+
-Swift 3.0+
+Swift 4.0+
 
 #Installation
 ### CocoaPods
