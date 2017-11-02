@@ -55,10 +55,10 @@ pod 'AutoGraph'
 Code generation for Realm is in the works and coming very soon.
 
 ## Database Agnostic
-AutoGraph and it's mapping component [Crust](#crust-for-type-safe-mapping) are written to be database agnostic. To add support for a database to use in conjunction with AutoGraph, write an adapter class that inherits from Crust's [Adapter](https://github.com/rexmas/Crust#storage-adapter) protocol. This protocol maintains hooks where the business logic for writing to and reading from the database will live. A storage adapter example already exists for Realm in the [tests](https://github.com/remind101/AutoGraph/blob/master/AutoGraphTests/Realm/RealmMappings.swift).
+AutoGraph and it's mapping component [Crust](#crust-for-type-safe-mapping) are written to be database agnostic. To add support for a database to use in conjunction with AutoGraph, write an adapter class that inherits from Crust's [PersistanceAdapter](https://github.com/rexmas/Crust#persistance-adapter) protocol. This protocol maintains hooks where the business logic for writing to and reading from the database will live. A persistance adapter example already exists for Realm in the [tests](https://github.com/remind101/AutoGraph/blob/master/AutoGraphTests/Realm/RealmMappings.swift).
 
 ### Realm
-Though AutoGraph is structured to be DB agnostic, it is heavily tested against the [Realm Cocoa](https://realm.io/docs/) database. Look [here](https://github.com/remind101/AutoGraph/blob/master/AutoGraphTests/AllFilmsRequest.swift) and [here](https://github.com/remind101/AutoGraph/tree/master/AutoGraphTests/Realm) for an example of how to use AutoGraph with Realm Objective-C. A RealmSwift Adapter example and tests are planned for the future.
+Though AutoGraph is structured to be DB agnostic, it is heavily tested against the [Realm Cocoa](https://realm.io/docs/) database. Look [here](https://github.com/remind101/AutoGraph/blob/master/AutoGraphTests/AllFilmsRequest.swift) and [here](https://github.com/remind101/AutoGraph/tree/master/AutoGraphTests/Realm) for an example of how to use AutoGraph with Realm Objective-C. A RealmSwift Persistance Adapter example and tests are planned for the future.
 
 ### Core Data
 AutoGraph's structure should allow for simple Core Data support. No tests or examples against Core Data currently exist but PRs are welcome!
