@@ -704,17 +704,13 @@ public protocol GraphQLVariables {
 public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefinitions, AcceptsDirectives {
     
     /// Defines an _OperationType_ from the GraphQL language.
-    public enum OperationType: QueryConvertible {
+    public enum OperationType: String, QueryConvertible {
         case query
         case mutation
+        case subscription
         
         public func graphQLString() throws -> String {
-            switch self {
-            case .query:
-                return "query"
-            case .mutation:
-                return "mutation"
-            }
+            return self.rawValue
         }
     }
     

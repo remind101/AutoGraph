@@ -394,6 +394,13 @@ class OperationTests: XCTestCase {
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
+    func testSubscriptionForms() {
+        let scalar = Scalar(name: "name", alias: nil)
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
+        self.subject = QueryBuilder.Operation(type: .subscription, name: "Subscription", variableDefinitions: [variable], selectionSet: [scalar])
+        XCTAssertEqual(try! self.subject.graphQLString(), "subscription Subscription($derp: String) {\nname\n}")
+    }
+    
     func testDirectives() {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
