@@ -744,3 +744,17 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
         return "\(try self.type.graphQLString()) \(self.name)\(try self.serializedVariableDefinitions())\(try self.serializedDirectives())\(try self.serializedSelectionSet())"
     }
 }
+
+/// Defines an _Query Document_ from the GraphQL language.
+/// This represents a full GraphQL request with Operations, Fragments, and VariableDefinitions.
+/// Assigned Variables however are included separately in the request body.
+public struct Document: GraphQLQuery {
+    public let operations: [Operation]
+    public let fragments: [FragmentDefinition]
+    
+    public func graphQLString() throws -> String {
+        let operationQueries = try self.operations.map { try $0.graphQLString() }.joined(separator: "\n")
+        let fragmentQueries = try self.fragments.map { try $0.graphQLString() }.joined(separator: "\n")
+        return operationQueries + "\n" + fragmentQueries
+    }
+}
