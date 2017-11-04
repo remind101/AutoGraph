@@ -115,19 +115,27 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
     
     typealias SerializedObject = FilmThreadUnconfined
     
-    let query = Operation(type: .query,
-                          name: "film",
-                          selectionSet: [
-                            Object(name: "film",
-                                   alias: nil,
-                                   arguments: ["id" : "ZmlsbXM6MQ=="],
-                                   selectionSet: [
-                                    "id",
-                                    Scalar(name: "title", alias: nil),
-                                    Scalar(name: "episodeID", alias: nil),
-                                    Scalar(name: "director", alias: nil),
-                                    Scalar(name: "openingCrawl", alias: nil)])
-                        ])
+    var query: Document {
+        let operation = Operation(type: .query,
+                  name: "film",
+                  selectionSet: [
+                    Selection.fragmentSpread(name: "FilmFrag", directives: nil)
+            ])
+        
+        let filmFrag = FragmentDefinition(name: "FilmFrag", type: "Film", selectionSet: [
+            Object(name: "film",
+                   alias: nil,
+                   arguments: ["id" : "ZmlsbXM6MQ=="],
+                   selectionSet: [
+                    "id",
+                    Scalar(name: "title", alias: nil),
+                    Scalar(name: "episodeID", alias: nil),
+                    Scalar(name: "director", alias: nil),
+                    Scalar(name: "openingCrawl", alias: nil)])
+            ])
+        
+        return Document(operations: [operation], fragments: [filmFrag!])
+    }
     
     let variables: [AnyHashable : Any]? = nil
     
@@ -159,4 +167,36 @@ struct FilmThreadUnconfined: AnyMappable {
     var episode: Int?
     var openingCrawl: String?
     var director: String?
+}
+
+class FilmThreadUnconfinedStub: Stub {
+    override var jsonFixtureFile: String? {
+        get { return "Film" }
+        set { }
+    }
+    
+    override var urlPath: String? {
+        get { return "/graphql" }
+        set { }
+    }
+    
+    override var graphQLQuery: String {
+        get {
+            return """
+            query film {
+            ...FilmFrag
+            }
+            fragment FilmFrag on Film {
+            film(id: \"ZmlsbXM6MQ==\") {
+            id
+            title
+            episodeID
+            director
+            openingCrawl
+            }
+            }
+            """
+        }
+        set { }
+    }
 }
