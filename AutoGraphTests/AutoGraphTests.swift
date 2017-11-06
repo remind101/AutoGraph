@@ -99,7 +99,7 @@ class AutoGraphTests: XCTestCase {
     }
     
     func testFunctionalSingleFilmThreadUnconfinedRequest() {
-        let stub = FilmStub()
+        let stub = FilmThreadUnconfinedStub()
         stub.registerStub()
         
         var called = false

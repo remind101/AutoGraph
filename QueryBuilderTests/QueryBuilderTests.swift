@@ -1,6 +1,66 @@
 import XCTest
 @testable import QueryBuilder
 
+class DocumentTests: XCTestCase {
+    var subject: QueryBuilder.Document!
+    
+    func testGraphQLStringWithObjectFieldsFragments() {
+        let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
+        let scalar2 = Scalar(name: "scalar2", alias: nil)
+        let subobj = Object(name: "subobj", alias: "cool_obj", selectionSet: [scalar1])
+        
+        let object = Object(name: "obj", alias: "cool_alias", selectionSet: [subobj, scalar2])
+        let operation1 = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: [object])
+        
+        let directive = Directive(name: "cool", arguments: ["best" : "directive"])
+        let fragment = FragmentDefinition(name: "frag", type: "CoolType", directives: [directive], selectionSet: [scalar1, scalar2])
+        
+        let operation2 = QueryBuilder.Operation(type: .mutation,
+                                              name: "Mutation",
+                                              selectionSet: [
+                                                subobj,
+                                                scalar2,
+                                                Selection.object(
+                                                    name: "object2",
+                                                    alias: nil,
+                                                    arguments: ["key" : "val"],
+                                                    directives: nil,
+                                                    selectionSet: [
+                                                        "scalar",
+                                                        Selection.scalar(name: "scalar", alias: "cool"),
+                                                        Object(name: "object", selectionSet: ["objectScalar"])
+                                                    ])])
+        
+        self.subject = QueryBuilder.Document(operations: [operation1, operation2], fragments: [fragment!])
+        XCTAssertEqual(try! self.subject.graphQLString(),
+                       """
+                       query Query {
+                       cool_alias: obj {
+                       cool_obj: subobj {
+                       cool_scalar: scalar1
+                       }
+                       scalar2
+                       }
+                       }
+                       mutation Mutation {
+                       cool_obj: subobj {
+                       cool_scalar: scalar1
+                       }
+                       scalar2
+                       object2(key: \"val\") {
+                       scalar
+                       cool: scalar
+                       object {
+                       objectScalar
+                       }
+                       }
+                       }
+                       fragment frag on CoolType @cool(best: \"directive\") {\ncool_scalar: scalar1\nscalar2\n}
+                       """
+                       )
+    }
+}
+
 class FieldTests: XCTestCase {
     
     class FieldMock: ScalarField {
@@ -332,6 +392,13 @@ class OperationTests: XCTestCase {
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
+    }
+    
+    func testSubscriptionForms() {
+        let scalar = Scalar(name: "name", alias: nil)
+        let variable = try! VariableDefinition<String>(name: "derp").typeErase()
+        self.subject = QueryBuilder.Operation(type: .subscription, name: "Subscription", variableDefinitions: [variable], selectionSet: [scalar])
+        XCTAssertEqual(try! self.subject.graphQLString(), "subscription Subscription($derp: String) {\nname\n}")
     }
     
     func testDirectives() {
