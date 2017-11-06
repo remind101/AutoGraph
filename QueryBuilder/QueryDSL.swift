@@ -141,13 +141,13 @@ public extension SelectionSetSerializable {
     
     public func serializedSelectionSet(serializedSelections: [String]) throws -> String {
         let selectionSet = serializedSelections.flatMap { selection -> String? in
-            guard selection.characters.count > 0 else {
+            guard selection.count > 0 else {
                 return nil
             }
             return selection
         }.joined(separator: "\n")
         
-        guard selectionSet.characters.count > 0 else {
+        guard selectionSet.count > 0 else {
             throw QueryBuilderError.missingFields(selectionSetName: self.selectionSetName)
         }
         
