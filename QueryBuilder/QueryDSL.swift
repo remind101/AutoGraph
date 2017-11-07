@@ -748,6 +748,11 @@ public struct Document: GraphQLQuery {
     public let operations: [Operation]
     public let fragments: [FragmentDefinition]
     
+    public init(operations: [Operation], fragments: [FragmentDefinition]) {
+        self.operations = operations
+        self.fragments = fragments
+    }
+    
     public func graphQLString() throws -> String {
         let operationQueries = try self.operations.map { try $0.graphQLString() }.joined(separator: "\n")
         let fragmentQueries = try self.fragments.map { try $0.graphQLString() }.joined(separator: "\n")
