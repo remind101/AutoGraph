@@ -49,15 +49,27 @@ public struct Mapper {
     public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C
         where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
             
-            return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys))
+            return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+    }
+    
+    public func map<M, C: RangeReplaceableCollection, K, KP>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>, parentPayload: MappingPayload<KP>?) throws -> C
+        where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
+            
+            return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: parentPayload)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
+        where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, KC.MappingKeyType == M.MappingKeyType {
+            return try self.map(from: json, using: binding, keyedBy: keys, parentPayload: Optional<MappingPayload<RootKey>>.none)
+    }
+    
+    public func map<M, C: RangeReplaceableCollection, K, KP, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> C
     where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable, KC.MappingKeyType == M.MappingKeyType {
         
         var collection = C()
         let codingKey = NestedMappingKey(rootKey: binding.key, nestedKeys: keys)
         let payload = MappingPayload(withObject: collection, json: json, keys: codingKey, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
+        payload.parent = parentPayload?.typeErased()
         
         try binding.mapping.start(payload: payload)
         collection <- (binding, payload)
@@ -69,15 +81,26 @@ public struct Mapper {
     // Non-equatable Collections.
     public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C where M.MappedObject == C.Iterator.Element {
         
-        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys))
+        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+    }
+    
+    public func map<M, C: RangeReplaceableCollection, K, KP>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>, parentPayload: MappingPayload<KP>?) throws -> C where M.MappedObject == C.Iterator.Element {
+        
+        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: parentPayload)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
+        where M.MappedObject == C.Iterator.Element, KC.MappingKeyType == M.MappingKeyType {
+            return try self.map(from: json, using: binding, keyedBy: keys, parentPayload: Optional<MappingPayload<RootKey>>.none)
+    }
+    
+    public func map<M, C: RangeReplaceableCollection, K, KP, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> C
         where M.MappedObject == C.Iterator.Element, KC.MappingKeyType == M.MappingKeyType {
             
             var collection = C()
             let codingKey = NestedMappingKey(rootKey: binding.key, nestedKeys: keys)
             let payload = MappingPayload(withObject: collection, json: json, keys: codingKey, adapterType: binding.mapping.adapter.dataBaseTag, direction: MappingDirection.fromJSON)
+            payload.parent = parentPayload?.typeErased()
             
             try binding.mapping.start(payload: payload)
             collection <- (binding, payload)

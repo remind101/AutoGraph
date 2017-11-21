@@ -1,31 +1,31 @@
 PODS:
   - Alamofire (4.5.1)
-  - Crust (0.7.0):
-    - JSONValueRX (~> 2.1.0)
-  - JSONValueRX (2.1.0)
-  - OHHTTPStubs (6.0.0):
-    - OHHTTPStubs/Default (= 6.0.0)
-  - OHHTTPStubs/Core (6.0.0)
-  - OHHTTPStubs/Default (6.0.0):
+  - Crust (0.8.1):
+    - JSONValueRX (~> 3.0.0)
+  - JSONValueRX (3.0.0)
+  - OHHTTPStubs (6.1.0):
+    - OHHTTPStubs/Default (= 6.1.0)
+  - OHHTTPStubs/Core (6.1.0)
+  - OHHTTPStubs/Default (6.1.0):
     - OHHTTPStubs/Core
     - OHHTTPStubs/JSON
     - OHHTTPStubs/NSURLSession
     - OHHTTPStubs/OHPathHelpers
-  - OHHTTPStubs/JSON (6.0.0):
+  - OHHTTPStubs/JSON (6.1.0):
     - OHHTTPStubs/Core
-  - OHHTTPStubs/NSURLSession (6.0.0):
+  - OHHTTPStubs/NSURLSession (6.1.0):
     - OHHTTPStubs/Core
-  - OHHTTPStubs/OHPathHelpers (6.0.0)
-  - Realm (3.0.0):
-    - Realm/Headers (= 3.0.0)
-  - Realm/Headers (3.0.0)
-  - RealmSwift (3.0.0):
-    - Realm (= 3.0.0)
+  - OHHTTPStubs/OHPathHelpers (6.1.0)
+  - Realm (3.0.2):
+    - Realm/Headers (= 3.0.2)
+  - Realm/Headers (3.0.2)
+  - RealmSwift (3.0.2):
+    - Realm (= 3.0.2)
 
 DEPENDENCIES:
   - Alamofire (~> 4.5.1)
-  - Crust (~> 0.7.0)
-  - JSONValueRX (~> 2)
+  - Crust (~> 0.8.1)
+  - JSONValueRX (~> 3)
   - OHHTTPStubs (from `https://github.com/AliSoftware/OHHTTPStubs.git`)
   - RealmSwift
 
@@ -35,17 +35,17 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   OHHTTPStubs:
-    :commit: aa3625962f35855086b483ba8618d0b93362d419
+    :commit: c088cfa9b46fa9cafada8c008b63903f1b719486
     :git: https://github.com/AliSoftware/OHHTTPStubs.git
 
 SPEC CHECKSUMS:
   Alamofire: 2d95912bf4c34f164fdfc335872e8c312acaea4a
-  Crust: 093ee014b445da2fd0f4dff6c673cd79b5dc60ed
-  JSONValueRX: ff68ab6e5e8decde9ef43911f37091cdf2efb6a2
-  OHHTTPStubs: dbe7fc78b805b075ff74bb20922854d0dca8679b
-  Realm: dec0de73be8c57506e39db72694d513c189493b3
-  RealmSwift: 44a7090b16d1b22a406c6bf129bdd602db1bbecc
+  Crust: bf0261157633b3150ba5e2c15c4504268ae1806e
+  JSONValueRX: d95b3ed64788c681e90e7c117318c7695457ca73
+  OHHTTPStubs: 38ce37264fab97254fddb853d806b8bda9faf6d6
+  Realm: 6f23fd1f178a09342eac21bfa7c2bf4312a7a180
+  RealmSwift: 695393add1b8f9d5fa75dd16e6355cf3935f71e2
 
-PODFILE CHECKSUM: 90cdf976971764172bd231f9e408fa1b0a545531
+PODFILE CHECKSUM: d5eb1d28ee45663d66efd941ce4245181490f687
 
 COCOAPODS: 1.3.1

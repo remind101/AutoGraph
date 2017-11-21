@@ -423,6 +423,95 @@ public func map<T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
         return map(toCollection: &field, using: binding, uniquing: RRC.defaultUniquingFunctions())
 }
 
+///////
+/// RootedKey collection mappings.
+///////
+
+/// Collections with Equatable objects.
+
+@discardableResult
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+    
+    let payload = binding.payload
+    let binding = binding.key
+    
+    do {
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
+            return payload
+        }
+        field = try Mapper().map(from: payload.json, using: keyedBinding.binding, keyedBy: keyedBinding.codingKeys, parentPayload: payload)
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+    let payload = binding.payload
+    let binding = binding.key
+    
+    if case .null = payload.json {
+        field = nil
+        return payload
+    }
+    
+    do {
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
+            return payload
+        }
+        field = try Mapper().map(from: payload.json, using: keyedBinding.binding, keyedBy: keyedBinding.codingKeys, parentPayload: payload)
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
+/// This is for Collections with non-Equatable objects.
+@discardableResult
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+    
+    let payload = binding.payload
+    let binding = binding.key
+    
+    do {
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
+            return payload
+        }
+        field = try Mapper().map(from: payload.json, using: keyedBinding.binding, keyedBy: keyedBinding.codingKeys, parentPayload: payload)
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
+public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+    let payload = binding.payload
+    let binding = binding.key
+    
+    if case .null = payload.json {
+        field = nil
+        return payload
+    }
+    
+    do {
+        guard let keyedBinding = try KeyedBinding(binding: binding, payload: payload) else {
+            return payload
+        }
+        field = try Mapper().map(from: payload.json, using: keyedBinding.binding, keyedBy: keyedBinding.codingKeys, parentPayload: payload)
+    }
+    catch let error {
+        payload.error = error
+    }
+    
+    return payload
+}
+
 /// General function for mapping JSON into a `RangeReplaceableCollection`.
 ///
 /// Providing uniqing functions for equality comparison, fetching by index, and checking existence of elements allows
@@ -460,6 +549,7 @@ public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
         return payload
 }
 
+//// Optional types.
 @discardableResult
 public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC?,

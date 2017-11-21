@@ -14,11 +14,11 @@ enum JSONValue: CustomStringConvertible {
     case null
 }
 ```
-#Requirements
+# Requirements
 iOS 8.0+
 Swift 4.0+
 
-#Installation
+# Installation
 ### CocoaPods
 ```
 platform :ios, '8.0'
@@ -27,7 +27,7 @@ use_frameworks!
 pod 'JSONValueRX'
 ```
 
-#Subscripting
+# Subscripting
 Supports `.` indexing
 ```swift
 let dict = [ "blerp" : [ "z" : "zerp" ]]
@@ -53,13 +53,13 @@ print(jsonVal["blerp.w"])
 // Optional(string(werp))
 ```
 
-#Equatable
+# Equatable
 ```swift
 print(JSONValue.number(1.0) == JSONValue.number(1.0))
 // true
 ```
 
-#Hashable
+# Hashable
 `extension JSONValue: Hashable`
 
 Inverted key/value pairs do not collide.
@@ -72,14 +72,14 @@ print(hashable1.hashValue)
 print(hashable2.hashValue)
 // 2895177120076124296
 ```
-#Encoding/Decoding from String, Data
+# Encoding/Decoding from String, Data
 ```swift
 public func encode() throws -> Data
 public static func decode(_ data: Data) throws -> JSONValue
 public static func decode(_ string: String) throws -> JSONValue
 ```
 
-#Custom Encoding/Decoding
+# Custom Encoding/Decoding
 ```swift
 public protocol JSONDecodable {
     associatedtype ConversionType = Self
@@ -109,12 +109,10 @@ Dictionary
 
 # Contributing
 
-We love pull requests and solving bugs.
-
 - Open an issue if you run into any problems.
 - Fork the project and submit a pull request to contribute.
 
-#License
+# License
 The MIT License (MIT)
 
 Copyright (c) 2015 Rex

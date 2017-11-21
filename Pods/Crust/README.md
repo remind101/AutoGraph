@@ -14,7 +14,7 @@ A flexible Swift framework for converting classes and structs to and from JSON w
   - [Mapping Payload](#mapping-payload)
   - [Custom Transformations](#custom-transformations)
   - [Different Mappings for Same Model](#different-mappings-for-same-model)
-- [Storage Adapter](#storage-adapter)
+- [Persistance Adapter](#persistance-adapter)
 - [Realm](#realm)
 - Supports Optional Types and Collections.
 
@@ -62,16 +62,16 @@ Crust has 2 basic protocols:
 - `Mapping`
 	- How to map JSON to and from a particular model - (model is set by the `associatedtype MappedObject` if mapping to an sequence of objects set `associatedtype SequenceKind`).
 	- May include primary key(s) and nested mapping(s).
-- `Adapter`
+- `PersistanceAdapter`
 	- How to store and retrieve model objects used for mapping from a backing store (e.g. Core Data, Realm, etc.).
 
-And 2 additional protocols when no storage `Adapter` is required:
+And 2 additional protocols when no storage `PersistanceAdapter` is required:
 - `AnyMappable`
 	- Inherited by the model (class or struct) to be mapped to and from JSON.
 - `AnyMapping`
-	- A `Mapping` that does not require an `Adapter`.
+	- A `Mapping` that does not require an `PersistanceAdapter`.
 
-There are no limitations on the number of various `Mapping`s and `Adapter`s one may create per model for different use cases.
+There are no limitations on the number of various `Mapping`s and `PersistanceAdapter`s one may create per model for different use cases.
 
 ## JSONValue for type safe JSON
 Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON encoding and decoding mechanism. It offers many benefits including type safety, subscripting, and extensibility through protocols.
@@ -138,7 +138,7 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
 
 2. Create your mappings for your model using `Mapping` if with storage or `AnyMapping` if without storage.
 
-    With storage (assume `CoreDataAdapter` conforms to `Adapter`)
+    With storage (assume `CoreDataAdapter` conforms to `PersistanceAdapter`)
     ```swift
     class EmployeeMapping: Mapping {
     
@@ -332,15 +332,15 @@ let company1 = try! mapper.map(from: json, using: CompanyMapping(), keyedBy: All
 let company2 = try! mapper.map(from: json, using: CompanyMappingWithNameUUIDReversed(), keyedBy: AllKeys())
 ```
 
-## Storage Adapter
-Follow the `Adapter` protocol to create a storage adapter to Core Data, Realm, etc.
+## Persistance Adapter
+Follow the `PersistanceAdapter` protocol to store data into Core Data, Realm, etc.
 
-The object conforming to `Adapter` must include two `associatedtype`s:
+The object conforming to `PersistanceAdapter` must include two `associatedtype`s:
 - `BaseType` - the top level class for this storage systems model objects.
   - Core Data this would be `NSManagedObject`.
   - Realm this would be `RLMObject`.
   - RealmSwift this would be `Object`.
-- `ResultsType: Collection` - Used for object lookups. Should return a collection of `BaseType`s.
+- `ResultsType: Collection` - Used for object lookups. Should be set to a collection of `BaseType`s.
 
 The `Mapping` must then set it's `associatedtype AdapterKind = <Your Adapter>` to use it during mapping.
 
