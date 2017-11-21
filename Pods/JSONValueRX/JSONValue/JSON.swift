@@ -148,7 +148,7 @@ public enum JSONValue: CustomStringConvertible {
         return try JSONValue.decode(string.data(using: String.Encoding.utf8, allowLossyConversion: false)!)
     }
     
-    public subscript(index: JSONKeypath) -> JSONValue? {
+    public subscript(index: JSONKeyPath) -> JSONValue? {
         get {
             switch self {
             case .object(_):
@@ -210,6 +210,17 @@ public enum JSONValue: CustomStringConvertible {
     
     public subscript(index: [String]) -> JSONValue? {
         get {
+            let sliceIndex = ArraySlice(index)
+            return self[sliceIndex]
+        }
+        set {
+            let sliceIndex = ArraySlice(index)
+            self[sliceIndex] = newValue
+        }
+    }
+    
+    public subscript(index: ArraySlice<String>) -> JSONValue? {
+        get {
             guard let key = index.first else {
                 return self
             }
@@ -218,7 +229,7 @@ public enum JSONValue: CustomStringConvertible {
             switch self {
             case .object(let obj):
                 if let next = obj[key] {
-                    return next[Array(keys)]
+                    return next[keys]
                 }
                 else {
                     return nil
@@ -231,7 +242,7 @@ public enum JSONValue: CustomStringConvertible {
                 return nil
             }
         }
-        set (newValue) {
+        set(newValue) {
             guard let key = index.first else {
                 return
             }
@@ -255,7 +266,7 @@ public enum JSONValue: CustomStringConvertible {
             switch self {
             case .object(var obj):
                 if var next = obj[key] {
-                    next[Array(keys)] = newValue
+                    next[keys] = newValue
                     obj.updateValue(next, forKey: key)
                     self = .object(obj)
                 }
@@ -341,13 +352,13 @@ public func !=(lhs: JSONValue, rhs: JSONValue) -> Bool {
     return !(lhs == rhs)
 }
 
-// MARK: - JSONKeypath
+// MARK: - JSONKeyPath
 
-public protocol JSONKeypath {
+public protocol JSONKeyPath {
     var keyPath: String { get }
 }
 
-extension String: JSONKeypath {
+extension String: JSONKeyPath {
     public var keyPath: String {
         return self
     }
@@ -357,7 +368,7 @@ extension String: JSONKeypath {
     }
 }
 
-extension Int: JSONKeypath {
+extension Int: JSONKeyPath {
     public var keyPath: String {
         return String(self)
     }
@@ -367,7 +378,7 @@ extension Int: JSONKeypath {
     }
 }
 
-extension Double: JSONKeypath {
+extension Double: JSONKeyPath {
     public var keyPath: String {
         return String(self)
     }
