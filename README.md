@@ -120,7 +120,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 ```
 
 ### Supports
-- [ ] [Query Document](https://facebook.github.io/graphql/#sec-Language.Query-Document)
+- [x] [Query Document](https://facebook.github.io/graphql/#sec-Language.Query-Document)
 - [x] [Operations](https://facebook.github.io/graphql/#sec-Language.Operations)
 - [x] [Mutations](http://graphql.org/learn/queries/#mutations)
 - [x] [Selection Sets](https://facebook.github.io/graphql/#sec-Selection-Sets)
