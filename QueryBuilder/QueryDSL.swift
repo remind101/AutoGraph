@@ -140,7 +140,7 @@ public extension SelectionSetSerializable {
     }
     
     public func serializedSelectionSet(serializedSelections: [String]) throws -> String {
-        let selectionSet = serializedSelections.flatMap { selection -> String? in
+        let selectionSet = serializedSelections.compactMap { selection -> String? in
             guard selection.count > 0 else {
                 return nil
             }
@@ -692,8 +692,8 @@ public extension Optional where Wrapped == Array<Directive> {
     }
 }
 
-/// Represents a GraphQL query sent by a request to the server.
-public protocol GraphQLQuery: QueryConvertible { }
+/// Represents a GraphQL Document sent by a request to the server.
+public protocol GraphQLDocument: QueryConvertible { }
 
 /// Represents a GraphQL variables payload sent by a request to the server.
 public protocol GraphQLVariables {
@@ -701,7 +701,7 @@ public protocol GraphQLVariables {
 }
 
 /// Defines an _OperationDefinition_ from the GraphQL language. Generally used as the `query` portion of a GraphQL request.
-public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefinitions, AcceptsDirectives {
+public struct Operation: GraphQLDocument, AcceptsSelectionSet, AcceptsVariableDefinitions, AcceptsDirectives {
     
     /// Defines an _OperationType_ from the GraphQL language.
     public enum OperationType: String, QueryConvertible {
@@ -744,7 +744,7 @@ public struct Operation: GraphQLQuery, AcceptsSelectionSet, AcceptsVariableDefin
 /// Defines an _Query Document_ from the GraphQL language.
 /// This represents a full GraphQL request with Operations, Fragments, and VariableDefinitions.
 /// Assigned Variables however are included separately in the request body.
-public struct Document: GraphQLQuery {
+public struct Document: GraphQLDocument {
     public let operations: [Operation]
     public let fragments: [FragmentDefinition]
     

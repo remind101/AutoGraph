@@ -28,7 +28,7 @@ public struct OrderedDictionary<Key: Hashable, Value> {
     public var dictionary = [Key : Value]()
     public var keys = [Key]()
     public var values: [Value] {
-        return self.keys.flatMap { dictionary[$0] }
+        return self.keys.compactMap { dictionary[$0] }
     }
     
     public var count: Int {
@@ -114,7 +114,7 @@ public struct OrderedDictionary<Key: Hashable, Value> {
     }
 }
 
-extension String: ScalarField, InputValue, GraphQLQuery {
+extension String: ScalarField, InputValue, GraphQLDocument {
     public static func inputType() throws -> InputType {
         return .scalar(.string)
     }

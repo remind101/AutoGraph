@@ -53,7 +53,7 @@ public indirect enum AutoGraphError: LocalizedError {
             return
         }
         
-        let errors = errorsArray.flatMap { GraphQLError(json: $0) }
+        let errors = errorsArray.compactMap { GraphQLError(json: $0) }
         let graphQLError = AutoGraphError.graphQL(errors: errors)
         if let networkError: NetworkError = networkErrorParser.flatMap({
             for error in errors {
@@ -67,14 +67,14 @@ public indirect enum AutoGraphError: LocalizedError {
             self = .network(error: networkError, statusCode: networkError.statusCode, response: nil, underlying: graphQLError)
         }
         else {
-            self = .graphQL(errors: errorsArray.flatMap { GraphQLError(json: $0) })
+            self = .graphQL(errors: errorsArray.compactMap { GraphQLError(json: $0) })
         }
     }
     
     public var errorDescription: String? {
         switch self {
         case .graphQL(let errors):
-            return errors.flatMap { $0.localizedDescription }.joined(separator: "\n")
+            return errors.compactMap { $0.localizedDescription }.joined(separator: "\n")
             
         case .network(let error, let statusCode, _, let underlying):
             return "Network Failure - \(statusCode): " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
@@ -148,7 +148,7 @@ public struct GraphQLError: LocalizedError, Equatable {
             guard case .some(.array(let locations)) = json["locations"] else {
                 return []
             }
-            return locations.flatMap { Location(json: $0) }
+            return locations.compactMap { Location(json: $0) }
         }()
     }
     
