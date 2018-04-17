@@ -16,18 +16,18 @@ class FilmRequest: Request {
      }
      */
     
-    let query = Operation(type: .query,
-                          name: "film",
-                          selectionSet: [
-                            Object(name: "film",
-                                   alias: nil,
-                                   arguments: ["id" : "ZmlsbXM6MQ=="],
-                                   selectionSet: [
-                                    "id",
-                                    Scalar(name: "title", alias: nil),
-                                    Scalar(name: "episodeID", alias: nil),
-                                    Scalar(name: "director", alias: nil),
-                                    Scalar(name: "openingCrawl", alias: nil)])
+    let queryDocument = Operation(type: .query,
+                                  name: "film",
+                                  selectionSet: [
+                                    Object(name: "film",
+                                           alias: nil,
+                                           arguments: ["id" : "ZmlsbXM6MQ=="],
+                                           selectionSet: [
+                                            "id",
+                                            Scalar(name: "title", alias: nil),
+                                            Scalar(name: "episodeID", alias: nil),
+                                            Scalar(name: "director", alias: nil),
+                                            Scalar(name: "openingCrawl", alias: nil)])
         ])
     
     let variables: [AnyHashable : Any]? = nil
@@ -115,11 +115,11 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
     
     typealias SerializedObject = FilmThreadUnconfined
     
-    var query: Document {
+    var queryDocument: Document {
         let operation = Operation(type: .query,
-                  name: "film",
-                  selectionSet: [
-                    Selection.fragmentSpread(name: "FilmFrag", directives: nil)
+                                  name: "film",
+                                  selectionSet: [
+                                    Selection.fragmentSpread(name: "FilmFrag", directives: nil)
             ])
         
         let filmFrag = FragmentDefinition(name: "FilmFrag", type: "Film", selectionSet: [

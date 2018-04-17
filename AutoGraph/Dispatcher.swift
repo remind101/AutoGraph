@@ -7,7 +7,6 @@ public protocol RequestSender {
 }
 
 public final class Sendable {
-    // TODO: Change to Document.
     public let queryDocument: GraphQLDocument
     public let variables: GraphQLVariables?
     public let willSend: (() throws -> ())?
