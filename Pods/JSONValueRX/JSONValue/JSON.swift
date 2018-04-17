@@ -235,7 +235,7 @@ public enum JSONValue: CustomStringConvertible {
                     return nil
                 }
             case .array(let arr):
-                return .array(arr.flatMap { $0[index] })
+                return .array(arr.compactMap { $0[index] })
             case .null:
                 return .null
             default:
