@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
   s.name             = "AutoGraph"
   s.module_name      = "AutoGraphQL"
-  s.version          = "0.4.4"
+  s.version          = "0.5.0"
   s.summary          = "Swift GraphQL Client and Mapping library with Realm support"
 
 # This description is used to generate tags and improve search results.
@@ -29,9 +29,9 @@ Pod::Spec.new do |s|
   s.platform     = :ios, '8.0'
   s.requires_arc = true
 
-  s.dependency 'Alamofire', '~> 4.5.1'
-  s.dependency 'Crust', '~> 0.8.1'
-  s.dependency 'JSONValueRX', '~> 3.0.0'
+  s.dependency 'Alamofire', '~> 4.7.2'
+  s.dependency 'Crust', '~> 0.9.0'
+  s.dependency 'JSONValueRX', '~> 4.0.0'
 
   s.source_files = 'AutoGraph/**/*.swift', 'QueryBuilder/**/*.swift'
   s.resource_bundles = {
