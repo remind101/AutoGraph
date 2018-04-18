@@ -34,6 +34,10 @@ jobs:
           name: sdks
           command: xcodebuild -showsdks
 
+      run:
+          name: destinations
+          command: xcodebuild test -destination 'platform=iOS Simulator' -workspace AutoGraph.xcworkspace -scheme AutoGraph
+
       - run:
           name: Run tests
           command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator11.3 ONLY_ACTIVE_ARCH=NO build test
