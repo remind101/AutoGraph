@@ -1,0 +1,52 @@
+# .circleci/config.yml
+
+# Specify the config version - version 2 is latest.
+version: 2
+
+# Define the jobs for the current project.
+jobs:
+  build-and-test:
+
+    # Specify the Xcode version to use.
+    macos:
+      xcode: "9.3.0"
+    working_directory: /Users/distiller/project
+    environment:
+      FL_OUTPUT_DIR: output
+
+    # Define the steps required to build the project.
+    steps:
+
+      # Get the code from the VCS provider.
+      - checkout
+
+      # Download CocoaPods specs via HTTPS (faster than Git)
+      # and install CocoaPods.
+      - run:
+          name: pipefail
+          command: set -o pipefail
+
+      - run:
+          name: version
+          command: xcodebuild -version
+
+      - run:
+          name: sdks
+          command: xcodebuild -showsdks
+
+      - run:
+          name: Run tests
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator -destination "OS=11.3,name=iPhone 8" ONLY_ACTIVE_ARCH=NO build test
+
+      - store_test_results:
+          path: output/scan
+      - store_artifacts:
+          path: output
+
+workflows:
+  version: 2
+  build-test-lint:
+    jobs:
+      - swiftlint
+      - danger
+      - build-and-test
