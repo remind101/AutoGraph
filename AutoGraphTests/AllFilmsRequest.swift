@@ -20,22 +20,22 @@ class AllFilmsRequest: Request {
     
     typealias SerializedObject = [FilmMapping.MappedObject]
     
-    let query = Operation(type: .query,
-                          name: "filmRequest",
-                          selectionSet: [
-                            Object(name: "allFilms",
-                                   alias: nil,
-                                   arguments: nil,
-                                   selectionSet: [
-                                    Object(name: "films",
+    let queryDocument = Operation(type: .query,
+                                  name: "filmRequest",
+                                  selectionSet: [
+                                    Object(name: "allFilms",
                                            alias: nil,
+                                           arguments: nil,
                                            selectionSet: [
-                                            Scalar(name: "title", alias: nil),
-                                            Scalar(name: "episodeID", alias: nil),
-                                            Scalar(name: "openingCrawl", alias: nil),
-                                            Scalar(name: "director", alias: nil)]
-                                           )])
-                            ])
+                                            Object(name: "films",
+                                                   alias: nil,
+                                                   selectionSet: [
+                                                    Scalar(name: "title", alias: nil),
+                                                    Scalar(name: "episodeID", alias: nil),
+                                                    Scalar(name: "openingCrawl", alias: nil),
+                                                    Scalar(name: "director", alias: nil)]
+                                            )])
+                        ])
     
     let variables: [AnyHashable : Any]? = nil
     

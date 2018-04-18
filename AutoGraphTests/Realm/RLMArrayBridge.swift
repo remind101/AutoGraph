@@ -35,6 +35,13 @@ public class RLMArrayBridge<T: RLMObject>: RangeReplaceableCollection {
         self._rlmArray = rlmArray
     }
     
+    public required init<S>(_ elements: S) where S : Sequence, RLMArrayBridge.Element == S.Element {
+        self._rlmArray = RLMArray(objectClassName: String(describing: T.self))
+        for element in elements {
+            self._rlmArray.add(element)
+        }
+    }
+    
     // MARK: Index Retrieval
     
     public func index(of object: T) -> Int? {
@@ -129,8 +136,8 @@ public class RLMArrayBridge<T: RLMObject>: RangeReplaceableCollection {
         self._rlmArray.add(object)
     }
     
-    public func append<S: Sequence>(objectsIn objects: S) where S.Iterator.Element == T {
-        for obj in objects {
+    public func append<S>(contentsOf newElements: S) where S : Sequence, RLMArrayBridge.Element == S.Element {
+        for obj in newElements {
             self._rlmArray.add(obj)
         }
     }

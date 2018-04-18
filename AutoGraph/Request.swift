@@ -19,7 +19,7 @@ public protocol Request {
     /// E.g if the requests returns an array then change to `[Mapping.MappedObject]`.
     associatedtype SerializedObject = Mapping.MappedObject
     
-    associatedtype Query: GraphQLQuery
+    associatedtype QueryDocument: GraphQLDocument
     associatedtype Variables: GraphQLVariables
     
     /// If the `SerializedObject`(s) cannot be passed across threads, then we'll use this to transform
@@ -27,7 +27,7 @@ public protocol Request {
     associatedtype ThreadAdapterType: ThreadAdapter
     
     /// The query to be sent to GraphQL.
-    var query: Query { get }
+    var queryDocument: QueryDocument { get }
     
     /// The variables sent along with the query.
     var variables: Variables? { get }
@@ -123,7 +123,7 @@ extension Request
 }
 
 extension Request where SerializedObject == Mapping.MappedObject {
-    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, Array<Int>, ThreadAdapterType> {
-        return ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, Array<Int>, ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, [Int], ThreadAdapterType> {
+        return ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, [Int], ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
     }
 }

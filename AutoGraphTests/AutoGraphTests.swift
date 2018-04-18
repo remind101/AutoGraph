@@ -166,7 +166,7 @@ class AutoGraphTests: XCTestCase {
         
         XCTAssertTrue(self.subject.dispatcher.paused)
         XCTAssertTrue(self.subject.authHandler.isRefreshing)
-        XCTAssertTrue(( try! self.subject.dispatcher.pendingRequests.first!.query.graphQLString()) == (try! request.query.graphQLString()))
+        XCTAssertTrue(( try! self.subject.dispatcher.pendingRequests.first!.queryDocument.graphQLString()) == (try! request.queryDocument.graphQLString()))
     }
     
     func testFunctional401RequestNotHandled() {

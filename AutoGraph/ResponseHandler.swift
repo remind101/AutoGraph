@@ -10,7 +10,7 @@ open class ResponseHandler {
     public var networkErrorParser: NetworkErrorParser?
     
     public init(queue: OperationQueue = OperationQueue(),
-         callbackQueue: OperationQueue = OperationQueue.main) {
+                callbackQueue: OperationQueue = OperationQueue.main) {
         
         self.queue = queue
         self.callbackQueue = callbackQueue
