@@ -43,7 +43,7 @@ class DispatcherTests: XCTestCase {
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -77,7 +77,7 @@ class DispatcherTests: XCTestCase {
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.query.graphQLString()])
+            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
         }
         
         self.subject.paused = true
@@ -93,13 +93,13 @@ class DispatcherTests: XCTestCase {
     }
     
     class BadRequest: AutoGraphQL.Request {
-        struct BadQuery: GraphQLQuery {
+        struct BadQuery: GraphQLDocument {
             func graphQLString() throws -> String {
                 throw NSError(domain: "error", code: -1, userInfo: nil)
             }
         }
         
-        let query = BadQuery()
+        let queryDocument = BadQuery()
         let variables: [AnyHashable : Any]? = nil
         
         var threadAdapter: RealmThreadAdapter? = nil

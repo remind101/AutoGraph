@@ -102,15 +102,17 @@ extension AuthHandler: RequestRetrier {
             
             strongSelf.delegate?.authHandlerBeganReauthentication(strongSelf)
             
-            strongSelf.reauthenticationDelegate?.autoGraphRequiresReauthentication(accessToken: strongSelf.accessToken, refreshToken: strongSelf.refreshToken) {
-                [weak self] succeeded, accessToken, refreshToken in
+            strongSelf.reauthenticationDelegate?.autoGraphRequiresReauthentication(
+                accessToken: strongSelf.accessToken,
+                refreshToken: strongSelf.refreshToken)
+            { [weak self] succeeded, accessToken, refreshToken in
                 
                 self?.reauthenticated(success: succeeded, accessToken: accessToken, refreshToken: refreshToken)
             }
         }
     }
     
-    func reauthenticated(success: Bool, accessToken: String?, refreshToken: String?) -> Void {
+    func reauthenticated(success: Bool, accessToken: String?, refreshToken: String?) {
         self.lock.lock()
         defer {
             self.lock.unlock()
