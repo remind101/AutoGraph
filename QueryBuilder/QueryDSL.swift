@@ -226,7 +226,6 @@ public struct SelectionSet: ExpressibleByArrayLiteral, SelectionSetSerializable,
     }
 }
 
-
 public enum SelectionKind: String {
     case scalar
     case object
@@ -269,23 +268,23 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
         switch self {
         case .scalar(name: _, alias: let alias): return alias
         case .object(name: _, alias: let alias, arguments: _, directives: _, selectionSet: _): return alias
-        case .fragmentSpread(_): return nil
-        case .inlineFragment(_): return nil
+        case .fragmentSpread: return nil
+        case .inlineFragment: return nil
         }
     }
     
     public var arguments: [String : InputValue]? {
         switch self {
-        case .scalar(_): return nil
+        case .scalar: return nil
         case .object(name: _, alias: _, arguments: let args, directives: _, selectionSet: _): return args
-        case .fragmentSpread(_): return nil
-        case .inlineFragment(_): return nil
+        case .fragmentSpread: return nil
+        case .inlineFragment: return nil
         }
     }
     
     public var directives: [Directive]? {
         switch self {
-        case .scalar(_): return nil
+        case .scalar: return nil
         case .object(name: _, alias: _, arguments: _, directives: let dirs, selectionSet: _): return dirs
         case .fragmentSpread(name: _, directives: let dirs): return dirs
         case .inlineFragment(namedType: _, directives: let dirs, selectionSet: _): return dirs
@@ -305,20 +304,20 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var kind: SelectionKind {
         switch self {
-        case .scalar(_): return .scalar
-        case .object(_): return .object
-        case .fragmentSpread(_): return .fragmentSpread
-        case .inlineFragment(_): return .inlineFragment
+        case .scalar: return .scalar
+        case .object: return .object
+        case .fragmentSpread: return .fragmentSpread
+        case .inlineFragment: return .inlineFragment
         }
     }
     
     public func serializedSelections() throws -> [String] {
         switch self {
-        case .scalar(_):
+        case .scalar:
             return []
         case .object(name: _, alias: _, arguments: _, directives: _, selectionSet: let selectionSet):
             return try selectionSet.serializedSelections()
-        case .fragmentSpread(_):
+        case .fragmentSpread:
             return []
         case .inlineFragment(namedType: _, directives: _, selectionSet: let selectionSet):
             return try selectionSet.serializedSelections()
@@ -329,7 +328,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
         switch self {
         case .scalar(name: let name, alias: let alias):
             return try Scalar(name: name, alias: alias).graphQLString()
-        case .object(_):
+        case .object:
             return try objectGraphQLString(for: self)
         case .fragmentSpread(name: let name, directives: let directives):
             return try FragmentSpread(name: name, directives: directives).graphQLString()
@@ -354,10 +353,10 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
             let mergedObject: Selection = .object(name: lname, alias: lalias, arguments: largs, directives: ldirs, selectionSet: lfields)
             return SelectionSet(mergedObject)
             
-        case (.scalar(_), .scalar(_)):
+        case (.scalar, .scalar):
             return SelectionSet(self)
             
-        case (.fragmentSpread(_), .fragmentSpread(_)):
+        case (.fragmentSpread, .fragmentSpread):
             return SelectionSet(self)
             
         case (.inlineFragment(let lname, let ldirs, var lfields), .inlineFragment(_, _, let rfields)):
@@ -682,7 +681,7 @@ public extension AcceptsDirectives {
     }
 }
 
-public extension Optional where Wrapped == Array<Directive> {
+public extension Optional where Wrapped == [Directive] {
     func serializedDirectives() throws -> String {
         guard let directives = self else {
             return ""

@@ -122,7 +122,7 @@ public struct GraphQLError: LocalizedError, Equatable {
             self.column = Int(column)
         }
         
-        public static func ==(lhs: Location, rhs: Location) -> Bool {
+        public static func == (lhs: Location, rhs: Location) -> Bool {
             return lhs.line == rhs.line && lhs.column == rhs.column
         }
     }
@@ -152,7 +152,7 @@ public struct GraphQLError: LocalizedError, Equatable {
         }()
     }
     
-    public static func ==(lhs: GraphQLError, rhs: GraphQLError) -> Bool {
+    public static func == (lhs: GraphQLError, rhs: GraphQLError) -> Bool {
         return lhs.message == rhs.message && lhs.locations == rhs.locations
     }
 }
