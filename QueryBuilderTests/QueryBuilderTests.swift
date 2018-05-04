@@ -580,13 +580,18 @@ class InputValueTests: XCTestCase {
         XCTAssertThrowsError(try EnumValue<Color>(caseName: "null"))
         XCTAssertThrowsError(try EnumValue<Color>(caseName: "true"))
         XCTAssertThrowsError(try EnumValue<Color>(caseName: "false"))
+        
         let enumVal = Color.red
         XCTAssertEqual(try enumVal.graphQLInputValue(), "RED")
-        print(try! Color.inputType())
+        
         guard case .enumValue(typeName: "Color") = try! Color.inputType() else {
             XCTFail()
             return
         }
+        
+        let anyEnumVal = try! AnyEnumValue(caseName: "any")
+        XCTAssertThrowsError(try AnyEnumValue.inputType())
+        XCTAssertEqual(try anyEnumVal.graphQLInputValue(), "any")
     }
 }
 
