@@ -499,6 +499,25 @@ public struct EnumValue<T>: InputValue {
     }
 }
 
+public struct AnyEnumValue: InputValue {
+    let caseName: String
+    
+    public init(caseName: String) throws {
+        guard caseName != "null" && caseName != "true" && caseName != "false" else {
+            throw QueryBuilderError.incorrectInputType(message: "An EnumValue can not have values named `null`, `true`, or `false`.")
+        }
+        self.caseName = caseName
+    }
+    
+    public static func inputType() throws -> InputType {
+        throw QueryBuilderError.incorrectInputType(message: "Cannot construct `inputType` from `AnyEnumValue`.")
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return self.caseName
+    }
+}
+
 /// Any type that accepts _Arguments_ from the GraphQL language.
 public protocol AcceptsArguments {
     var arguments: [String : InputValue]? { get }
