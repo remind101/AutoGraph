@@ -7,14 +7,14 @@ public protocol RequestSender {
 }
 
 public final class Sendable {
-    public let query: GraphQLQuery
+    public let queryDocument: GraphQLDocument
     public let variables: GraphQLVariables?
     public let willSend: (() throws -> ())?
     public let dispatcherCompletion: (Sendable) -> (DataResponse<Any>) -> ()
     public let dispatcherEarlyFailure: (Sendable) -> (Error) -> ()
     
-    public required init(query: GraphQLQuery, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) -> (DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
-        self.query = query
+    public required init(queryDocument: GraphQLDocument, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) -> (DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
+        self.queryDocument = queryDocument
         self.variables = variables
         self.willSend = willSend
         self.dispatcherCompletion = dispatcherCompletion
@@ -41,7 +41,7 @@ public final class Sendable {
             try request.willSend()
         }
         
-        self.init(query: request.query, variables: request.variables, willSend: willSend, dispatcherCompletion: completion, dispatcherEarlyFailure: earlyFailure)
+        self.init(queryDocument: request.queryDocument, variables: request.variables, willSend: willSend, dispatcherCompletion: completion, dispatcherEarlyFailure: earlyFailure)
     }
 }
 
@@ -78,7 +78,7 @@ open class Dispatcher {
         
         do {
             try sendable.willSend?()
-            let query = try sendable.query.graphQLString()
+            let query = try sendable.queryDocument.graphQLString()
             var parameters: [String : Any] = ["query" : query]
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
                 parameters["variables"] = variables

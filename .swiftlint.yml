@@ -1,0 +1,40 @@
+disabled_rules: # rule identifiers to exclude from running
+  - class_delegate_protocol
+  - colon
+  - cyclomatic_complexity
+  - file_length
+  - force_try
+  - function_body_length
+  - function_parameter_count
+  - generic_type_name
+  - identifier_name
+  - large_tuple
+  - leading_whitespace
+  - line_length
+  - opening_brace
+  - statement_position
+  - todo
+  - trailing_whitespace
+  - type_body_length
+  - void_return
+  - weak_delegate
+  - xctfail_message
+opt_in_rules: # some rules are only opt-in
+included: # paths to include during linting. `--path` is ignored if present.
+  - AutoGraph
+  - QueryBuilder
+excluded: # paths to ignore during linting. Takes precedence over `included`.
+  - Pods
+custom_rules:
+  else_newline:
+    name: Newline before else
+    regex: (\}\h*else\s*\{)
+    message: Else statements should go on a new line
+    severity: warning
+
+  weak_delegate:
+    name: Weak delegate
+    regex: (?<=\n)\h*(var delegate)
+    message: Delegates should be weak
+    severity: error
+

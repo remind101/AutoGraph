@@ -57,35 +57,35 @@ class VariableFilmRequest: Request {
     static let nodeIdVariable = VariableDefinition<NonNullInputValue<IDValue>>(name: "nodeId")
     static let lastVariable = VariableDefinition<Int>(name: "last")
     
-    let query = Operation(type: .query,
-                          name: "VariableFilmQuery",
-                          variableDefinitions: [
-                            try! nodeIdVariable.typeErase(),
-                            try! lastVariable.typeErase()
-                        ],
-                          selectionSet: [
-                            Object(name: "allFilms",
-                                   arguments: [ "last" : lastVariable ],
-                                   selectionSet: [
-                                    Object(name: "films",
+    let queryDocument = Operation(type: .query,
+                                  name: "VariableFilmQuery",
+                                  variableDefinitions: [
+                                    try! nodeIdVariable.typeErase(),
+                                    try! lastVariable.typeErase()
+                                    ],
+                                  selectionSet: [
+                                    Object(name: "allFilms",
+                                           arguments: [ "last" : lastVariable ],
+                                           selectionSet: [
+                                            Object(name: "films",
+                                                   selectionSet: [
+                                                    "id",
+                                                    "title",
+                                                    "episodeID",
+                                                    "openingCrawl",
+                                                    "director"
+                                                ])
+                                        ]),
+                                    Object(name: "node",
+                                           arguments: [ "id" : nodeIdVariable ],
                                            selectionSet: [
                                             "id",
                                             "title",
                                             "episodeID",
                                             "openingCrawl",
                                             "director"
-                                           ])
-                                ]),
-                            Object(name: "node",
-                                   arguments: [ "id" : nodeIdVariable ],
-                                   selectionSet: [
-                                    "id",
-                                    "title",
-                                    "episodeID",
-                                    "openingCrawl",
-                                    "director"
-                                    ])
-    ])
+                                        ])
+        ])
     
     /*
      {

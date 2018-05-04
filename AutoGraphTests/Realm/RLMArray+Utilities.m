@@ -43,7 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
         {
             case RLMPropertyTypeInt:
             {
-                return @([value integerValue]);
+                return @([value longLongValue]);
             }
             case RLMPropertyTypeFloat:
             {
@@ -61,7 +61,7 @@ NS_ASSUME_NONNULL_BEGIN
             {
                 // TODO: Return an error.
                 NSAssert(NO, @"We should be handling all cases of number type coersion");
-                return @([value integerValue]);
+                return @([value longLongValue]);
             }
         }
     }

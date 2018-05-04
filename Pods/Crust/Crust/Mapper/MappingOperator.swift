@@ -77,34 +77,34 @@ private func map<T: JSONable>(from json: JSONValue) throws -> T where T.Conversi
 // MARK: - Map with a generic binding.
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <M, K>(field: inout M.MappedObject, binding:(key: Binding<K, M>, payload: MappingPayload<K>)) -> MappingPayload<K> {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <M, K, MC: MappingPayload<K>>(field: inout M.MappedObject?, binding:(key: Binding<K, M>, payload: MC)) -> MC {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <M, K, MC: MappingPayload<K>>(field: inout M.MappedObject, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func <- <M, K, MC: MappingPayload<K>>(field: inout M.MappedObject?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC {
     return map(to: &field, using: binding)
 }
 
 // Transform.
 
 @discardableResult
-public func <- <T: JSONable, TF: Transform, K, MC: MappingPayload<K>>(field: inout T, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
+public func <- <TF, K, MC: MappingPayload<K>>(field: inout TF.MappedObject, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject: JSONable, TF.MappedObject == TF.MappedObject.ConversionType {
     return map(to: &field, using: binding)
 }
 
 @discardableResult
-public func <- <T: JSONable, TF: Transform, K, MC: MappingPayload<K>>(field: inout T?, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject == T, T == T.ConversionType {
+public func <- <TF, K, MC: MappingPayload<K>>(field: inout TF.MappedObject?, binding:(key: Binding<K, TF>, payload: MC)) -> MC where TF.MappedObject: JSONable, TF.MappedObject == TF.MappedObject.ConversionType {
     return map(to: &field, using: binding)
 }
 
@@ -252,7 +252,7 @@ extension MappingPayload {
     }
 }
 
-public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func map<M, K, MC: MappingPayload<K>>(to field: inout M.MappedObject, using binding:(key: Binding<K, M>, payload: MC)) -> MC {
     let payload = binding.payload
     let binding = binding.key
     do {
@@ -273,7 +273,7 @@ public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding
     return payload
 }
 
-public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func map<M, K, MC: MappingPayload<K>>(to field: inout M.MappedObject?, using binding:(key: Binding<K, M>, payload: MC)) -> MC {
     let payload = binding.payload
     let binding = binding.key
     do {
@@ -294,7 +294,7 @@ public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using bindin
     return payload
 }
 
-public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func map<M, K, MC: MappingPayload<K>>(to field: inout M.MappedObject, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC {
     let payload = binding.payload
     let binding = binding.key
     do {
@@ -315,7 +315,7 @@ public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T, using binding
     return payload
 }
 
-public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T {
+public func map<M, K, MC: MappingPayload<K>>(to field: inout M.MappedObject?, using binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC {
     let payload = binding.payload
     let binding = binding.key
     do {
@@ -338,7 +338,7 @@ public func map<T, M, K, MC: MappingPayload<K>>(to field: inout T?, using bindin
 
 // MARK: - To JSON
 
-private func map<T, M: Mapping, KC: KeyCollection>(to json: JSONValue, from field: T?, via key: KC.MappingKeyType, ifIn keys: KC, using mapping: M, keyedBy nestedKeys: AnyKeyCollection<M.MappingKeyType>) throws -> JSONValue where M.MappedObject == T {
+private func map<M: Mapping, KC: KeyCollection>(to json: JSONValue, from field: M.MappedObject?, via key: KC.MappingKeyType, ifIn keys: KC, using mapping: M, keyedBy nestedKeys: AnyKeyCollection<M.MappingKeyType>) throws -> JSONValue {
     var json = json
     
     guard shouldMapToJSON(via: key, ifIn: keys) else {
@@ -385,14 +385,14 @@ public typealias UniquingFunctions<T, RRC: Collection> = (
 
 /// This handles the case where our Collection contains Equatable objects, and thus can be uniqued during insertion and deletion.
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject, M.MappedObject: Equatable {
     
     return map(toCollection: &field, using: binding)
 }
 
 /// This is for Collections with non-Equatable objects.
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<K, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject {
     
     return map(toCollection: &field, using: binding, uniquing: nil)
 }
@@ -400,7 +400,7 @@ public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
 //// Optional types.
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<K, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject, M.MappedObject: Equatable {
     
     return map(toCollection: &field, using: binding, uniquing: RRC.defaultUniquingFunctions())
 }
@@ -414,11 +414,11 @@ public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(fi
 
 /// Map into a `RangeReplaceableCollection` with `Equatable` `Element`.
 @discardableResult
-public func map<T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
+public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     (toCollection field: inout RRC,
      using binding:(key: Binding<K, M>, payload: MC))
     -> MC
-    where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+    where RRC.Iterator.Element == M.MappedObject, M.MappedObject: Equatable {
         
         return map(toCollection: &field, using: binding, uniquing: RRC.defaultUniquingFunctions())
 }
@@ -430,7 +430,7 @@ public func map<T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
 /// Collections with Equatable objects.
 
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject, M.MappedObject: Equatable {
     
     let payload = binding.payload
     let binding = binding.key
@@ -448,7 +448,7 @@ public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     return payload
 }
 
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject, T: Equatable {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject, M.MappedObject: Equatable {
     let payload = binding.payload
     let binding = binding.key
     
@@ -472,7 +472,7 @@ public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
 
 /// This is for Collections with non-Equatable objects.
 @discardableResult
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject {
     
     let payload = binding.payload
     let binding = binding.key
@@ -490,7 +490,7 @@ public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
     return payload
 }
 
-public func <- <T, M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where M.MappedObject == T, RRC.Iterator.Element == M.MappedObject {
+public func <- <M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>(field: inout RRC?, binding:(key: Binding<RootedKey<K>, M>, payload: MC)) -> MC where RRC.Iterator.Element == M.MappedObject {
     let payload = binding.payload
     let binding = binding.key
     

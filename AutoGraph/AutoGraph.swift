@@ -22,15 +22,11 @@ open class GlobalLifeCycle {
 
 open class AutoGraph {
     public var baseUrl: String {
-        get {
-            return self.client.baseUrl
-        }
+        return self.client.baseUrl
     }
     
     public var authHandler: AuthHandler {
-        get {
-            return self.client.authHandler
-        }
+        return self.client.authHandler
     }
     
     public var networkErrorParser: NetworkErrorParser? {

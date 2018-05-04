@@ -52,7 +52,7 @@ pod 'AutoGraph'
 - [ ] Swift Package Manager
 
 ## Code Generation
-Code generation for Realm is in the works and coming very soon.
+Code generation is in an alpha stage. If you're interested in testing it please open an inquiry.
 
 ## Database Agnostic
 AutoGraph and it's mapping component [Crust](#crust-for-type-safe-mapping) are written to be database agnostic. To add support for a database to use in conjunction with AutoGraph, write an adapter class that inherits from Crust's [PersistanceAdapter](https://github.com/rexmas/Crust#persistance-adapter) protocol. This protocol maintains hooks where the business logic for writing to and reading from the database will live. A persistance adapter example already exists for Realm in the [tests](https://github.com/remind101/AutoGraph/blob/master/AutoGraphTests/Realm/RealmMappings.swift).
@@ -120,7 +120,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 ```
 
 ### Supports
-- [ ] [Query Document](https://facebook.github.io/graphql/#sec-Language.Query-Document)
+- [x] [Query Document](https://facebook.github.io/graphql/#sec-Language.Query-Document)
 - [x] [Operations](https://facebook.github.io/graphql/#sec-Language.Operations)
 - [x] [Mutations](http://graphql.org/learn/queries/#mutations)
 - [x] [Selection Sets](https://facebook.github.io/graphql/#sec-Selection-Sets)
