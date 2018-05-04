@@ -458,12 +458,44 @@ public struct IDValue: InputValue {
         self.value = String(value)
     }
     
+    public static func inputType() throws -> InputType {
+        return .scalar(.id)
+    }
+    
     public func graphQLInputValue() throws -> String {
         return try self.value.jsonEncodedString()
     }
+}
+
+/// Conformance to this type will allow it to automatically be used as an _EnumValue_ for Input.
+public protocol EnumValueProtocol: InputValue {
+    /// The enum case in GraphQL. E.g. for a set of colors could be RED, GREEN, BLUE.
+    func graphQLInputValue() throws -> String
+}
+
+public extension EnumValueProtocol {
+    public static func inputType() throws -> InputType {
+        return .enumValue(typeName: "\(Self.self)")
+    }
+}
+
+/// `InputValue` representing an _EnumValue_.
+public struct EnumValue<T>: InputValue {
+    let caseName: String
+    
+    public init(caseName: String) throws {
+        guard caseName != "null" && caseName != "true" && caseName != "false" else {
+            throw QueryBuilderError.incorrectInputType(message: "An EnumValue can not have values named `null`, `true`, or `false`.")
+        }
+        self.caseName = caseName
+    }
     
     public static func inputType() throws -> InputType {
-        return .scalar(.id)
+        return .enumValue(typeName: "\(T.self)")
+    }
+    
+    public func graphQLInputValue() throws -> String {
+        return self.caseName
     }
 }
 
