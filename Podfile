@@ -6,7 +6,7 @@ use_frameworks!
 
 target 'AutoGraphQL' do
   pod 'Alamofire', '~> 4.7.2'
-  pod 'Crust', '~> 0.9.0'
+  pod 'Crust', '~> 0.9.1'
     
   target 'AutoGraphTests' do
     inherit! :complete

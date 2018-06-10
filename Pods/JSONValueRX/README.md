@@ -15,8 +15,12 @@ enum JSONValue: CustomStringConvertible {
 }
 ```
 # Requirements
-iOS 8.0+
-Swift 4.0+
+### Supported Platforms
+iOS 8.0+  
+MacOS 10.12+
+
+### Supported Languages
+Swift 4.1+
 
 # Installation
 ### CocoaPods
@@ -26,37 +30,41 @@ use_frameworks!
 
 pod 'JSONValueRX'
 ```
+### Swift Package Manager (SPM)
+```swift
+dependencies: [
+    .package(url: "https://github.com/rexmas/JSONValue.git", from: "4.0.1")
+]
+```
+
+#### Build Xcode Project
+swift package generate-xcodeproj
 
 # Subscripting
 Supports `.` indexing
 ```swift
-let dict = [ "blerp" : [ "z" : "zerp" ]]
+let dict = [ "fis" : [ "h" : "food" ]]
 var jsonVal = try! JSONValue(object: dict)
 
-print(jsonVal["blerp.z"])
-// Optional(JSONString(zerp))
+print(jsonVal["fis.h"]) // Optional(JSONString(food))
 
-jsonVal["blerp.w"] = try! JSONValue(object: "werp")
-print(jsonVal["blerp.w"])
-// Optional(JSONString(werp))
+jsonVal["awe.some"] = try! JSONValue(object: "cool")
+print(jsonVal["awe.some"]) // Optional(JSONString(cool))
 ```
 Supports `.` in keys
 ```swift
-let dict = [ "blerp.z" : "zerp" ]
+let dict = [ "fis.h" : "food" ]
 var jsonVal = try! JSONValue(object: dict)
 
-print(jsonVal["blerp.z"])
-// Optional(JSONString(zerp))
+print(jsonVal["fis.h"]) // Optional(JSONString(food))
 
-jsonVal[["blerp.w"]] = try! JSONValue(object: "werp")
-print(jsonVal["blerp.w"])
-// Optional(string(werp))
+jsonVal[["awe.some"]] = try! JSONValue(object: "cool")
+print(jsonVal["awe.some"]) // Optional(string(cool))
 ```
 
 # Equatable
 ```swift
-print(JSONValue.number(1.0) == JSONValue.number(1.0))
-// true
+print(JSONValue.number(1.0) == JSONValue.number(1.0)) // true
 ```
 
 # Hashable
@@ -64,13 +72,11 @@ print(JSONValue.number(1.0) == JSONValue.number(1.0))
 
 Inverted key/value pairs do not collide.
 ```swift
-let hashable1 = try! JSONValue(object: ["blah" : "zerp"])
-let hashable2 = try! JSONValue(object: ["zerp" : "blah"])
+let hashable1 = try! JSONValue(object: ["warp" : "drive"])
+let hashable2 = try! JSONValue(object: ["drive" : "warp"])
 
-print(hashable1.hashValue)
-// -8516032725034193623
-print(hashable2.hashValue)
-// 2895177120076124296
+print(hashable1.hashValue) // -7189088994080390660
+print(hashable2.hashValue) // -215843780535174243
 ```
 # Encoding/Decoding from String, Data
 ```swift
@@ -98,7 +104,8 @@ The following support `JSONable` for out-of-the-box Encoding/Decoding.
 NSNull
 Double
 Bool
-Int
+Int (and varieties -> Int64, Int32, ...)
+UInt (and varieties -> UInt64, UInt32, ...)
 Date
 NSDate
 Array
@@ -109,13 +116,13 @@ Dictionary
 
 # Contributing
 
-- Open an issue if you run into any problems.
+- If a bug is discovered please open an issue.
 - Fork the project and submit a pull request to contribute.
 
 # License
 The MIT License (MIT)
 
-Copyright (c) 2015 Rex
+Copyright (c) 2015-Present Rex
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
