@@ -9,7 +9,7 @@ jobs:
 
     # Specify the Xcode version to use.
     macos:
-      xcode: "9.3.0"
+      xcode: "9.4.0"
     working_directory: /Users/distiller/project
     environment:
       FL_OUTPUT_DIR: output
@@ -40,11 +40,11 @@ jobs:
 
       - run:
           name: pre-start simulator
-          command: xcrun instruments -w "iPhone SE (11.3) [" || true
+          command: xcrun instruments -w "iPhone SE (11.4) [" || true
 
       - run:
           name: Run tests
-          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator11.3 -destination 'platform=iOS Simulator,OS=11.3,name=iPhone SE' ONLY_ACTIVE_ARCH=NO build test
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator11.4 -destination 'platform=iOS Simulator,OS=11.4,name=iPhone SE' ONLY_ACTIVE_ARCH=NO build test
 
       - store_test_results:
           path: output/scan
@@ -68,3 +68,4 @@ workflows:
     jobs:
       - swiftlint
       - build-and-test
+
