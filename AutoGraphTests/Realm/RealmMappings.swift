@@ -162,7 +162,7 @@ public class RealmThreadAdapter: ThreadAdapter {
     
     public func retrieveObjects(`for` representations: [RLMThreadSafeReference<RLMThreadConfined>]) throws -> [RLMObject] {
         let realm = RLMRealm.default()
-        return representations.flatMap { realm.__resolve($0) as? RLMObject }
+        return representations.compactMap { realm.__resolve($0) as? RLMObject }
     }
 }
 

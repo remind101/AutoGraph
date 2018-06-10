@@ -157,9 +157,8 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
             let companyMapping = CompanyTransformableMapping()
             
             // No need to map the primary key here.
-            toMap.employer              <- .mapping(.employer([]), companyMapping) >*<
-            toMap.name                  <- .name >*<
-            payload
+            toMap.employer              <- (.mapping(.employer([]), companyMapping), payload)
+            toMap.name                  <- (.name, payload)
         }
     }
     ```
@@ -171,13 +170,12 @@ Crust relies on [JSONValue](https://github.com/rexmas/JSONValue) for it's JSON e
         func mapping(inout toMap: inout Company, payload: MappingPayload<CompanyKey>) throws {
             let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
         
-            toMap.employees             <- .mapping(.employees([]), employeeMapping) >*<
-            toMap.founder               <- .mapping(.founder([]), employeeMapping) >*<
-            toMap.uuid                  <- .uuid >*<
-            toMap.name                  <- .name >*<
-            toMap.foundingDate          <- .foundingDate  >*<
-            toMap.pendingLawsuits       <- .pendingLawsuits  >*<
-            payload
+            toMap.employees             <- (.mapping(.employees([]), employeeMapping), payload)
+            toMap.founder               <- (.mapping(.founder([]), employeeMapping), payload)
+            toMap.uuid                  <- (.uuid, payload)
+            toMap.name                  <- (.name, payload)
+            toMap.foundingDate          <- (.foundingDate, payload)
+            toMap.pendingLawsuits       <- (.pendingLawsuits, payload)
         }
     }
     ```
@@ -222,8 +220,7 @@ E.g. from above
 func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
     let employeeMapping = EmployeeMapping(adapter: CoreDataAdapter())
     
-    toMap.employees <- Binding.mapping(.employees([]), employeeMapping) >*<
-    payload
+    toMap.employees <- (Binding.mapping(.employees([]), employeeMapping), payload)
 }
 ```
 
@@ -276,25 +273,14 @@ Look in ./Mapper/MappingProtocols.swift for more.
 ### Mapping Payload
 Every `mapping` passes through a `Payload: MappingPayload<T>` which must be included during the mapping. The `payload` includes error information that is propagated back from the mapping to the caller and contextual information about the json and object being mapped to/from.
 
-There are two ways to include the payload during mapping:
+To include the payload during mapping include it as a tuple.
 
-1. Include it as a tuple.
-
-   ```swift
-   func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
-       toMap.uuid <- (.uuid, payload)
-       toMap.name <- (.name, payload)
-   }
-   ```
-2. Use a specially included operator `>*<` which merges the result of the right expression with the left expression into a tuple. This may be chained in succession.
-
-   ```swift
-   func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
-       toMap.uuid <- .uuid >*<
-       toMap.name <- .name >*<
-       payload
-   }
-   ```
+```swift
+func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
+   toMap.uuid <- (.uuid, payload)
+   toMap.name <- (.name, payload)
+}
+```
 
 ### Custom Transformations
 To create a simple custom transformation (such as to basic value types) implement the `Transform` protocol
@@ -311,17 +297,15 @@ Multiple `Mapping`s are allowed for the same model.
 ```swift
 class CompanyMapping: AnyMapping {
     func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
-        toMap.uuid <- .uuid >*<
-        toMap.name <- .name >*<
-        payload
+        toMap.uuid <- (.uuid, payload)
+        toMap.name <- (.name, payload)
     }
 }
 
 class CompanyMappingWithNameUUIDReversed: AnyMapping {
 	func mapping(inout toMap: Company, payload: MappingPayload<CompanyKey>) throws {
-        toMap.uuid <- .name >*<
-        toMap.name <- .uuid >*<
-        payload
+        toMap.uuid <- (.name, payload)
+        toMap.name <- (.uuid, payload)
     }
 }
 ```
