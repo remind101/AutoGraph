@@ -2,7 +2,13 @@ import XCTest
 import Alamofire
 import Crust
 import JSONValueRX
+import Realm
 @testable import AutoGraphQL
+
+struct MockNetworkError: NetworkError {
+    let statusCode: Int
+    let underlyingError: GraphQLError
+}
 
 public extension AutoGraphQL.Request {
     func willSend() throws { }
@@ -52,6 +58,7 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
+        _ = RLMRealm.default()
         self.subject = AutoGraph()
     }
     
@@ -85,6 +92,42 @@ class AutoGraphTests: XCTestCase {
         
         var called = false
         self.subject.send(FilmRequest()) { result in
+            called = true
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(called)
+    }
+    
+    func testFunctionalSingleFilmThreadUnconfinedRequest() {
+        let stub = FilmThreadUnconfinedStub()
+        stub.registerStub()
+        
+        var called = false
+        self.subject.send(FilmThreadUnconfinedRequest()) { result in
+            called = true
+            
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+        }
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(called)
+    }
+    
+    func testFunctionalVariableFilmRequest() {
+        let stub = VariableFilmStub()
+        stub.registerStub()
+        
+        var called = false
+        self.subject.send(VariableFilmRequest()) { result in
             called = true
             
             guard case .success(_) = result else {

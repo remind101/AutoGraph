@@ -2,7 +2,6 @@ import XCTest
 import Alamofire
 import Crust
 import JSONValueRX
-import Realm
 @testable import AutoGraphQL
 
 class AuthHandlerTests: XCTestCase {

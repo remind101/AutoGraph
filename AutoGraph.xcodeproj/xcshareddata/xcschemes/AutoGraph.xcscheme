@@ -49,6 +49,16 @@
                ReferencedContainer = "container:AutoGraph.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CDB829A620F984A000BAC7BD"
+               BuildableName = "AutoGraphRealmTests.xctest"
+               BlueprintName = "AutoGraphRealmTests"
+               ReferencedContainer = "container:AutoGraph.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

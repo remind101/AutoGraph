@@ -2,7 +2,6 @@ import XCTest
 @testable import Alamofire
 import Crust
 import JSONValueRX
-import Realm
 @testable import AutoGraphQL
 
 class MockDataRequest: DataRequest {
