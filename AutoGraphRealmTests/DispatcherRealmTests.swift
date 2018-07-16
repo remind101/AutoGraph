@@ -73,7 +73,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testForwardsAndClearsPendingRequestsOnUnpause() {
-        let request = FilmRequest()
+        let request = AllFilmsRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
@@ -92,7 +92,7 @@ class DispatcherTests: XCTestCase {
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
-    class BadRequest: AutoGraphQL.ThreadUnconfinedRequest {
+    class BadRequest: AutoGraphQL.Request {
         struct BadQuery: GraphQLDocument {
             func graphQLString() throws -> String {
                 throw NSError(domain: "error", code: -1, userInfo: nil)
@@ -102,12 +102,13 @@ class DispatcherTests: XCTestCase {
         let queryDocument = BadQuery()
         let variables: [AnyHashable : Any]? = nil
         
+        var threadAdapter: RealmThreadAdapter? = nil
         
-        var mapping: Binding<String, Film.Mapping> {
-            return Binding.mapping("data.film", Film.Mapping())
+        var mapping: Binding<String, FilmMapping> {
+            return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
         }
         
-        let mappingKeys = AllKeys<Film.Key>()
+        let mappingKeys = AllKeys<FilmKey>()
     }
     
     func testFailureReturnsToCaller() {

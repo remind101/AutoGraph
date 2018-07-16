@@ -2,7 +2,6 @@ import XCTest
 import Alamofire
 import Crust
 import JSONValueRX
-import Realm
 @testable import AutoGraphQL
 
 class ResponseHandlerTests: XCTestCase {
@@ -103,8 +102,8 @@ class ResponseHandlerTests: XCTestCase {
     
     func testMappingErrorReturnsMappingError() {
         class AllFilmsBadRequest: AllFilmsRequest {
-            override var mapping: Binding<String, FilmMapping> {
-                return Binding.mapping("bad_path", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
+            override var mapping: Binding<String, Film.Mapping> {
+                return Binding.mapping("bad_path", Film.Mapping())
             }
         }
         
@@ -138,7 +137,7 @@ class ResponseHandlerTests: XCTestCase {
                 called = !mappingCalled
             }
             
-            override var mapping: Binding<String, FilmMapping> {
+            override var mapping: Binding<String, Film.Mapping> {
                 mappingCalled = true
                 return super.mapping
             }
