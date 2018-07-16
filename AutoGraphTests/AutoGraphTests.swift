@@ -52,18 +52,21 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        self.subject = AutoGraph()
+        let client = AlamofireClient(baseUrl: AutoGraph.localHost,
+                                     sessionManager: SessionManager(configuration: MockURLProtocol.sessionConfiguration()))
+        self.subject = AutoGraph(client: client)
     }
     
     override func tearDown() {
         self.subject = nil
+        Stub.clearAll()
         
         super.tearDown()
     }
     
     func testFunctionalAllFilmsRequest() {
         let stub = AllFilmsStub()
-        stub.registerStub()
+        stub.registerStub()        
         
         var called = false
         self.subject.send(AllFilmsRequest()) { result in
