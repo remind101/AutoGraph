@@ -1,7 +1,8 @@
-import JSONValueRX
-import Crust
-import Realm
 @testable import AutoGraphQL
+import Crust
+import Foundation
+import JSONValueRX
+import Realm
 
 class FilmRequest: Request {
     /*
