@@ -64,12 +64,6 @@ class Stub {
         return 0.00
     }()
     
-//    var responseObject: OHHTTPStubsResponse {
-//        let response = OHHTTPStubsResponse(data: self.responseData!, statusCode: Int32(self.expectedResponseCode), headers: self.responseHeaders)
-//
-//        return response.requestTime(self.requestTime, responseTime: self.responseTime)
-//    }
-    
     func verify(request: URLRequest) -> Bool {
         if let httpMethod = self.httpMethod {
             if request.httpMethod != httpMethod {
