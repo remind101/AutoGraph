@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D48198A7582496B9B5BE891 /* Pods_QueryBuilder_QueryBuilderTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05AB136B7EDCE8041A2B970E /* Pods_QueryBuilder_QueryBuilderTests.framework */; };
 		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
 		CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */; };
@@ -204,7 +203,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CDB82A0120FEE23A00BAC7BD /* AutoGraphQL.framework in Frameworks */,
-				1D48198A7582496B9B5BE891 /* Pods_QueryBuilder_QueryBuilderTests.framework in Frameworks */,
 				EF8E4591AE7416F7A2E5EE3F /* Pods_AutoGraphQL_QueryBuilderTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

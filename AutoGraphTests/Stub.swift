@@ -20,7 +20,17 @@ class Stub {
     
     var json: Any? {
         if let jsonFixtureFile = self.jsonFixtureFile {
-            let path = Bundle(for: type(of: self)).path(forResource: jsonFixtureFile, ofType: "json")!
+            let path: String = {
+                #if os(iOS)
+                return Bundle(for: type(of: self)).path(forResource: jsonFixtureFile, ofType: "json")!
+                
+                #else
+                let fileManager = FileManager.default
+                let currentDirectoryPath = fileManager.currentDirectoryPath
+                return "\(currentDirectoryPath)/AutoGraphTests/Data/\(jsonFixtureFile).json"
+                
+                #endif
+            }()
             if let jsonData = NSData(contentsOfFile: path) {
                 if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions(rawValue: UInt(0))) {
                     return jsonResult
