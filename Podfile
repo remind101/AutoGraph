@@ -17,14 +17,14 @@ target 'AutoGraphQL' do
     pod 'RealmSwift', '3.7.1'
     pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
+
+  target 'QueryBuilderTests' do
+    inherit! :complete
+  end
 end
 
 target 'QueryBuilder' do
   pod 'JSONValueRX', '~> 4.0'
-   
-  target 'QueryBuilderTests' do
-    inherit! :complete
-  end
 end
 
 post_install do |installer|

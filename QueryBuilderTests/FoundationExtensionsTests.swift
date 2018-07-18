@@ -1,5 +1,5 @@
 import XCTest
-@testable import QueryBuilder
+@testable import AutoGraphQL
 
 class FoundationExtensionsTests: XCTestCase {
     

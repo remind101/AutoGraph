@@ -20,16 +20,13 @@ let package = Package(
             dependencies: ["Crust", "Alamofire"],
             path: ".",
             sources: ["AutoGraph", "QueryBuilder"]),
-//        .target(
-//            name: "QueryBuilder",
-//            path: "./QueryBuilder"),
         .testTarget(
             name: "AutoGraphTests",
             dependencies: ["AutoGraphQL"],
             path: "./AutoGraphTests"),
-//        .testTarget(
-//            name: "QueryBuilderTests",
-//            dependencies: ["QueryBuilder"],
-//            path: "./QueryBuilderTests"),
+        .testTarget(
+            name: "QueryBuilderTests",
+            dependencies: ["AutoGraphQL"],
+            path: "./QueryBuilderTests"),
         ]
 )
