@@ -1,6 +1,7 @@
-import JSONValueRX
-import Crust
 @testable import AutoGraphQL
+import Crust
+import Foundation
+import JSONValueRX
 
 class AllFilmsRequest: ThreadUnconfinedRequest {
 

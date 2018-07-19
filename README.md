@@ -48,8 +48,12 @@ use_frameworks!
 
 pod 'AutoGraph'
 ```
-### Future
-- [ ] Swift Package Manager
+### Swift Package Manager (SPM)
+```swift
+dependencies: [
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.5.2"))
+]
+```
 
 ## Code Generation
 Code generation is in an alpha stage. If you're interested in testing it please open an inquiry.
@@ -289,6 +293,7 @@ Sending via Objective-C isn't directly possible because of AutoGraph's use of `a
 - Open an issue describing the feature add or problem being solved. An admin will respond ASAP to discuss the addition.
 - You may begin working immediately if you so please, by adding an issue it helps inform others of what is already being worked on and facilitates discussion.
 - Fork the project and submit a pull request. Please include tests for new code and an explanation of the problem being solved. An admin will review your code and approve it before merging.
+- Keep LinuxTests up-to-date `swift test --generate-linuxmain`
 
 ## License
 The MIT License (MIT)

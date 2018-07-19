@@ -1,8 +1,8 @@
 import XCTest
-@testable import QueryBuilder
+@testable import AutoGraphQL
 
 class DocumentTests: XCTestCase {
-    var subject: QueryBuilder.Document!
+    var subject: AutoGraphQL.Document!
     
     func testGraphQLStringWithObjectFieldsFragments() {
         let scalar1 = Scalar(name: "scalar1", alias: "cool_scalar")
@@ -10,14 +10,14 @@ class DocumentTests: XCTestCase {
         let subobj = Object(name: "subobj", alias: "cool_obj", selectionSet: [scalar1])
         
         let object = Object(name: "obj", alias: "cool_alias", selectionSet: [subobj, scalar2])
-        let operation1 = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: [object])
+        let operation1 = AutoGraphQL.Operation(type: .query, name: "Query", selectionSet: [object])
         
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
         let fragment = FragmentDefinition(name: "frag", type: "CoolType", directives: [directive], selectionSet: [scalar1, scalar2])
         
-        let operation2 = QueryBuilder.Operation(type: .mutation,
-                                              name: "Mutation",
-                                              selectionSet: [
+        let operation2 = AutoGraphQL.Operation(type: .mutation,
+                                               name: "Mutation",
+                                               selectionSet: [
                                                 subobj,
                                                 scalar2,
                                                 Selection.object(
@@ -31,7 +31,7 @@ class DocumentTests: XCTestCase {
                                                         Object(name: "object", selectionSet: ["objectScalar"])
                                                     ])])
         
-        self.subject = QueryBuilder.Document(operations: [operation1, operation2], fragments: [fragment!])
+        self.subject = AutoGraphQL.Document(operations: [operation1, operation2], fragments: [fragment!])
         XCTAssertEqual(try! self.subject.graphQLString(),
                        """
                        query Query {
@@ -379,25 +379,25 @@ class FragmentDefinitionTests: XCTestCase {
 }
 
 class OperationTests: XCTestCase {
-    var subject: QueryBuilder.Operation!
+    var subject: AutoGraphQL.Operation!
     
     func testQueryForms() {
         let scalar = Scalar(name: "name", alias: nil)
-        self.subject = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: [scalar])
+        self.subject = AutoGraphQL.Operation(type: .query, name: "Query", selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "query Query {\nname\n}")
     }
     
     func testMutationForms() {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], selectionSet: [scalar])
+        self.subject = AutoGraphQL.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) {\nname\n}")
     }
     
     func testSubscriptionForms() {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
-        self.subject = QueryBuilder.Operation(type: .subscription, name: "Subscription", variableDefinitions: [variable], selectionSet: [scalar])
+        self.subject = AutoGraphQL.Operation(type: .subscription, name: "Subscription", variableDefinitions: [variable], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "subscription Subscription($derp: String) {\nname\n}")
     }
     
@@ -405,7 +405,7 @@ class OperationTests: XCTestCase {
         let scalar = Scalar(name: "name", alias: nil)
         let variable = try! VariableDefinition<String>(name: "derp").typeErase()
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
-        self.subject = QueryBuilder.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], directives: [directive], selectionSet: [scalar])
+        self.subject = AutoGraphQL.Operation(type: .mutation, name: "Mutation", variableDefinitions: [variable], directives: [directive], selectionSet: [scalar])
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($derp: String) @cool(best: \"directive\") {\nname\n}")
     }
     
@@ -442,16 +442,16 @@ class OperationTests: XCTestCase {
         let optionalListObjectVariable = VariableDefinition<[UserInput]>(name: "optionalListObjectVariable")
         let enumVariable = VariableDefinition<UserEnumInput>(name: "enumVariable")
         
-        self.subject = QueryBuilder.Operation(type: .mutation,
-                                              name: "Mutation",
-                                              variableDefinitions: [
+        self.subject = AutoGraphQL.Operation(type: .mutation,
+                                             name: "Mutation",
+                                             variableDefinitions: [
                                                 try! stringVariable.typeErase(),
                                                 try! variableVariable.typeErase(),
                                                 try! objectVariable.typeErase(),
                                                 try! nonOptionalListVariable.typeErase(),
                                                 try! optionalListObjectVariable.typeErase(),
                                                 try! enumVariable.typeErase()],
-                                              selectionSet: ["name"])
+                                             selectionSet: ["name"])
         
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation($stringVariable: String = \"best_string\", $variableVariable: String, $userInput: UserInput, $nonOptionalListVariable: [Int!]!, $optionalListObjectVariable: [UserInput], $enumVariable: UserEnumInput) {\nname\n}")
     }
@@ -468,9 +468,9 @@ class OperationTests: XCTestCase {
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         let subobj = Object(name: "object1", alias: "cool_obj", selectionSet: [scalar1])
         
-        self.subject = QueryBuilder.Operation(type: .mutation,
-                                              name: "Mutation",
-                                              selectionSet: [
+        self.subject = AutoGraphQL.Operation(type: .mutation,
+                                             name: "Mutation",
+                                             selectionSet: [
                                                 subobj,
                                                 scalar2,
                                                 Selection.object(
@@ -502,7 +502,7 @@ class OperationTests: XCTestCase {
     func testInitializersOnSelectionTypeArray() {
         let fields: [Field] = ["scalar"]
         let _ = Object(name: "object", selectionSet: fields)
-        let _ = QueryBuilder.Operation(type: .query, name: "Query", selectionSet: fields)
+        let _ = AutoGraphQL.Operation(type: .query, name: "Query", selectionSet: fields)
         let _ = InlineFragment(typeName: "Derp", selectionSet: fields)
         let frag = FragmentDefinition(name: "frag", type: "Fraggie", selectionSet: fields)
         XCTAssertNotNil(frag)

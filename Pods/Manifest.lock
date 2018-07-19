@@ -23,8 +23,8 @@ PODS:
     - Realm (= 3.7.1)
 
 DEPENDENCIES:
-  - Alamofire (~> 4.7.2)
-  - Crust (~> 0.9.1)
+  - Alamofire (~> 4.7.3)
+  - Crust (~> 0.9.2)
   - JSONValueRX (~> 4.0)
   - OHHTTPStubs (from `https://github.com/AliSoftware/OHHTTPStubs.git`)
   - RealmSwift (= 3.7.1)
@@ -54,6 +54,6 @@ SPEC CHECKSUMS:
   Realm: 906be37d52f17f25484ac01643a7f26a9d3bfbd5
   RealmSwift: 1c2b6bae3dc55bb87e080ffa96537d71442f6dce
 
-PODFILE CHECKSUM: cdbe776101e2ab339d5479fbdcb1658eaa51d23b
+PODFILE CHECKSUM: 8f5bd726316e0d69d16bf15cd05ffca4d3ae2c43
 
 COCOAPODS: 1.5.2

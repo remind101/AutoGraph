@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D48198A7582496B9B5BE891 /* Pods_QueryBuilder_QueryBuilderTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05AB136B7EDCE8041A2B970E /* Pods_QueryBuilder_QueryBuilderTests.framework */; };
 		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
 		CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */; };
@@ -21,7 +20,6 @@
 		CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5244521E70EC6B0040771D /* ErrorTests.swift */; };
 		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		CDA62C241DB69ADE004BA66D /* QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */; };
 		CDA62C291DB69ADE004BA66D /* QueryBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C281DB69ADE004BA66D /* QueryBuilderTests.swift */; };
 		CDA62C2B1DB69ADE004BA66D /* QueryBuilder.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62C1D1DB69ADE004BA66D /* QueryBuilder.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDA62C331DB69B15004BA66D /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
@@ -51,6 +49,7 @@
 		CDB829F920F9870B00BAC7BD /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E920F9870000BAC7BD /* Film.json */; };
 		CDB829FA20F9870B00BAC7BD /* Film401.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829EA20F9870000BAC7BD /* Film401.json */; };
 		CDB829FD20F98EC500BAC7BD /* DispatcherRealmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */; };
+		CDB82A0120FEE23A00BAC7BD /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEA91E1CB1400029909A /* Errors.swift */; };
 		CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAB1E1CB5E80029909A /* Utilities.swift */; };
 		CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */; };
@@ -60,6 +59,7 @@
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDFFEBC71E6788C100685110 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFFEBC61E6788C100685110 /* Request.swift */; };
 		DCABB74D9F5789AD147B3C87 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49D4BAD32E7581AD72E6B222 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework */; };
+		EF8E4591AE7416F7A2E5EE3F /* Pods_AutoGraphQL_QueryBuilderTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F460CA8E756A06703DFF2AF0 /* Pods_AutoGraphQL_QueryBuilderTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,14 +70,14 @@
 			remoteGlobalIDString = CDA62BF81DB16998004BA66D;
 			remoteInfo = AutoGraph;
 		};
-		CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */ = {
+		CDB829AD20F984A000BAC7BD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CDA62C1A1DB69ADE004BA66D;
-			remoteInfo = QueryBuilder;
+			remoteGlobalIDString = CDA62BF81DB16998004BA66D;
+			remoteInfo = AutoGraphQL;
 		};
-		CDB829AD20F984A000BAC7BD /* PBXContainerItemProxy */ = {
+		CDB829FF20FEE23300BAC7BD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
 			proxyType = 1;
@@ -102,6 +102,7 @@
 		713363E6E382C3C853EEE6C7 /* Pods_AutoGraph.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		719B779D48913BB08BA56AAD /* Pods-AutoGraphQL.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.release.xcconfig"; sourceTree = "<group>"; };
 		812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraphQL_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		859FD5EDB5F19DA4BC6C9346 /* Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.debug.xcconfig"; sourceTree = "<group>"; };
 		A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -167,6 +168,8 @@
 		CDE3C7221E00C4A700AB4EB1 /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDFFEBC61E6788C100685110 /* Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig"; sourceTree = "<group>"; };
+		F460CA8E756A06703DFF2AF0 /* Pods_AutoGraphQL_QueryBuilderTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraphQL_QueryBuilderTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		F62357AFD8BB4E8ADA456135 /* Pods-AutoGraphQL-QueryBuilderTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-QueryBuilderTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,8 +202,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CDA62C241DB69ADE004BA66D /* QueryBuilder.framework in Frameworks */,
-				1D48198A7582496B9B5BE891 /* Pods_QueryBuilder_QueryBuilderTests.framework in Frameworks */,
+				CDB82A0120FEE23A00BAC7BD /* AutoGraphQL.framework in Frameworks */,
+				EF8E4591AE7416F7A2E5EE3F /* Pods_AutoGraphQL_QueryBuilderTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,6 +236,7 @@
 				2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */,
 				812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */,
 				49D4BAD32E7581AD72E6B222 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework */,
+				F460CA8E756A06703DFF2AF0 /* Pods_AutoGraphQL_QueryBuilderTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -387,6 +391,8 @@
 				1C9100F88ADBF578533F392F /* Pods-AutoGraphQL-AutoGraphTests.release.xcconfig */,
 				562ED5B876F75D9A6D542930 /* Pods-AutoGraphQL-AutoGraphRealmTests.debug.xcconfig */,
 				6BAAABFB4EAAEC52F72AD808 /* Pods-AutoGraphQL-AutoGraphRealmTests.release.xcconfig */,
+				859FD5EDB5F19DA4BC6C9346 /* Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig */,
+				F62357AFD8BB4E8ADA456135 /* Pods-AutoGraphQL-QueryBuilderTests.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -485,7 +491,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				CDA62C261DB69ADE004BA66D /* PBXTargetDependency */,
+				CDB82A0020FEE23300BAC7BD /* PBXTargetDependency */,
 			);
 			name = QueryBuilderTests;
 			productName = QueryBuilderTests;
@@ -681,14 +687,12 @@
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/Crust/Crust.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
-				"${BUILT_PRODUCTS_DIR}/OHHTTPStubs/OHHTTPStubs.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Crust.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OHHTTPStubs.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -747,16 +751,20 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests-frameworks.sh",
+				"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
+				"${BUILT_PRODUCTS_DIR}/Crust/Crust.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Crust.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-QueryBuilder-QueryBuilderTests/Pods-QueryBuilder-QueryBuilderTests-frameworks.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		9E20E269BF428A225ACDD81E /* [CP] Check Pods Manifest.lock */ = {
@@ -770,7 +778,7 @@
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-QueryBuilder-QueryBuilderTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-AutoGraphQL-QueryBuilderTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -872,15 +880,15 @@
 			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
 			targetProxy = CDA62C041DB16999004BA66D /* PBXContainerItemProxy */;
 		};
-		CDA62C261DB69ADE004BA66D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CDA62C1A1DB69ADE004BA66D /* QueryBuilder */;
-			targetProxy = CDA62C251DB69ADE004BA66D /* PBXContainerItemProxy */;
-		};
 		CDB829AE20F984A000BAC7BD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
 			targetProxy = CDB829AD20F984A000BAC7BD /* PBXContainerItemProxy */;
+		};
+		CDB82A0020FEE23300BAC7BD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
+			targetProxy = CDB829FF20FEE23300BAC7BD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1149,7 +1157,7 @@
 		};
 		CDA62C301DB69ADE004BA66D /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D4EF0EBB7CF7BFE7A843B4F0 /* Pods-QueryBuilder-QueryBuilderTests.debug.xcconfig */;
+			baseConfigurationReference = 859FD5EDB5F19DA4BC6C9346 /* Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				INFOPLIST_FILE = QueryBuilderTests/Info.plist;
@@ -1163,7 +1171,7 @@
 		};
 		CDA62C311DB69ADE004BA66D /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0264D743B7EDB3CFDEBEC994 /* Pods-QueryBuilder-QueryBuilderTests.release.xcconfig */;
+			baseConfigurationReference = F62357AFD8BB4E8ADA456135 /* Pods-AutoGraphQL-QueryBuilderTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				INFOPLIST_FILE = QueryBuilderTests/Info.plist;

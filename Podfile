@@ -5,12 +5,11 @@ inhibit_all_warnings!
 use_frameworks!
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 4.7.2'
-  pod 'Crust', '~> 0.9.1'
+  pod 'Alamofire', '~> 4.7.3'
+  pod 'Crust', '~> 0.9.2'
     
   target 'AutoGraphTests' do
     inherit! :complete
-    pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
 
   target 'AutoGraphRealmTests' do
@@ -18,14 +17,14 @@ target 'AutoGraphQL' do
     pod 'RealmSwift', '3.7.1'
     pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
+
+  target 'QueryBuilderTests' do
+    inherit! :complete
+  end
 end
 
 target 'QueryBuilder' do
   pod 'JSONValueRX', '~> 4.0'
-   
-  target 'QueryBuilderTests' do
-    inherit! :complete
-  end
 end
 
 post_install do |installer|

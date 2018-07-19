@@ -11,6 +11,6 @@
 #endif
 
 
-FOUNDATION_EXPORT double Pods_QueryBuilder_QueryBuilderTestsVersionNumber;
-FOUNDATION_EXPORT const unsigned char Pods_QueryBuilder_QueryBuilderTestsVersionString[];
+FOUNDATION_EXPORT double Pods_AutoGraphQL_QueryBuilderTestsVersionNumber;
+FOUNDATION_EXPORT const unsigned char Pods_AutoGraphQL_QueryBuilderTestsVersionString[];
 
