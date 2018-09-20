@@ -57,7 +57,7 @@ public protocol Request {
     func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws
     
     /// Called right before calling the completion handler for the sent request, i.e. at the end of the lifecycle.
-    func didFinish(result: AutoGraphQL.Result<(SerializedObject, JSONValue)>) throws
+    func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
 
 /// A `Request` where the result objects can safely be transmitted across threads without special handling.

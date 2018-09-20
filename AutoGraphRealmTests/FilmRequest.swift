@@ -5,9 +5,6 @@ import JSONValueRX
 import Realm
 
 class FilmRequest: Request {
-    func didFinish(result: Result<(Film, JSONValue)>) throws {
-    }
-    
     /*
      query film {
         film(id: "ZmlsbXM6MQ==") {
@@ -106,7 +103,7 @@ class FilmStub: Stub {
 }
 
 class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
-    func didFinish(result: Result<(FilmThreadUnconfined, JSONValue)>) throws {
+    func didFinish(result: Result<FilmThreadUnconfined>) throws {
     }
     
     /*

@@ -94,7 +94,7 @@ class DispatcherTests: XCTestCase {
     }
     
     class BadRequest: AutoGraphQL.ThreadUnconfinedRequest {
-        func didFinish(result: AutoGraphQL.Result<(Film, JSONValue)>) throws {
+        func didFinish(result: AutoGraphQL.Result<Film>) throws {
         }
         
         struct BadQuery: GraphQLDocument {

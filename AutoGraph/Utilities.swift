@@ -4,26 +4,8 @@ import Foundation
 import JSONValueRX
 
 public enum Result<Value> {
-    case success(Value)
+    case success(value: Value, json: JSONValue)
     case failure(Error)
-    
-    public func map<U>(_ transform: (Value) -> U) -> Result<U> {
-        switch self {
-        case .success(let val):
-            return .success(transform(val))
-        case .failure(let e):
-            return .failure(e)
-        }
-    }
-    
-    public func flatMap<U>(_ transform: (Value) -> Result<U>) -> Result<U> {
-        switch self {
-        case .success(let val):
-            return transform(val)
-        case .failure(let e):
-            return .failure(e)
-        }
-    }
 }
 
 extension DataResponse {
