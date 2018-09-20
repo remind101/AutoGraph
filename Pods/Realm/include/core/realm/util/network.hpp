@@ -376,6 +376,27 @@ public:
     /// before B.
     template<class H> void post(H handler);
 
+    /// Argument `saturation` is the fraction of time that is not spent
+    /// sleeping. Argument `inefficiency` is the fraction of time not spent
+    /// sleeping, and not spent executing completion handlers. Both values are
+    /// guaranteed to always be in the range 0 to 1 (both inclusive). The value
+    /// passed as `inefficiency` is guaranteed to always be less than, or equal
+    /// to the value passed as `saturation`.
+    using EventLoopMetricsHandler = void(double saturation, double inefficiency);
+
+    /// \brief Report event loop metrics via the specified handler.
+    ///
+    /// The handler will be called approximately every 30 seconds.
+    ///
+    /// report_event_loop_metrics() must be called prior to any invocation of
+    /// run(). report_event_loop_metrics() is not thread-safe.
+    ///
+    /// This feature is only available if
+    /// `REALM_UTIL_NETWORK_EVENT_LOOP_METRICS` was defined during
+    /// compilation. When the feature is not available, the specified handler
+    /// will never be called.
+    void report_event_loop_metrics(std::function<EventLoopMetricsHandler>);
+
 private:
     enum class Want { nothing = 0, read, write };
 
@@ -2144,7 +2165,7 @@ public:
 // zero. Otherwise they must set `ec` to `std::system_error()` and return the
 // number of bytes read or written, which **must** be at least 1. If the
 // underlying socket is in nonblocking mode, and no bytes could be immediately
-// read or written these functions must fail with
+// read or written, these functions must fail with
 // `error::resource_unavailable_try_again`.
 //
 // If an error occurs during reading or writing, do_*_some_async() must set `ec`

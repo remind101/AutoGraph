@@ -37,6 +37,19 @@
 namespace realm {
 namespace sync {
 
+/// Supported protocols:
+///
+///      Protocol    URL scheme     Default port
+///     -----------------------------------------------------------------------------------
+///      realm       "realm:"       7800 (80 if Client::Config::enable_default_port_hack)
+///      realm_ssl   "realms:"      7801 (443 if Client::Config::enable_default_port_hack)
+///
+enum class Protocol {
+    realm,
+    realm_ssl
+};
+
+
 class Client {
 public:
     enum class Error;
@@ -61,6 +74,7 @@ public:
         testing
     };
 
+    using port_type = util::network::Endpoint::port_type;
     using RoundtripTimeHandler = void(milliseconds_type roundtrip_time);
 
     // FIXME: The default values for `connect_timeout`, `ping_keepalive_period`,
@@ -72,6 +86,7 @@ public:
     static constexpr milliseconds_type default_connection_linger_time =  30000; // 30 seconds
     static constexpr milliseconds_type default_ping_keepalive_period  = 600000; // 10 minutes
     static constexpr milliseconds_type default_pong_keepalive_timeout = 600000; // 10 minutes
+    static constexpr milliseconds_type default_fast_reconnect_limit   =  60000; // 1 minute
 
     struct Config {
         Config() {}
@@ -150,6 +165,43 @@ public:
         /// message before it assumes that the connection is dead, and
         /// terminates it.
         milliseconds_type pong_keepalive_timeout = default_pong_keepalive_timeout;
+
+        /// The maximum amount of time, in milliseconds, since the loss of a
+        /// prior connection, for a new connection to be considered a *fast
+        /// reconnect*.
+        ///
+        /// In general, when a client establishes a connection to the server,
+        /// the uploading process remains suspended until the initial
+        /// downloading process completes (as if by invocation of
+        /// Session::async_wait_for_download_completion()). However, to avoid
+        /// unnecessary latency in change propagation during ongoing
+        /// application-level activity, if the new connection is established
+        /// less than a certain amount of time (`fast_reconnect_limit`) since
+        /// the client was previously connected to the server, then the
+        /// uploading process will be activated immediately.
+        ///
+        /// For now, the purpose of the general delaying of the activation of
+        /// the uploading process, is to increase the chance of multiple initial
+        /// transactions on the client-side, to be uploaded to, and processed by
+        /// the server as a single unit. In the longer run, the intention is
+        /// that the client should upload transformed (from reciprocal history),
+        /// rather than original changesets when applicable to reduce the need
+        /// for changeset to be transformed on both sides. The delaying of the
+        /// upload process will increase the number of cases where this is
+        /// possible.
+        ///
+        /// FIXME: Currently, the time between connections is not tracked across
+        /// sessions, so if the application closes its session, and opens a new
+        /// one immediately afterwards, the activation of the upload process
+        /// will be delayed unconditionally.
+        milliseconds_type fast_reconnect_limit = default_fast_reconnect_limit;
+
+        /// Set to true to completely disable delaying of the upload process. In
+        /// this mode, the upload process will be activated immediately, and the
+        /// value of `fast_reconnect_limit` is ignored.
+        ///
+        /// For testing purposes only.
+        bool disable_upload_activation_delay = false;
 
         /// If enable_upload_log_compaction is true, every changeset will be
         /// compacted before it is uploaded to the server. Compaction will
@@ -235,23 +287,14 @@ public:
     /// by any thread, and by multiple threads concurrently.
     bool wait_for_session_terminations_or_client_stopped();
 
+    /// Returns false if the specified URL is invalid.
+    bool decompose_server_url(const std::string& url, Protocol& protocol, std::string& address,
+                              port_type& port, std::string& path) const;
+
 private:
     class Impl;
     std::unique_ptr<Impl> m_impl;
     friend class Session;
-};
-
-
-/// Supported protocols:
-///
-///      Protocol    URL scheme     Default port
-///     -----------------------------------------------------------------------------------
-///      realm       "realm:"       7800 (80 if Client::Config::enable_default_port_hack)
-///      realm_ssl   "realms:"      7801 (443 if Client::Config::enable_default_port_hack)
-///
-enum class Protocol {
-    realm,
-    realm_ssl
 };
 
 
@@ -490,10 +533,6 @@ public:
 
         /// The encryption key the SharedGroup will be opened with.
         Optional<std::array<char, 64>> encryption_key;
-
-        /// FIXME: This value must currently be true in a cluster setup.
-        /// This restriction will be lifted in the future.
-        bool one_connection_per_session = true;
     };
 
     /// \brief Start a new session for the specified client-side Realm.

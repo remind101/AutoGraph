@@ -153,8 +153,6 @@ private:
 #elif REALM_HAVE_SECURE_TRANSPORT
 
 #if REALM_HAVE_KEYCHAIN_APIS
-    static util::CFPtr<CFArrayRef> load_pem_file(const std::string& path, SecKeychainRef, std::error_code&);
-
     std::error_code open_temporary_keychain_if_needed();
     std::error_code update_identity_if_needed();
 
@@ -167,8 +165,14 @@ private:
 
     util::CFPtr<CFArrayRef> m_certificate_chain;
 
-    util::CFPtr<CFArrayRef> m_trust_anchors;
+#else
+    using SecKeychainRef = std::nullptr_t;
+
 #endif // REALM_HAVE_KEYCHAIN_APIS
+    static util::CFPtr<CFArrayRef> load_pem_file(const std::string& path, SecKeychainRef, std::error_code&);
+
+    util::CFPtr<CFArrayRef> m_trust_anchors;
+    util::CFPtr<CFDataRef> m_pinned_certificate;
 
 #endif
 
@@ -193,7 +197,7 @@ public:
 
     enum HandshakeType { client, server };
 
-    util::Logger* logger;
+    util::Logger* logger = nullptr;
 
     Stream(Socket&, Context&, HandshakeType);
     ~Stream() noexcept;

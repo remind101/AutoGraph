@@ -23,7 +23,7 @@ class FilmRequestWithLifeCycle: FilmRequest {
     }
     
     var didFinishCalled = false
-    override func didFinish(result: AutoGraphQL.Result<FilmRequest.SerializedObject>) throws {
+    override func didFinish(result: AutoGraphQL.Result<(FilmRequest.SerializedObject, JSONValue)>) throws {
         didFinishCalled = true
     }
 }
@@ -58,6 +58,9 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
+        let config = RLMRealmConfiguration()
+        config.inMemoryIdentifier = self.name
+        RLMRealmConfiguration.setDefault(config)
         _ = RLMRealm.default()
         self.subject = AutoGraph()
     }
@@ -76,7 +79,7 @@ class AutoGraphTests: XCTestCase {
         self.subject.send(AllFilmsRequest()) { result in
             called = true
             
-            guard case .success(_) = result else {
+            guard case .success = result else {
                 XCTFail()
                 return
             }
@@ -94,7 +97,7 @@ class AutoGraphTests: XCTestCase {
         self.subject.send(FilmRequest()) { result in
             called = true
             
-            guard case .success(_) = result else {
+            guard case .success = result else {
                 XCTFail()
                 return
             }
@@ -112,7 +115,7 @@ class AutoGraphTests: XCTestCase {
         self.subject.send(FilmThreadUnconfinedRequest()) { result in
             called = true
             
-            guard case .success(_) = result else {
+            guard case .success = result else {
                 XCTFail()
                 return
             }
@@ -130,7 +133,7 @@ class AutoGraphTests: XCTestCase {
         self.subject.send(VariableFilmRequest()) { result in
             called = true
             
-            guard case .success(_) = result else {
+            guard case .success = result else {
                 XCTFail()
                 return
             }
@@ -247,7 +250,7 @@ class AutoGraphTests: XCTestCase {
                 guard case .success(let value) = result else {
                     return
                 }
-                didFinishCalled = value is Film
+                didFinishCalled = value is (Film, JSONValue)
             }
         }
         
