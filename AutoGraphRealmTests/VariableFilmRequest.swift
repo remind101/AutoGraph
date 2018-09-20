@@ -29,6 +29,9 @@ struct VariableFilm: AnyMappable, ThreadAdaptable {
 }
 
 class VariableFilmRequest: Request {
+    func didFinish(result: Result<(VariableFilm, JSONValue)>) throws {
+    }
+    
     typealias SerializedObject = VariableFilm
     
     /*

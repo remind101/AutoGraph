@@ -1,6 +1,7 @@
 import XCTest
 import Alamofire
 import Crust
+import JSONValueRX
 @testable import AutoGraphQL
 
 class DispatcherTests: XCTestCase {
@@ -93,6 +94,9 @@ class DispatcherTests: XCTestCase {
     }
     
     class BadRequest: AutoGraphQL.ThreadUnconfinedRequest {
+        func didFinish(result: AutoGraphQL.Result<(Film, JSONValue)>) throws {
+        }
+        
         struct BadQuery: GraphQLDocument {
             func graphQLString() throws -> String {
                 throw NSError(domain: "error", code: -1, userInfo: nil)

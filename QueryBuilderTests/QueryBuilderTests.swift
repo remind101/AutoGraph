@@ -1,4 +1,5 @@
 import XCTest
+import JSONValueRX
 @testable import AutoGraphQL
 
 class DocumentTests: XCTestCase {
@@ -522,7 +523,9 @@ class InputValueTests: XCTestCase {
     
     func testDictionaryInputValue() {
         XCTAssertThrowsError(try Dictionary<String, String>.inputType())
-        XCTAssertEqual(try! [ "number" : 1, "string" : "derp" ].graphQLInputValue(), "{number: 1, string: \"derp\"}")
+        
+        let value = try! [ "number" : 1, "string" : "derp" ].graphQLInputValue()
+        XCTAssertTrue(value == "{number: 1, string: \"derp\"}" || value == "{string: \"derp\", number: 1}")
     }
     
     func testEmptyDictionaryInputValue() {
