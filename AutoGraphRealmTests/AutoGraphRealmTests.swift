@@ -58,9 +58,6 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        let config = RLMRealmConfiguration()
-        config.inMemoryIdentifier = self.name
-        RLMRealmConfiguration.setDefault(config)
         _ = RLMRealm.default()
         self.subject = AutoGraph()
     }
