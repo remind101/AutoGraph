@@ -50,7 +50,7 @@ open class ResponseHandler {
                     }
                     else {
                         self.callbackQueue.addOperation {
-                            completion(.success(result))
+                            completion(.success((result, json)))
                         }
                     }
                     
@@ -63,7 +63,7 @@ open class ResponseHandler {
                     }
                     else {
                         self.callbackQueue.addOperation {
-                            completion(.success(result))
+                            completion(.success((result, json)))
                         }
                     }
                 }
