@@ -371,11 +371,6 @@ public final class DynamicObject: Object {
     }
 
     /// :nodoc:
-    public override func dynamicList(_ propertyName: String) -> List<DynamicObject> {
-        return self[propertyName] as! List<DynamicObject>
-    }
-
-    /// :nodoc:
     public override func value(forUndefinedKey key: String) -> Any? {
         return self[key]
     }

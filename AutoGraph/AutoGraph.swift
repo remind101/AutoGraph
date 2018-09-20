@@ -1,5 +1,4 @@
 import Foundation
-import JSONValueRX
 
 public protocol Cancellable {
     func cancelAll()
@@ -14,7 +13,7 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<SerializedObject> = (_ result: Result<(SerializedObject, JSONValue)>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: Result<SerializedObject>) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
@@ -98,7 +97,7 @@ open class AutoGraph {
         self.dispatcher.send(sendable: sendable)
     }
     
-    private func complete<SerializedObject>(result: Result<(SerializedObject, JSONValue)>, sendable: Sendable, requestDidFinish: (Result<(SerializedObject, JSONValue)>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+    private func complete<SerializedObject>(result: Result<SerializedObject>, sendable: Sendable, requestDidFinish: (Result<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
         
         do {
             try self.raiseAuthenticationError(from: result)

@@ -206,7 +206,6 @@ static RLMSyncManager *s_sharedManager = nil;
     RLMNetworkRequestOptions *options = [[RLMNetworkRequestOptions alloc] init];
     options.authorizationHeaderName = self.authorizationHeaderName;
     options.customHeaders = self.customRequestHeaders;
-    options.pinnedCertificatePaths = self.pinnedCertificatePaths;
     return options;
 }
 

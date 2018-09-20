@@ -427,8 +427,6 @@ public:
     // FIXME private
     Group& read_group();
 
-    std::size_t compute_size();
-    
     Replication *history() { return m_history.get(); }
 
     friend class _impl::RealmFriend;

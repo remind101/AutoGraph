@@ -115,8 +115,7 @@ struct DescriptorOrderingState
     struct SingleOrderingState
     {
         std::vector<PropertyState> properties;
-        size_t limit;
-        enum class DescriptorType { Sort, Distinct, Limit } type;
+        bool is_distinct;
     };
     std::vector<SingleOrderingState> orderings;
 };

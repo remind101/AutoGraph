@@ -57,21 +57,9 @@ struct QueryHandoverPatch {
     QueryNodeHandoverPatches m_node_data;
 };
 
-enum class DescriptorType {
-    Sort,
-    Distinct,
-    Limit
-};
-
-struct DescriptorExport {
-    DescriptorType type;
-    std::vector<std::vector<size_t>> columns;
-    std::vector<bool> ordering;
-    size_t limit;
-};
-
 struct DescriptorOrderingHandoverPatch {
-    std::vector<DescriptorExport> descriptors;
+    std::vector<std::vector<std::vector<size_t>>> columns;
+    std::vector<std::vector<bool>> ascending;
 };
 
 struct TableViewHandoverPatch {
