@@ -403,7 +403,12 @@ std::string SyncManager::path_for_realm(const SyncUser& user, const std::string&
 {
     std::lock_guard<std::mutex> lock(m_file_system_mutex);
     REALM_ASSERT(m_file_manager);
-    return m_file_manager->path(user.local_identity(), raw_realm_url);
+    const auto& user_local_identity = user.local_identity();
+    util::Optional<SyncUserIdentifier> user_info;
+    if (user.token_type() == SyncUser::TokenType::Normal)
+        user_info = SyncUserIdentifier{ user.identity(), user.server_url() };
+
+    return m_file_manager->path(user_local_identity, raw_realm_url, std::move(user_info));
 }
 
 std::string SyncManager::recovery_directory_path() const

@@ -27,7 +27,7 @@
 using namespace realm;
 
 @interface RLMSyncSubscription ()
-- (instancetype)initWithName:(NSString *)name results:(Results const&)results realm:(RLMRealm *)realm;
+- (instancetype)initWithName:(NSString *)name results:(Results&)results realm:(RLMRealm *)realm;
 
 @property (nonatomic, readwrite) RLMSyncSubscriptionState state;
 @property (nonatomic, readwrite, nullable) NSError *error;
@@ -39,7 +39,7 @@ using namespace realm;
     RLMRealm *_realm;
 }
 
-- (instancetype)initWithName:(NSString *)name results:(Results const&)results realm:(RLMRealm *)realm {
+- (instancetype)initWithName:(NSString *)name results:(Results&)results realm:(RLMRealm *)realm {
     if (!(self = [super init]))
         return nil;
 
@@ -66,9 +66,8 @@ using namespace realm;
                     self.error = nsError;
             }
         }
-        else if (self.error) {
+        else if (self.error != nil)
             self.error = nil;
-        }
 
         auto status = (RLMSyncSubscriptionState)self->_subscription->state();
         if (status != self.state)
@@ -92,15 +91,15 @@ using namespace realm;
 @implementation RLMResults (SyncSubscription)
 
 - (RLMSyncSubscription *)subscribe {
-    return [[RLMSyncSubscription alloc] initWithName:nil results:_results realm:self.realm];
+    return [self _subscribeWithName:nil];
 }
 
 - (RLMSyncSubscription *)subscribeWithName:(NSString *)subscriptionName {
-    return [[RLMSyncSubscription alloc] initWithName:subscriptionName results:_results realm:self.realm];
+    return [self _subscribeWithName:subscriptionName];
 }
 
-- (RLMSyncSubscription *)subscribeWithName:(NSString *)subscriptionName limit:(NSUInteger)limit {
-    return [[RLMSyncSubscription alloc] initWithName:subscriptionName results:_results.limit(limit) realm:self.realm];
+- (RLMSyncSubscription *)_subscribeWithName:(NSString *)subscriptionName {
+    return [[RLMSyncSubscription alloc] initWithName:subscriptionName results:_results realm:self.realm];
 }
 
 @end

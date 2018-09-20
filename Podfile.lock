@@ -16,18 +16,18 @@ PODS:
   - OHHTTPStubs/NSURLSession (6.1.0):
     - OHHTTPStubs/Core
   - OHHTTPStubs/OHPathHelpers (6.1.0)
-  - Realm (3.10.0):
-    - Realm/Headers (= 3.10.0)
-  - Realm/Headers (3.10.0)
-  - RealmSwift (3.10.0):
-    - Realm (= 3.10.0)
+  - Realm (3.7.1):
+    - Realm/Headers (= 3.7.1)
+  - Realm/Headers (3.7.1)
+  - RealmSwift (3.7.1):
+    - Realm (= 3.7.1)
 
 DEPENDENCIES:
   - Alamofire (~> 4.7.3)
   - Crust (~> 0.9.2)
   - JSONValueRX (~> 4.0)
   - OHHTTPStubs (from `https://github.com/AliSoftware/OHHTTPStubs.git`)
-  - RealmSwift
+  - RealmSwift (= 3.7.1)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
@@ -51,9 +51,9 @@ SPEC CHECKSUMS:
   Crust: f5e235c3305ba5365bbff3a377652357a2c53de6
   JSONValueRX: ef526ccede867e40afd40c545b02bd05c7e39940
   OHHTTPStubs: 38ce37264fab97254fddb853d806b8bda9faf6d6
-  Realm: 85ab9e4f779d66f6e9ffeb118dc25b7f130c96ac
-  RealmSwift: 69121c8b86d0ae005fb779efdb10e606732e1c74
+  Realm: 906be37d52f17f25484ac01643a7f26a9d3bfbd5
+  RealmSwift: 1c2b6bae3dc55bb87e080ffa96537d71442f6dce
 
-PODFILE CHECKSUM: f75d11170d3c5a47a052c178a69f989164475bf8
+PODFILE CHECKSUM: 8f5bd726316e0d69d16bf15cd05ffca4d3ae2c43
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.5.2

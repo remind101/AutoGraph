@@ -50,7 +50,7 @@ open class ResponseHandler {
                     }
                     else {
                         self.callbackQueue.addOperation {
-                            completion(.success((result, json)))
+                            completion(.success(result))
                         }
                     }
                     
@@ -63,7 +63,7 @@ open class ResponseHandler {
                     }
                     else {
                         self.callbackQueue.addOperation {
-                            completion(.success((result, json)))
+                            completion(.success(result))
                         }
                     }
                 }
@@ -107,7 +107,7 @@ open class ResponseHandler {
                     
                     do {
                         let objects = try threadAdapter.retrieveObjects(for: representation)
-                        completion(.success((try strongSelf.coerceToType(objects.first), json)))
+                        completion(.success(try strongSelf.coerceToType(objects.first)))
                     }
                     catch let e {
                         strongSelf.fail(error: AutoGraphError.refetching(error: e), completion: completion)
@@ -136,7 +136,7 @@ open class ResponseHandler {
                     
                     do {
                         let objects = try threadAdapter.retrieveObjects(for: representation)
-                        completion(.success((try strongSelf.coerceToType(objects), json)))
+                        completion(.success(try strongSelf.coerceToType(objects)))
                     }
                     catch let e {
                         strongSelf.fail(error: AutoGraphError.refetching(error: e), completion: completion)

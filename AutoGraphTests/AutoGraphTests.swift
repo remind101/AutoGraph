@@ -17,7 +17,7 @@ class FilmRequestWithLifeCycle: FilmRequest {
     }
     
     var didFinishCalled = false
-    override func didFinish(result: AutoGraphQL.Result<(FilmRequest.SerializedObject, JSONValue)>) throws {
+    override func didFinish(result: AutoGraphQL.Result<FilmRequest.SerializedObject>) throws {
         didFinishCalled = true
     }
 }
@@ -207,7 +207,7 @@ class AutoGraphTests: XCTestCase {
                 guard case .success(let value) = result else {
                     return
                 }
-                didFinishCalled = value is (Film, JSONValue)
+                didFinishCalled = value is Film
             }
         }
         

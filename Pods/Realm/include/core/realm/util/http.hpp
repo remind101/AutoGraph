@@ -39,7 +39,6 @@ enum class HTTPParserError {
     HeaderLineTooLong,
     MalformedResponse,
     MalformedRequest,
-    BadRequest,
 };
 std::error_code make_error_code(HTTPParserError);
 } // namespace util
@@ -286,11 +285,7 @@ struct HTTPParser: protected HTTPParserBase {
                 read_body();
                 return;
             }
-            if (!parse_header_line(n)) {
-                on_complete(HTTPParserError::BadRequest);
-                return;
-            }
-
+            parse_header_line(n);
             // FIXME: Limit the total size of headers. Apache uses 8K.
             read_headers();
         };
@@ -407,8 +402,7 @@ private:
 
     void on_complete(std::error_code ec) override final
     {
-        auto handler = std::move(m_handler);
-        m_handler = nullptr;
+        auto handler = std::move(m_handler); // Nullifies m_handler
         handler(std::move(m_response), ec);
     }
 };

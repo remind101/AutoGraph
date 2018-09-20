@@ -133,6 +133,7 @@ static const NSTimeInterval RLMRefreshBuffer = 10;
 
 /// Handler for network requests whose responses successfully parse into an auth response model.
 - (BOOL)_handleSuccessfulRequest:(RLMAuthResponseModel *)model {
+    // Success
     std::shared_ptr<SyncSession> session = _session.lock();
     if (!session) {
         // The session is dead or in a fatal error state.
@@ -140,31 +141,38 @@ static const NSTimeInterval RLMRefreshBuffer = 10;
         [self invalidate];
         return NO;
     }
-
-    // Calculate the resolved path.
-    NSString *resolvedURLString = nil;
-    RLMServerPath resolvedPath = model.accessToken.tokenData.path;
-    // Munge the path back onto the original URL, because the `sync` API expects an entire URL.
-    NSURLComponents *urlBuffer = [NSURLComponents componentsWithURL:self.realmURL
-                                            resolvingAgainstBaseURL:YES];
-    urlBuffer.path = resolvedPath;
-    resolvedURLString = [[urlBuffer URL] absoluteString];
-    if (!resolvedURLString) {
-        @throw RLMException(@"Resolved path returned from the server was invalid (%@).", resolvedPath);
+    bool success = session->state() != SyncSession::PublicState::Error;
+    if (success) {
+        // Calculate the resolved path.
+        NSString *resolvedURLString = nil;
+        RLMServerPath resolvedPath = model.accessToken.tokenData.path;
+        // Munge the path back onto the original URL, because the `sync` API expects an entire URL.
+        NSURLComponents *urlBuffer = [NSURLComponents componentsWithURL:self.realmURL
+                                                resolvingAgainstBaseURL:YES];
+        urlBuffer.path = resolvedPath;
+        resolvedURLString = [[urlBuffer URL] absoluteString];
+        if (!resolvedURLString) {
+            @throw RLMException(@"Resolved path returned from the server was invalid (%@).", resolvedPath);
+        }
+        // Pass the token and resolved path to the underlying sync subsystem.
+        session->refresh_access_token([model.accessToken.token UTF8String], {resolvedURLString.UTF8String});
+        success = session->state() != SyncSession::PublicState::Error;
+        if (success) {
+            // Schedule a refresh. If we're successful we must already have `bind()`ed the session
+            // initially, so we can null out the strong pointer.
+            _strongSession = nullptr;
+            NSDate *expires = [NSDate dateWithTimeIntervalSince1970:model.accessToken.tokenData.expires];
+            [self scheduleRefreshTimer:expires];
+        } else {
+            // The session is dead or in a fatal error state.
+            unregisterRefreshHandle(_user, _path);
+            [self invalidate];
+        }
     }
-    // Pass the token and resolved path to the underlying sync subsystem.
-    session->refresh_access_token([model.accessToken.token UTF8String], {resolvedURLString.UTF8String});
-
-    // Schedule a refresh. If we're successful we must already have `bind()`ed the session
-    // initially, so we can null out the strong pointer.
-    _strongSession = nullptr;
-    NSDate *expires = [NSDate dateWithTimeIntervalSince1970:model.accessToken.tokenData.expires];
-    [self scheduleRefreshTimer:expires];
-
     if (self.completionBlock) {
-        self.completionBlock(nil);
+        self.completionBlock(success ? nil : make_auth_error_client_issue());
     }
-    return true;
+    return success;
 }
 
 /// Handler for network requests that failed before the JSON parsing stage.

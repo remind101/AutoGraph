@@ -239,7 +239,6 @@ PermissionChangeCallback RLMWrapPermissionStatusCallback(RLMPermissionStatusBloc
                                                     errorHandler:nullptr];
     syncConfig.urlPrefix = urlPrefix;
     syncConfig.enableSSLValidation = enableSSLValidation;
-    syncConfig.pinnedCertificateURL = RLMSyncManager.sharedManager.pinnedCertificatePaths[syncConfig.realmURL.host];
     RLMRealmConfiguration *config = [[RLMRealmConfiguration alloc] init];
     config.syncConfiguration = syncConfig;
     return config;
@@ -339,7 +338,7 @@ PermissionChangeCallback RLMWrapPermissionStatusCallback(RLMPermissionStatusBloc
         return;
     }
     [RLMSyncChangePasswordEndpoint sendRequestToServer:self.authenticationServer
-                                       JSON:@{kRLMSyncTokenKey: self.refreshToken,
+                                       JSON:@{kRLMSyncTokenKey: self._refreshToken,
                                               kRLMSyncUserIDKey: userID,
                                               kRLMSyncDataKey: @{kRLMSyncNewPasswordKey: newPassword}}
                                     options:[[RLMSyncManager sharedManager] networkRequestOptions]
@@ -397,7 +396,7 @@ PermissionChangeCallback RLMWrapPermissionStatusCallback(RLMPermissionStatusBloc
                                        JSON:@{
                                               kRLMSyncProviderKey: provider,
                                               kRLMSyncProviderIDKey: providerUserIdentity,
-                                              kRLMSyncTokenKey: self.refreshToken
+                                              kRLMSyncTokenKey: self._refreshToken
                                               }
                                     timeout:60
                                     options:[[RLMSyncManager sharedManager] networkRequestOptions]
@@ -534,7 +533,7 @@ static void verifyInRunLoop() {
     });
 }
 
-- (NSString *)refreshToken {
+- (NSString *)_refreshToken {
     if (!_user) {
         return nil;
     }

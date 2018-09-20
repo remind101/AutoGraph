@@ -14,7 +14,7 @@ target 'AutoGraphQL' do
 
   target 'AutoGraphRealmTests' do
     inherit! :complete
-    pod 'RealmSwift'
+    pod 'RealmSwift', '3.7.1'
     pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
 
