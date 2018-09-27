@@ -62,26 +62,6 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
-    @available(*, deprecated, message: "This function is deprecated, please wrap collections in a wrapped object and serialize to the wrapped object")
-    public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
-    where
-    R.SerializedObject: RangeReplaceableCollection,
-    R.SerializedObject.Iterator.Element == R.Mapping.MappedObject,
-    R.Mapping.MappedObject: Equatable {
-        
-        let objectBindingPromise = { sendable in
-            return request.generateBinding { [weak self] result in
-                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
-            }
-        }
-        
-        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
-            try self?.lifeCycle?.willSend(request: request)
-        }
-        
-        self.dispatcher.send(sendable: sendable)
-    }
-    
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where R.SerializedObject == R.Mapping.MappedObject {
         

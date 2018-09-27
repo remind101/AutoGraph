@@ -50,7 +50,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: AllFilmsRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -83,7 +83,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: AllFilmsRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -101,7 +101,7 @@ class ResponseHandlerTests: XCTestCase {
     }
     
     func testMappingErrorReturnsMappingError() {
-        class AllFilmsBadRequest: AllFilmsRequest {
+        class FilmBadRequest: FilmRequest {
             override var mapping: Binding<String, Film.Mapping> {
                 return Binding.mapping("bad_path", Film.Mapping())
             }
@@ -112,7 +112,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: AllFilmsBadRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmBadRequest().generateBinding { result in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -130,7 +130,7 @@ class ResponseHandlerTests: XCTestCase {
     }
     
     func testPreMappingHookCalledBeforeMapping() {
-        class MockRequest: AllFilmsRequest {
+        class MockRequest: FilmRequest {
             var mappingCalled = false
             var called = false
             override func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws {

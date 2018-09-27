@@ -100,30 +100,14 @@ public class UnsafeThreadAdapter<T>: ThreadAdapter {
     }
 }
 
-// TODO: We should support non-equatable collections.
-// TOOD: We should better apply currying and futures to clean some of this up.
-
-/// A weird enum that attempts to act like a GADT for object vs collection requests.
-public enum ObjectBinding<K: MappingKey, M: Mapping, CM: Mapping, KC: KeyCollection, C: RangeReplaceableCollection,
-    T: ThreadAdapter>
-where C.Iterator.Element == CM.MappedObject, CM.MappedObject: Equatable, M.MappingKeyType == KC.MappingKeyType, CM.MappingKeyType == KC.MappingKeyType {
-    
+/// A weird enum that collects info for a request.
+public enum ObjectBinding<K: MappingKey, M: Mapping, KC: KeyCollection, T: ThreadAdapter>
+where M.MappingKeyType == KC.MappingKeyType {
     case object(mappingBinding: () -> Binding<K, M>, threadAdapter: T?, mappingKeys: KC, completion: RequestCompletion<M.MappedObject>)
-    case collection(mappingBinding: () -> Binding<K, CM>, threadAdapter: T?, mappingKeys: KC, completion: RequestCompletion<C>)
-}
-
-extension Request
-    where SerializedObject: RangeReplaceableCollection,
-    SerializedObject.Iterator.Element == Mapping.MappedObject,
-    Mapping.MappedObject: Equatable {
-    
-    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, Mapping, MappingKeys, SerializedObject, ThreadAdapterType> {
-        return ObjectBinding<RootKey, Mapping, Mapping, MappingKeys, SerializedObject, ThreadAdapterType>.collection(mappingBinding: { self.mapping }, threadAdapter: self.threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
-    }
 }
 
 extension Request where SerializedObject == Mapping.MappedObject {
-    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, [Int], ThreadAdapterType> {
-        return ObjectBinding<RootKey, Mapping, VoidMapping<Mapping.MappingKeyType>, MappingKeys, [Int], ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<RootKey, Mapping, MappingKeys, ThreadAdapterType> {
+        return ObjectBinding<RootKey, Mapping, MappingKeys, ThreadAdapterType>.object(mappingBinding: { self.mapping }, threadAdapter: threadAdapter, mappingKeys: self.mappingKeys, completion: completion)
     }
 }

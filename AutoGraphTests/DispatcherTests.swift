@@ -39,7 +39,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testForwardsRequestToSender() {
-        let request = AllFilmsRequest()
+        let request = FilmRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { url, params, completion in
@@ -52,7 +52,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testHoldsRequestsWhenPaused() {
-        let request = AllFilmsRequest()
+        let request = FilmRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         XCTAssertEqual(self.subject.pendingRequests.count, 0)
@@ -62,7 +62,7 @@ class DispatcherTests: XCTestCase {
     }
     
     func testClearsRequestsOnCancel() {
-        let request = AllFilmsRequest()
+        let request = FilmRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.subject.paused = true

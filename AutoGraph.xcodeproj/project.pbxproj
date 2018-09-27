@@ -34,7 +34,6 @@
 		CDB829C620F9857200BAC7BD /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B820F9857200BAC7BD /* RLMArrayBridge.swift */; };
 		CDB829CA20F9857200BAC7BD /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829BD20F9857200BAC7BD /* FilmRequest.swift */; };
 		CDB829CB20F9857200BAC7BD /* VariableFilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829BE20F9857200BAC7BD /* VariableFilmRequest.swift */; };
-		CDB829CC20F9857200BAC7BD /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829BF20F9857200BAC7BD /* AllFilmsRequest.swift */; };
 		CDB829CE20F9857200BAC7BD /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829C120F9857200BAC7BD /* Stub.swift */; };
 		CDB829DF20F9864800BAC7BD /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829DB20F9864700BAC7BD /* AutoGraphTests.swift */; };
 		CDB829EF20F9870100BAC7BD /* Film.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829E620F9870000BAC7BD /* Film.swift */; };
@@ -42,7 +41,6 @@
 		CDB829F120F9870100BAC7BD /* VariableFilm.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E820F9870000BAC7BD /* VariableFilm.json */; };
 		CDB829F220F9870100BAC7BD /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E920F9870000BAC7BD /* Film.json */; };
 		CDB829F320F9870100BAC7BD /* Film401.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829EA20F9870000BAC7BD /* Film401.json */; };
-		CDB829F420F9870100BAC7BD /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829EC20F9870000BAC7BD /* AllFilmsRequest.swift */; };
 		CDB829F620F9870100BAC7BD /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829EE20F9870000BAC7BD /* FilmRequest.swift */; };
 		CDB829F720F9870B00BAC7BD /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E720F9870000BAC7BD /* AllFilms.json */; };
 		CDB829F820F9870B00BAC7BD /* VariableFilm.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E820F9870000BAC7BD /* VariableFilm.json */; };
@@ -140,7 +138,6 @@
 		CDB829B920F9857200BAC7BD /* Models.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Models.h; sourceTree = "<group>"; };
 		CDB829BD20F9857200BAC7BD /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
 		CDB829BE20F9857200BAC7BD /* VariableFilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VariableFilmRequest.swift; sourceTree = "<group>"; };
-		CDB829BF20F9857200BAC7BD /* AllFilmsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
 		CDB829C120F9857200BAC7BD /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDB829DB20F9864700BAC7BD /* AutoGraphTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraphTests.swift; sourceTree = "<group>"; };
 		CDB829E620F9870000BAC7BD /* Film.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Film.swift; sourceTree = "<group>"; };
@@ -148,7 +145,6 @@
 		CDB829E820F9870000BAC7BD /* VariableFilm.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = VariableFilm.json; sourceTree = "<group>"; };
 		CDB829E920F9870000BAC7BD /* Film.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film.json; sourceTree = "<group>"; };
 		CDB829EA20F9870000BAC7BD /* Film401.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film401.json; sourceTree = "<group>"; };
-		CDB829EC20F9870000BAC7BD /* AllFilmsRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
 		CDB829EE20F9870000BAC7BD /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
 		CDB829FB20F98E4D00BAC7BD /* AutoGraphRealmTests-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AutoGraphRealmTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatcherRealmTests.swift; sourceTree = "<group>"; };
@@ -327,7 +323,6 @@
 			isa = PBXGroup;
 			children = (
 				CDB829B220F9857200BAC7BD /* Realm */,
-				CDB829BF20F9857200BAC7BD /* AllFilmsRequest.swift */,
 				CDB829A920F984A000BAC7BD /* AutoGraphRealmTests.swift */,
 				CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */,
 				CDB829BD20F9857200BAC7BD /* FilmRequest.swift */,
@@ -368,7 +363,6 @@
 		CDB829EB20F9870000BAC7BD /* Requests */ = {
 			isa = PBXGroup;
 			children = (
-				CDB829EC20F9870000BAC7BD /* AllFilmsRequest.swift */,
 				CDB829EE20F9870000BAC7BD /* FilmRequest.swift */,
 			);
 			path = Requests;
@@ -832,7 +826,6 @@
 				CDB829EF20F9870100BAC7BD /* Film.swift in Sources */,
 				CD3BFF321E22D1EC008CE41A /* ResponseHandlerTests.swift in Sources */,
 				CDB829DF20F9864800BAC7BD /* AutoGraphTests.swift in Sources */,
-				CDB829F420F9870100BAC7BD /* AllFilmsRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -868,7 +861,6 @@
 				CDB829C420F9857200BAC7BD /* RealmMappings.swift in Sources */,
 				CDB829AA20F984A000BAC7BD /* AutoGraphRealmTests.swift in Sources */,
 				CDB829FD20F98EC500BAC7BD /* DispatcherRealmTests.swift in Sources */,
-				CDB829CC20F9857200BAC7BD /* AllFilmsRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
