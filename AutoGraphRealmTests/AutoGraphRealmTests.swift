@@ -31,7 +31,6 @@ class FilmRequestWithLifeCycle: FilmRequest {
 private let kDelay = 0.5
 
 class AutoGraphTests: XCTestCase {
-    
     class MockDispatcher: Dispatcher {
         var cancelCalled = false
         override func cancelAll() {
@@ -57,7 +56,13 @@ class AutoGraphTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        
+        let config = RLMRealmConfiguration.default()
+        var url = config.fileURL!
+        if url.lastPathComponent == "default.realm" {
+            url.deleteLastPathComponent()
+        }
+        config.fileURL = url
+        RLMRealmConfiguration.setDefault(config)
         _ = RLMRealm.default()
         self.subject = AutoGraph()
     }
