@@ -62,6 +62,7 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
+    @available(*, deprecated, message: "This function is deprecated, please wrap collections in a wrapped object and serialize to the wrapped object")
     public func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
     where
     R.SerializedObject: RangeReplaceableCollection,
