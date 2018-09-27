@@ -179,7 +179,8 @@ public extension Transform {
         case .fromJSON:
             do {
                 try toMap = self.fromJSON(payload.json)
-            } catch let err as NSError {
+            }
+            catch let err {
                 payload.error = err
             }
         case .toJSON:
@@ -194,11 +195,11 @@ extension StringRawValueTransform {
         switch json {
         case .string(let str):
             guard let val = MappedObject(rawValue: str) else {
-                throw NSError(domain: "Failed to map \(str) to type\(MappedObject.self)", code: -1, userInfo: nil)
+                throw MappingError.stringRawValueTransformFailure(value: str, toType: MappedObject.self)
             }
             return val
         default:
-            throw NSError(domain: "Failed to map \(json.values()) to type\(MappedObject.self)", code: -1, userInfo: nil)
+            throw MappingError.stringRawValueTransformFailure(value: json.values(), toType: MappedObject.self)
         }
     }
     

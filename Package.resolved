@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/rexmas/Crust.git",
         "state": {
           "branch": null,
-          "revision": "758c31f12fcc0708d7ee4b3ead365d23a97be73c",
-          "version": "0.9.2"
+          "revision": "faf8179cd702fcf2dae41ac7e76760965f92dae0",
+          "version": "0.10.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/rexmas/JSONValue.git",
         "state": {
           "branch": null,
-          "revision": "11acb8d6dc9726e7fb31864dac614cc29f865367",
-          "version": "4.0.2"
+          "revision": "c17cc63c3f9b088d2e0cecf8ba2a1434b745aff8",
+          "version": "4.2.0"
         }
       }
     ]

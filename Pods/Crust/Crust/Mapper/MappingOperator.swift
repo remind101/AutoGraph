@@ -1,14 +1,30 @@
 import Foundation
 import JSONValueRX
 
-// MARK: - Merge right into tuple operator definition
-
-// TODO: Remove this operator.
-infix operator >*< : AssignmentPrecedence
-
-@available(*, deprecated, message: "operator will be removed in next version")
-public func >*< <T, U>(left: T, right: U) -> (T, U) {
-    return (left, right)
+enum MappingError: LocalizedError {
+    case conversionOfJSONToTypeFailed(jsonObject: AnyObject, toType: Any.Type)
+    case noDataAtKeyPathFromKeyToMapFrom(keyPath: JSONKeyPath, key: Any)
+    case bindingDeconstructionFailure(fieldType: Any.Type)
+    case attemptingToAssignNullToNonNullableCollection(collectionType: Any.Type, keyPath: JSONKeyPath, key: Any)
+    case mappingNonArrayJSONtoCollectionFailure(jsonType: Any.Type, collectionElementType: Any.Type)
+    case stringRawValueTransformFailure(value: Any, toType: Any.Type)
+    
+    var errorDescription: String? {
+        switch self {
+        case .conversionOfJSONToTypeFailed(let jsonObject, let toType):
+            return "Conversion of JSON \(jsonObject) to type \(toType) failed"
+        case .noDataAtKeyPathFromKeyToMapFrom(let keyPath, let key):
+            return "JSON does not have data at key path \(keyPath) from key \(key) to map from"
+        case .bindingDeconstructionFailure(let fieldType):
+            return "Expected Binding.mapping to map type \(fieldType)"
+        case .attemptingToAssignNullToNonNullableCollection(let collectionType, let keyPath, let key):
+            return "Attempting to assign \"null\" to non-nullable collection on type \(collectionType) using JSON at key path \(keyPath) from \(key) is not allowed. Please change the `CollectionUpdatePolicy` for this mapping to have `nullable: true`"
+        case .mappingNonArrayJSONtoCollectionFailure(let jsonType, let collectionElementType):
+            return "Trying to map json of type \(jsonType) to Collection of <\(collectionElementType)>"
+        case .stringRawValueTransformFailure(let value, let toType):
+            return "Failed to map \(value) to type\(toType)"
+        }
+    }
 }
 
 // MARK: - Map value operator definition
@@ -71,8 +87,7 @@ private func map<T: JSONable>(from json: JSONValue) throws -> T where T.Conversi
         return fromJson
     }
     else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Conversion of JSON \(json.values()) to type \(T.self) failed" ]
-        throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+        throw MappingError.conversionOfJSONToTypeFailed(jsonObject: json.values(), toType: T.self)
     }
 }
 
@@ -128,8 +143,7 @@ internal func baseJSON<KC: KeyCollection>(from json: JSONValue, via key: KC.Mapp
         return json
     }
     else if baseJSON == nil {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "JSON does not have data at key path \(key.keyPath) from key \(key) to map from" ]
-        throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
+        throw MappingError.noDataAtKeyPathFromKeyToMapFrom(keyPath: key.keyPath, key: key)
     }
     
     return baseJSON
@@ -157,7 +171,7 @@ public func map<T: JSONable, K, MC: MappingPayload<K>>(to field: inout T, via ke
             
             try map(from: baseJSON, to: &field)
         }
-        catch let error as NSError {
+        catch let error {
             payload.error = error
         }
     }
@@ -187,7 +201,7 @@ public func map<T: JSONable, K, MC: MappingPayload<K>>(to field: inout T?, via k
             
             try map(from: baseJSON, to: &field)
         }
-        catch let error as NSError {
+        catch let error {
             payload.error = error
         }
     }
@@ -218,8 +232,7 @@ extension MappingPayload {
     
     private func deconstruct<T, K, M>(binding: Binding<K, M>, fieldType: T.Type) throws -> (key: K, mapping: M) {
         guard case .mapping(let key, let mapping) = binding else {
-            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Expected Binding.mapping to map type \(fieldType)" ]
-            throw NSError(domain: CrustMappingDomain, code: -1000, userInfo: userInfo)
+            throw MappingError.bindingDeconstructionFailure(fieldType: fieldType)
         }
         
         return (key, mapping)
@@ -601,7 +614,7 @@ public func map<M, K, MC: MappingPayload<K>, RRC: RangeReplaceableCollection>
                 }
             }
         }
-        catch let error as NSError {
+        catch let error {
             payload.error = error
         }
         
@@ -692,8 +705,7 @@ private func transform<T, K: MappingKey>(
         return []
     }
     else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "Attempting to assign \"null\" to non-nullable collection on type \(T.self) using JSON at key path \(key.keyPath) from \(key) is not allowed. Please change the `CollectionUpdatePolicy` for this mapping to have `nullable: true`" ]
-        throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
+        throw MappingError.attemptingToAssignNullToNonNullableCollection(collectionType: T.self, keyPath: key.keyPath, key: key)
     }
 }
 
@@ -758,8 +770,7 @@ private func baseJSONForCollection<KC: KeyCollection>(json: JSONValue, via key: 
         return baseJSON
     }
     else {
-        let userInfo = [ NSLocalizedFailureReasonErrorKey : "JSON at key path \(key.keyPath) from key \(key) does not exist to map from" ]
-        throw NSError(domain: CrustMappingDomain, code: 0, userInfo: userInfo)
+        throw MappingError.noDataAtKeyPathFromKeyToMapFrom(keyPath: key.keyPath, key: key)
     }
 }
 
@@ -783,8 +794,7 @@ private func generateNewValues<T, M: Mapping, K>(
         }
     
         guard case .array(let jsonArray) = json else {
-            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Trying to map json of type \(type(of: json)) to Collection of <\(T.self)>" ]
-            throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+            throw MappingError.mappingNonArrayJSONtoCollectionFailure(jsonType: type(of: json), collectionElementType: T.self)
         }
                 
         let isUnique = { (val: T, newValues: [T], fieldContains: (T) -> Bool) -> Bool in

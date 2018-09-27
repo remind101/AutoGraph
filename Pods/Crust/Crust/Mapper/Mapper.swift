@@ -6,7 +6,25 @@ public enum MappingDirection {
     case toJSON
 }
 
-internal let CrustMappingDomain = "CrustMappingDomain"
+enum MapperError: LocalizedError {
+    case primaryKeyMissing(keyPath: String, mappingType: Any.Type)          // TODO-Swift-5: opaque Mapping
+    case mappedObjectCannotWriteToAdapter(objectType: Any.Type, adapterBaseType: Any.Type)
+    case mappingWillBeginErrored(adapter: Any, underlyingError: Error)      // TODO-Swift-5: opaque PersistanceAdapter
+    case mappingDidEndErrored(adapter: Any, underlyingError: Error)         // TODO-Swift-5: opaque PersistanceAdapter
+    
+    var errorDescription: String? {
+        switch self {
+        case .primaryKeyMissing(let keyPath, let mappingType):
+            return "Primary key of \(String(describing: keyPath)) does not exist in JSON but is expected from mapping \(mappingType)"
+        case .mappedObjectCannotWriteToAdapter(let objectType, let adapterBaseType):
+            return "Mapping.MappedObject of \(objectType) cannot write to PersistanceAdapter with BaseType \(adapterBaseType). Type of object \(objectType) is not a subtype of \(adapterBaseType)"
+        case .mappingWillBeginErrored(let adapter, let underlyingError):
+            return "Errored during mappingWillBegin for PersistanceAdapter \(adapter). Underlying error: \(underlyingError)"
+        case .mappingDidEndErrored(let adapter, let underlyingError):
+            return "Errored during mappingDidEnd for PersistanceAdapter \(adapter). Underlying error: \(underlyingError)"
+        }
+    }
+}
 
 open class MappingPayload<K: MappingKey> {
     open internal(set) var json: JSONValue
@@ -220,8 +238,7 @@ public extension Mapping {
                 keyValues[primaryKey] = sanitizedVal ?? transformedVal
             }
             else {
-                let userInfo = [ NSLocalizedFailureReasonErrorKey : "Primary key of \(String(describing: keyPath)) does not exist in JSON but is expected from mapping \(Self.self)" ]
-                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+                throw MapperError.primaryKeyMissing(keyPath: String(describing: keyPath), mappingType: Self.self)
             }
         }
         return keyValues
@@ -261,24 +278,18 @@ public extension Mapping {
         // and `MappedObject == AdapterKind.BaseType` doesn't work with sub-types (i.e. expects MappedObject to be that exact type)
         
         guard MappedObject.self is AdapterKind.BaseType.Type else {
-            let userInfo = [ NSLocalizedFailureReasonErrorKey : "Type of object \(MappedObject.self) is not a subtype of \(AdapterKind.BaseType.self)" ]
-            throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+            throw MapperError.mappedObjectCannotWriteToAdapter(objectType: MappedObject.self, adapterBaseType: AdapterKind.BaseType.self)
         }
     }
     
     internal func start<K>(payload: MappingPayload<K>) throws {
         try self.checkForAdapterBaseTypeConformance()
         if payload.parent == nil || !self.adapter.isInTransaction {
-            var underlyingError: NSError?
             do {
                 try self.adapter.mappingWillBegin()
-            } catch let err as NSError {    // We can handle NSErrors higher up.
-                underlyingError = err
-            } catch {
-                var userInfo = [String : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingWillBegin for adapter \(self.adapter)"
-                userInfo[NSUnderlyingErrorKey] = underlyingError
-                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+            }
+            catch let e {
+                throw MapperError.mappingWillBeginErrored(adapter: self.adapter, underlyingError: e)
             }
         }
     }
@@ -303,16 +314,11 @@ public extension Mapping {
         }()
         
         if shouldCallEndMapping {
-            var underlyingError: NSError?
             do {
                 try self.adapter.mappingDidEnd()
-            } catch let err as NSError {
-                underlyingError = err
-            } catch {
-                var userInfo = [String : Any]()
-                userInfo[NSLocalizedFailureReasonErrorKey] = "Errored during mappingDidEnd for adapter \(self.adapter)"
-                userInfo[NSUnderlyingErrorKey] = underlyingError
-                throw NSError(domain: CrustMappingDomain, code: -1, userInfo: userInfo)
+            }
+            catch let err {
+                throw MapperError.mappingDidEndErrored(adapter: self.adapter, underlyingError: err)
             }
         }
     }

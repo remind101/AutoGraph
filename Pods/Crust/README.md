@@ -20,8 +20,9 @@ A flexible Swift framework for converting classes and structs to and from JSON w
 
 ## Requirements
 iOS 8.0+
-Swift 4.0+
+Swift 4.1+
 see `swift-3` tag (v 0.6.0..<0.7.0) for Swift 3
+see `swift-4.0` tag for Swift 4.0
 
 ## Installation
 ### CocoaPods
@@ -34,7 +35,7 @@ pod 'Crust'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-.package(url: "https://github.com/rexmas/Crust.git", .upToNextMinor(from: "0.9.2"))
+.package(url: "https://github.com/rexmas/Crust.git", .upToNextMinor(from: "0.10.0"))
 ]
 ```
 
