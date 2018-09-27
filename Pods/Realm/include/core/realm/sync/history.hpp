@@ -32,6 +32,19 @@
 namespace realm {
 namespace sync {
 
+struct VersionInfo {
+    /// Realm snapshot version.
+    version_type realm_version = 0;
+
+    /// The synchronization version corresponding to `realm_version`.
+    ///
+    /// In the context of the client-side history type `sync_version.version`
+    /// will currently always be equal to `realm_version` and
+    /// `sync_version.salt` will always be zero.
+    SaltedVersion sync_version = {0, 0};
+};
+
+
 class ClientHistoryBase :
         public InstructionReplication {
 public:
@@ -100,7 +113,7 @@ public:
     /// unreliable when passed to the implementation through functions such as
     /// find_uploadable_changesets(). It may, or may not be the value last
     /// returned for it by get_status().
-    virtual void set_sync_progress(const SyncProgress& progress) = 0;
+    virtual void set_sync_progress(const SyncProgress& progress, VersionInfo&) = 0;
 
 /*
     /// Get the first history entry whose changeset produced a version that
@@ -202,10 +215,8 @@ public:
     ///
     /// If any of the changesets are invalid, this function returns false and
     /// sets `integration_error` to the appropriate value. If they are all
-    /// deemed valid, this function sets `new_client_version` to the produced
-    /// client version. The type of version specified here, is the one that
-    /// identifies an entry in the sync history. Whether this is the same as the
-    /// snapshot number of the Realm file depends on the history implementation.
+    /// deemed valid, this function updates \a version_info to reflect the new
+    /// version produced by the transaction.
     ///
     /// \param progress is the SyncProgress received in the download message.
     /// Progress will be persisted along with the changesets.
@@ -217,9 +228,8 @@ public:
     /// transaction.
     virtual bool integrate_server_changesets(const SyncProgress& progress,
                                              const RemoteChangeset* changesets,
-                                             std::size_t num_changesets,
-                                             IntegrationError& integration_error,
-                                             version_type& new_client_version, util::Logger&,
+                                             std::size_t num_changesets, VersionInfo& new_version,
+                                             IntegrationError& integration_error, util::Logger&,
                                              SyncTransactReporter* transact_reporter = nullptr) = 0;
 
 protected:

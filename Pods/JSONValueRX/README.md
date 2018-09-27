@@ -16,7 +16,7 @@ enum JSONValue: CustomStringConvertible {
 ```
 # Requirements
 ### Supported Platforms
-iOS 8.0+  
+iOS 8.0+
 MacOS 10.12+
 
 ### Supported Languages
@@ -118,6 +118,7 @@ Dictionary
 
 - If a bug is discovered please open an issue.
 - Fork the project and submit a pull request to contribute.
+- Keep Linux tests up-to-date `swift test --generate-linuxmain`
 
 # License
 The MIT License (MIT)
