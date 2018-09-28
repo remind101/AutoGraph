@@ -121,10 +121,6 @@ public struct GraphQLError: LocalizedError, Equatable {
             self.line = Int(line)
             self.column = Int(column)
         }
-        
-        public static func == (lhs: Location, rhs: Location) -> Bool {
-            return lhs.line == rhs.line && lhs.column == rhs.column
-        }
     }
     
     public let message: String
