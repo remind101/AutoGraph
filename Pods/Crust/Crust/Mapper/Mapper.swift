@@ -35,8 +35,8 @@ open class MappingPayload<K: MappingKey> {
     open internal(set) var adapterType: String
     open fileprivate(set) var dir: MappingDirection
     
-    convenience init(withObject object: Any, json: JSONValue, keys: Set<K>, adapterType: String, direction: MappingDirection) {
-        self.init(withObject: object, json: json, keys: SetKeyCollection(keys), adapterType: adapterType, direction: direction)
+    convenience init(withObject object: Any, json: JSONValue, keys: [K], adapterType: String, direction: MappingDirection) {
+        self.init(withObject: object, json: json, keys: Set(keys), adapterType: adapterType, direction: direction)
     }
     
     init<P: KeyCollection>(withObject object: Any, json: JSONValue, keys: P, adapterType: String, direction: MappingDirection) where P.MappingKeyType == K {
@@ -67,13 +67,13 @@ public struct Mapper {
     public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C
         where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
             
-            return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+            return try self.map(from: json, using: binding, keyedBy: Set(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KP>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>, parentPayload: MappingPayload<KP>?) throws -> C
         where M.MappedObject == C.Iterator.Element, M.MappedObject: Equatable {
             
-            return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: parentPayload)
+            return try self.map(from: json, using: binding, keyedBy: Set(keys), parentPayload: parentPayload)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
@@ -99,12 +99,12 @@ public struct Mapper {
     // Non-equatable Collections.
     public func map<M, C: RangeReplaceableCollection, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> C where M.MappedObject == C.Iterator.Element {
         
-        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+        return try self.map(from: json, using: binding, keyedBy: Set(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KP>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>, parentPayload: MappingPayload<KP>?) throws -> C where M.MappedObject == C.Iterator.Element {
         
-        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: parentPayload)
+        return try self.map(from: json, using: binding, keyedBy: Set(keys), parentPayload: parentPayload)
     }
     
     public func map<M, C: RangeReplaceableCollection, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> C
@@ -130,7 +130,7 @@ public struct Mapper {
     // MARK: - Map using Binding.
     
     public func map<M, K>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: Set<M.MappingKeyType>) throws -> M.MappedObject {
-        return try self.map(from: json, using: binding, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+        return try self.map(from: json, using: binding, keyedBy: Set(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
     public func map<M, K, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
@@ -139,7 +139,7 @@ public struct Mapper {
     
     public func map<M, K, KP, KC: KeyCollection>(from json: JSONValue, using binding: Binding<K, M>, keyedBy keys: KC, parentPayload: MappingPayload<KP>?) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {
         
-        let baseJson = try baseJSON(from: json, via: binding.key, ifIn: SetKeyCollection([binding.key])) ?? json
+        let baseJson = try baseJSON(from: json, via: binding.key, ifIn: Set([binding.key])) ?? json
         let parent = parentPayload?.typeErased()
         
         var object = try binding.mapping.fetchOrCreateObject(from: baseJson, in: parent)
@@ -158,7 +158,7 @@ public struct Mapper {
     // MARK: - Map using Mapping.
     
     public func map<M: Mapping>(from json: JSONValue, using mapping: M, keyedBy keys: Set<M.MappingKeyType>) throws -> M.MappedObject {
-        return try self.map(from: json, using: mapping, keyedBy: SetKeyCollection(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
+        return try self.map(from: json, using: mapping, keyedBy: Set(keys), parentPayload: Optional<MappingPayload<RootKey>>.none)
     }
     
     public func map<M: Mapping, KC: KeyCollection>(from json: JSONValue, using mapping: M, keyedBy keys: KC) throws -> M.MappedObject where KC.MappingKeyType == M.MappingKeyType {

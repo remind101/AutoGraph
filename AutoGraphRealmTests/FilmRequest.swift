@@ -37,7 +37,7 @@ class FilmRequest: Request {
         return Binding.mapping("data.film", FilmMapping(adapter: RealmAdapter(realm: RLMRealm.default())))
     }
     
-    let mappingKeys: SetKeyCollection<FilmKey> = SetKeyCollection([.director, .episodeID, .openingCrawl, .title])
+    let mappingKeys: Set<FilmKey> = [.director, .episodeID, .openingCrawl, .title]
     
     var threadAdapter: RealmThreadAdapter? {
         return RealmThreadAdapter()
@@ -144,7 +144,7 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
         return Binding.mapping("data.film", FilmThreadUnconfinedMapping())
     }
     
-    var mappingKeys: SetKeyCollection<FilmKey> = SetKeyCollection([.director, .episodeID, .openingCrawl, .title])
+    var mappingKeys: Set<FilmKey> = [.director, .episodeID, .openingCrawl, .title]
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }

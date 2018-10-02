@@ -100,10 +100,10 @@ class VariableFilmRequest: Request {
     ]
     
     let mapping = Binding.mapping("data", VariableFilmMapping())
-    let mappingKeys = SetKeyCollection<VariableFilmKey>([
+    let mappingKeys: Set<VariableFilmKey> = [
         .allFilms([.title, .episodeID, .openingCrawl, .director]),
         .node([.title, .episodeID, .openingCrawl, .director])
-        ])
+        ]
     let threadAdapter: NestedThreadAdapter<VariableFilm, RealmThreadAdapter>? = NestedThreadAdapter<VariableFilm, RealmThreadAdapter>(nestedThreadAdapter: RealmThreadAdapter())
     
     public func willSend() throws { }

@@ -36,7 +36,7 @@ class FilmRequest: ThreadUnconfinedRequest {
         return .mapping("data.film", Film.Mapping())
     }
     
-    let mappingKeys: SetKeyCollection<Film.Key> = SetKeyCollection([.id, .director, .episodeID, .openingCrawl, .title])
+    let mappingKeys: Set<Film.Key> = [.id, .director, .episodeID, .openingCrawl, .title]
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
