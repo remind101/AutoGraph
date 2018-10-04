@@ -50,7 +50,7 @@ public extension RawRepresentable where Self: MappingKey, RawValue == String {
 }
 
 /// Use this as a key if you intend to map the whole json payload.
-public struct RootKey: MappingKey {
+public struct RootKey: MappingKey, Hashable {
     public let keyPath = ""
     public init() { }
     
@@ -122,6 +122,7 @@ public protocol KeyCollection: DynamicKeyCollection {
     
     init<Source>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == MappingKeyType
     func containsKey(_ key: MappingKeyType) -> Bool
+    // TODO: If opaque types arrive in Swift 5 can replace this.
     func nestedKeyCollection<Key: MappingKey>(`for` key: MappingKeyType) -> AnyKeyCollection<Key>?
 }
 
@@ -185,7 +186,7 @@ public struct AnyKeyCollection<K: MappingKey>: KeyCollection {
     }
     
     public init(arrayLiteral elements: K...) {
-        let keyCollection = SetKeyCollection(Set(elements))
+        let keyCollection = Set(elements)
         self.keyCollectionType = type(of: keyCollection).self
         self.mappingKeyType = K.self
         self._containsKey = { key in
@@ -195,7 +196,7 @@ public struct AnyKeyCollection<K: MappingKey>: KeyCollection {
     }
     
     public init<Source>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == (K) {
-        let keyCollection = SetKeyCollection(Set(sequence))
+        let keyCollection = Set(sequence)
         self.keyCollectionType = type(of: keyCollection).self
         self.mappingKeyType = K.self
         self._containsKey = { key in
@@ -236,7 +237,7 @@ public struct AnyMappingKeyKeyCollection: KeyCollection {
     }
     
     public init<Source, KeyType: MappingKey>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == (KeyType) {
-        let keyCollection = SetKeyCollection(Set(sequence))
+        let keyCollection = Set(sequence)
         self.mappingKeyType = KeyType.self
         self._containsKey = { key in
             guard case let key as KeyType = key else {
@@ -244,7 +245,7 @@ public struct AnyMappingKeyKeyCollection: KeyCollection {
             }
             return keyCollection.containsKey(key)
         }
-        self.keyCollectionType = SetKeyCollection<KeyType>.self
+        self.keyCollectionType = Set<KeyType>.self
         self.dynamicKeyCollection = keyCollection
     }
     
@@ -275,38 +276,19 @@ public struct AllKeys<K: MappingKey>: KeyCollection {
     }
 }
 
-/// A `Set` of `MappingKey`s.
-///
-/// TODO: Can make Set follow `KeyCollection` protocol once conditional conformances are available in Swift 4.1
-/// https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md .
-public struct SetKeyCollection<K: MappingKey>: KeyCollection, ExpressibleByArrayLiteral {
-    public let keys: Set<K>
+extension Set: DynamicKeyCollection where Element: MappingKey { }
+extension Set: KeyCollection where Element: MappingKey {
+    public typealias MappingKeyType = Element
     
-    public init(_ keys: Set<K>) {
-        self.keys = keys
+    public func containsKey(_ key: Element) -> Bool {
+        return self.contains(key)
     }
     
-    public init<Source>(_ sequence: Source) where Source : Sequence, Source.Iterator.Element == (K) {
-        self.keys = Set(sequence)
-    }
-    
-    public init(arrayLiteral elements: K...) {
-        self.keys = Set(elements)
-    }
-    
-    public init(array: [K]) {
-        self.keys = Set(array)
-    }
-    
-    public func containsKey(_ key: K) -> Bool {
-        return self.keys.contains(key)
-    }
-    
-    public func nestedKeyCollection<Key: MappingKey>(for key: K) -> AnyKeyCollection<Key>? {
-        guard let index = self.keys.index(of: key) else {
+    public func nestedKeyCollection<Key>(for key: Element) -> AnyKeyCollection<Key>? where Key : MappingKey {
+        guard let index = self.index(of: key) else {
             return nil
         }
-        let key = self.keys[index]
+        let key = self[index]
         return key.nestedMappingKeys()
     }
 }

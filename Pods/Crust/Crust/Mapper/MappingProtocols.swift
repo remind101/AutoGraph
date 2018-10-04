@@ -189,6 +189,28 @@ public extension Transform {
     }
 }
 
+extension Optional: AnyMappable where Wrapped: AnyMappable {
+    public init() {
+        self = .some(Wrapped())
+    }
+}
+
+struct OptionalAnyMapping<M: AnyMapping>: AnyMapping {
+    typealias MappedObject = Optional<M.MappedObject>
+    typealias MappingKeyType = M.MappingKeyType
+    
+    let wrappedMapping: M
+    
+    init(wrappedMapping: M) {
+        self.wrappedMapping = wrappedMapping
+    }
+    
+    func mapping(toMap: inout Optional<M.MappedObject>, payload: MappingPayload<M.MappingKeyType>) throws {
+        guard toMap != nil else { return }
+        try self.wrappedMapping.mapping(toMap: &(toMap!), payload: payload)
+    }
+}
+
 public protocol StringRawValueTransform: Transform where MappedObject: RawRepresentable, MappedObject.RawValue == String { }
 extension StringRawValueTransform {
     public func fromJSON(_ json: JSONValue) throws -> MappedObject {

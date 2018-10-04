@@ -10,7 +10,7 @@ public extension Collection where Iterator.Element: Equatable {
     }
 }
 
-public extension Sequence where Iterator.Element: MappingKey {
+public extension Array where Iterator.Element: MappingKey {
     public func anyKeyCollection<TargetKey: MappingKey>() -> AnyKeyCollection<TargetKey>? {
         return AnyKeyCollection(self) as? AnyKeyCollection<TargetKey>
     }

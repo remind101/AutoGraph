@@ -522,7 +522,9 @@ class InputValueTests: XCTestCase {
     
     func testDictionaryInputValue() {
         XCTAssertThrowsError(try Dictionary<String, String>.inputType())
-        XCTAssertEqual(try! [ "number" : 1, "string" : "derp" ].graphQLInputValue(), "{number: 1, string: \"derp\"}")
+        let result = try! [ "number" : 1, "string" : "derp" ].graphQLInputValue()
+        // Dictionary order is random since Swift 4.2.
+        XCTAssertTrue(result == "{string: \"derp\", number: 1}" || result == "{number: 1, string: \"derp\"}")
     }
     
     func testEmptyDictionaryInputValue() {
