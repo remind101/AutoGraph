@@ -52,7 +52,7 @@ pod 'AutoGraph'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.5.2"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.7.0"))
 ]
 ```
 
