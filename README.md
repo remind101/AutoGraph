@@ -222,7 +222,7 @@ class FilmRequest: Request {
     
     // This specifies what keys are included in the JSON payload (as defined by the query) that we will be mapping into Film.
     // It's possible that the query may be requesting a partial Film type; by only including these keys you're specifying to the mapping that any other keys will not be mapped.
-    let mappingKeys: SetKeyCollection<FilmKey> = SetKeyCollection([.id, .title, .episodeId, .director, .openingCrawl])
+    let mappingKeys: Set<FilmKey> = Set([.id, .title, .episodeId, .director, .openingCrawl])
     
     var threadAdapter: RealmThreadAdaptor? {
         return RealmThreadAdaptor()
