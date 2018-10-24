@@ -1,6 +1,5 @@
 import XCTest
 import Alamofire
-import Crust
 @testable import AutoGraphQL
 
 class DispatcherTests: XCTestCase {

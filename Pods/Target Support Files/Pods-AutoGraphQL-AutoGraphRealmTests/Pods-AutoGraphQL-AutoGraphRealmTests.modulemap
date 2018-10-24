@@ -1,6 +1,0 @@
-framework module Pods_AutoGraphQL_AutoGraphRealmTests {
-  umbrella header "Pods-AutoGraphQL-AutoGraphRealmTests-umbrella.h"
-
-  export *
-  module * { export * }
-}
