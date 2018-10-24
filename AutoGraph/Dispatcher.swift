@@ -1,5 +1,4 @@
 import Alamofire
-import Crust
 import Foundation
 
 public protocol RequestSender {
@@ -21,20 +20,17 @@ public final class Sendable {
         self.dispatcherEarlyFailure = dispatcherEarlyFailure
     }
     
-    public convenience init<R :Request>(dispatcher: Dispatcher, request: R, completion: RequestCompletion<R.SerializedObject>, globalWillSend: ((R) throws -> ())?) {
+    public convenience init<R :Request>(dispatcher: Dispatcher, request: R, objectBindingPromise: @escaping (Sendable) -> ObjectBinding<R.SerializedObject>, globalWillSend: ((R) throws -> ())?) {
         
         let completion: (Sendable) -> (DataResponse<Any>) -> () = { [weak dispatcher] sendable in
-            { [weak dispatcher] response in
-                dispatcher?.responseHandler.handle(response: response, preMappingHook: request.didFinishRequest, completion: { (result) in
-                    
-                })
-                dispatcher?.responseHandler.handle(response: response, preMappingHook: request.didFinishRequest)
+        { [weak dispatcher] response in
+            dispatcher?.responseHandler.handle(response: response, objectBinding: objectBindingPromise(sendable), preMappingHook: request.didFinishRequest)
             }
         }
         
         let earlyFailure: (Sendable) -> (Error) -> () = { [weak dispatcher] sendable in
             { [weak dispatcher] e in
-                dispatcher?.responseHandler.fail(error: e)
+                dispatcher?.responseHandler.fail(error: e, objectBinding: objectBindingPromise(sendable))
             }
         }
         

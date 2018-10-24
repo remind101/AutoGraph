@@ -24,3 +24,14 @@ public protocol Request {
     /// Called right before calling the completion handler for the sent request, i.e. at the end of the lifecycle.
     func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
 }
+
+/// A weird enum that collects info for a request.
+public enum ObjectBinding<SerializedObject: Codable> {
+    case object(completion: RequestCompletion<SerializedObject>)
+}
+
+extension Request {
+    func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<SerializedObject> {
+        return ObjectBinding<SerializedObject>.object(completion: completion)
+    }
+}

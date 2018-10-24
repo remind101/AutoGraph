@@ -16,8 +16,8 @@ open class ResponseHandler {
     }
     
     func handle<SerializedObject: Codable>(response: DataResponse<Any>,
-                                           preMappingHook: (HTTPURLResponse?, JSONValue) throws -> (),
-                                           completion: @escaping RequestCompletion<SerializedObject>) {
+                                           objectBinding: ObjectBinding<SerializedObject>,
+                                           preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
                 let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
@@ -25,26 +25,29 @@ open class ResponseHandler {
                 try preMappingHook(response.response, json)
                 
                 self.queue.addOperation { [weak self] in
-                    self?.map(json: json, completion: completion)
+                    self?.map(json: json, objectBinding: objectBinding)
                 }
             }
             catch let e {
-                completion(.failure(e))
+                self.fail(error: e, objectBinding: objectBinding)
             }
     }
     
-    private func map<SerializedObject: Codable>(json: JSONValue, completion: @escaping RequestCompletion<SerializedObject>) {
+    private func map<SerializedObject: Codable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
             
             do {
                 let decoder = JSONDecoder()
                 let object = try decoder.decode(SerializedObject.self, from: json.encode())
                 
-                self.callbackQueue.addOperation {
-                    completion(.success(object))
+                switch objectBinding {
+                case .object(let completion):
+                    self.callbackQueue.addOperation {
+                        completion(.success(object))
+                    }
                 }
             }
             catch let e {
-                completion(.failure(AutoGraphError.mapping(error: e)))
+                self.fail(error: AutoGraphError.mapping(error: e), objectBinding: objectBinding)
             }
     }
     
@@ -53,6 +56,13 @@ open class ResponseHandler {
     func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
         self.callbackQueue.addOperation {
             completion(.failure(error))
+        }
+    }
+    
+    func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
+        switch objectBinding {
+        case .object(completion: let completion):
+            self.fail(error: error, completion: completion)
         }
     }
 }

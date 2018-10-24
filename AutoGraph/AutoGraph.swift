@@ -63,7 +63,14 @@ open class AutoGraph {
     }
     
     open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
-        let sendable = Sendable(dispatcher: self.dispatcher, request: request) { [weak self] request in
+        
+        let objectBindingPromise = { sendable in
+            return request.generateBinding { [weak self] result in
+                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
+            }
+        }
+        
+        let sendable = Sendable(dispatcher: self.dispatcher, request: request, objectBindingPromise: objectBindingPromise) { [weak self] request in
             try self?.lifeCycle?.willSend(request: request)
         }
         
