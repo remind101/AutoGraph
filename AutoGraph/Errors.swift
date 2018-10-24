@@ -38,7 +38,7 @@ public typealias NetworkErrorParser = (_ graphQLError: GraphQLError) -> NetworkE
 public indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError])
     case network(error: Error, statusCode: Int, response: HTTPURLResponse?, underlying: AutoGraphError?)
-    case mapping(error: Error)
+    case mapping(error: Error?)
     case refetching(error: Error?)
     case typeCoercion(from: Any.Type, to: Any.Type)
     case invalidResponse
@@ -80,7 +80,7 @@ public indirect enum AutoGraphError: LocalizedError {
             return "Network Failure - \(statusCode): " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
             
         case .mapping(let error):
-            return "Mapping Failure: " + error.localizedDescription
+            return "Mapping Failure: " + (error?.localizedDescription ?? "(unknown)")
         
         case .refetching(let error):
             let baseMessage = "Failed to refetch data on main thread"

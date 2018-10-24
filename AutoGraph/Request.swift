@@ -15,6 +15,9 @@ public protocol Request {
     /// The variables sent along with the query.
     var variables: Variables? { get }
     
+    /// The key path to the result object in the data
+    var objectRootKeyPath: String { get }
+    
     /// Called at the moment before the request will be sent from the `Client`.
     func willSend() throws
     
@@ -27,11 +30,11 @@ public protocol Request {
 
 /// A weird enum that collects info for a request.
 public enum ObjectBinding<SerializedObject: Codable> {
-    case object(completion: RequestCompletion<SerializedObject>)
+    case object(keyPath: String, completion: RequestCompletion<SerializedObject>)
 }
 
 extension Request {
     func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<SerializedObject> {
-        return ObjectBinding<SerializedObject>.object(completion: completion)
+        return ObjectBinding<SerializedObject>.object(keyPath: self.objectRootKeyPath, completion: completion)
     }
 }

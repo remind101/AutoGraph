@@ -92,22 +92,17 @@ class DispatcherTests: XCTestCase {
         XCTAssertTrue(self.mockRequestSender.expectation)
     }
     
-    class BadRequest: AutoGraphQL.ThreadUnconfinedRequest {
+    class BadRequest: AutoGraphQL.Request {
         struct BadQuery: GraphQLDocument {
             func graphQLString() throws -> String {
                 throw NSError(domain: "error", code: -1, userInfo: nil)
             }
         }
         
+        typealias SerializedObject = Film
         let queryDocument = BadQuery()
         let variables: [AnyHashable : Any]? = nil
-        
-        
-        var mapping: Binding<String, Film.Mapping> {
-            return Binding.mapping("data.film", Film.Mapping())
-        }
-        
-        let mappingKeys = AllKeys<Film.Key>()
+        let objectRootKeyPath: String = ""
     }
     
     func testFailureReturnsToCaller() {

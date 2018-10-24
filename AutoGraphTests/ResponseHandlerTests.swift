@@ -102,9 +102,6 @@ class ResponseHandlerTests: XCTestCase {
     
     func testMappingErrorReturnsMappingError() {
         class FilmBadRequest: FilmRequest {
-            override var mapping: Binding<String, Film.Mapping> {
-                return Binding.mapping("bad_path", Film.Mapping())
-            }
         }
         
         let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
@@ -131,15 +128,9 @@ class ResponseHandlerTests: XCTestCase {
     
     func testPreMappingHookCalledBeforeMapping() {
         class MockRequest: FilmRequest {
-            var mappingCalled = false
             var called = false
             override func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws {
-                called = !mappingCalled
-            }
-            
-            override var mapping: Binding<String, Film.Mapping> {
-                mappingCalled = true
-                return super.mapping
+                called = true
             }
         }
         

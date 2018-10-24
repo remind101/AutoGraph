@@ -21,7 +21,6 @@ open class ResponseHandler {
             
             do {
                 let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
-                
                 try preMappingHook(response.response, json)
                 
                 self.queue.addOperation { [weak self] in
@@ -36,11 +35,16 @@ open class ResponseHandler {
     private func map<SerializedObject: Codable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
             
             do {
-                let decoder = JSONDecoder()
-                let object = try decoder.decode(SerializedObject.self, from: json.encode())
-                
                 switch objectBinding {
-                case .object(let completion):
+                case .object(let keyPath, let completion):
+                    
+                    guard let objectJson = json[keyPath] else {
+                        throw AutoGraphError.mapping(error: nil)
+                    }
+                    
+                    let decoder = JSONDecoder()
+                    let object = try decoder.decode(SerializedObject.self, from: objectJson.encode())
+                    
                     self.callbackQueue.addOperation {
                         completion(.success(object))
                     }
@@ -61,7 +65,7 @@ open class ResponseHandler {
     
     func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
         switch objectBinding {
-        case .object(completion: let completion):
+        case .object(_, completion: let completion):
             self.fail(error: error, completion: completion)
         }
     }
