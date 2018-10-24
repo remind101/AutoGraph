@@ -1,6 +1,6 @@
 import Foundation
 
-struct Film: Codable, Equatable {
+struct Film: Decodable, Equatable {
     var remoteId: String
     var title: String
     var episode: Int

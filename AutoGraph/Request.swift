@@ -4,7 +4,7 @@ import JSONValueRX
 /// A `Request` to be sent by AutoGraph.
 public protocol Request {
     /// The returned type for the request.
-    associatedtype SerializedObject: Codable
+    associatedtype SerializedObject: Decodable
     
     associatedtype QueryDocument: GraphQLDocument
     associatedtype Variables: GraphQLVariables
@@ -29,7 +29,7 @@ public protocol Request {
 }
 
 /// A weird enum that collects info for a request.
-public enum ObjectBinding<SerializedObject: Codable> {
+public enum ObjectBinding<SerializedObject: Decodable> {
     case object(keyPath: String, completion: RequestCompletion<SerializedObject>)
 }
 

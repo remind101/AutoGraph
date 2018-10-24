@@ -15,9 +15,9 @@ open class ResponseHandler {
         self.callbackQueue = callbackQueue
     }
     
-    func handle<SerializedObject: Codable>(response: DataResponse<Any>,
-                                           objectBinding: ObjectBinding<SerializedObject>,
-                                           preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
+    func handle<SerializedObject: Decodable>(response: DataResponse<Any>,
+                                             objectBinding: ObjectBinding<SerializedObject>,
+                                             preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
                 let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
@@ -32,7 +32,7 @@ open class ResponseHandler {
             }
     }
     
-    private func map<SerializedObject: Codable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
+    private func map<SerializedObject: Decodable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
             
             do {
                 switch objectBinding {
