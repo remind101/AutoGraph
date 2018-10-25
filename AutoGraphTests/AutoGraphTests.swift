@@ -185,7 +185,7 @@ class AutoGraphTests: XCTestCase {
             
             var didFinishCalled = false
             override func didFinish<SerializedObject>(result: AutoGraphQL.Result<SerializedObject>) throws {
-                guard case .success(let value) = result else {
+                guard case .success(let value, _) = result else {
                     return
                 }
                 didFinishCalled = value is Film
@@ -211,7 +211,7 @@ class AutoGraphTests: XCTestCase {
         class GlobalLifeCycleMock: GlobalLifeCycle {
             var gotArray = false
             override func didFinish<SerializedObject>(result: AutoGraphQL.Result<SerializedObject>) throws {
-                guard case .success(let value) = result else {
+                guard case .success(let value, _) = result else {
                     return
                 }
                 gotArray = value is [Film]
