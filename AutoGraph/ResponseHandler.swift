@@ -4,6 +4,13 @@ import JSONValueRX
 
 open class ResponseHandler {
     
+    public struct ObjectKeyPathError: LocalizedError {
+        let keyPath: String
+        public var errorDescription: String? {
+            return "No object to map found at keyPath '\(self.keyPath)'"
+        }
+    }
+    
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue
     public var networkErrorParser: NetworkErrorParser?
@@ -39,7 +46,7 @@ open class ResponseHandler {
                 case .object(let keyPath, let completion):
                     
                     guard let objectJson = json[keyPath] else {
-                        throw "No object to map found at keyPath '\(keyPath)'"
+                        throw ObjectKeyPathError(keyPath: keyPath)
                     }
                     
                     let decoder = JSONDecoder()

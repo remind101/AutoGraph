@@ -61,5 +61,3 @@ extension DataResponse {
         return json
     }
 }
-
-extension String: Error {}
