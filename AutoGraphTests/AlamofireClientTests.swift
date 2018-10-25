@@ -1,6 +1,5 @@
 import XCTest
 @testable import Alamofire
-import Crust
 import JSONValueRX
 @testable import AutoGraphQL
 

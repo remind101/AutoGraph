@@ -1,6 +1,0 @@
-framework module Crust {
-  umbrella header "Crust-umbrella.h"
-
-  export *
-  module * { export * }
-}

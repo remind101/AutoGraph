@@ -62,8 +62,7 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
-    open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
-    where R.SerializedObject == R.Mapping.MappedObject {
+    open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
         
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in

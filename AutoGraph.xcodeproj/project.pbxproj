@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
+		AE6477EE218208FB00E3337B /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
 		CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */; };
 		CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
@@ -25,16 +26,6 @@
 		CDA62C331DB69B15004BA66D /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
 		CDA62C351DB69F4E004BA66D /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
 		CDA62C391DB6A586004BA66D /* FoundationExtensionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */; };
-		CDB829AA20F984A000BAC7BD /* AutoGraphRealmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829A920F984A000BAC7BD /* AutoGraphRealmTests.swift */; };
-		CDB829AC20F984A000BAC7BD /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
-		CDB829C220F9857200BAC7BD /* RLMArray+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B320F9857200BAC7BD /* RLMArray+Utilities.m */; };
-		CDB829C320F9857200BAC7BD /* Models.m in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B420F9857200BAC7BD /* Models.m */; };
-		CDB829C420F9857200BAC7BD /* RealmMappings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B520F9857200BAC7BD /* RealmMappings.swift */; };
-		CDB829C520F9857200BAC7BD /* RLMSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B720F9857200BAC7BD /* RLMSupport.swift */; };
-		CDB829C620F9857200BAC7BD /* RLMArrayBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829B820F9857200BAC7BD /* RLMArrayBridge.swift */; };
-		CDB829CA20F9857200BAC7BD /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829BD20F9857200BAC7BD /* FilmRequest.swift */; };
-		CDB829CB20F9857200BAC7BD /* VariableFilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829BE20F9857200BAC7BD /* VariableFilmRequest.swift */; };
-		CDB829CE20F9857200BAC7BD /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829C120F9857200BAC7BD /* Stub.swift */; };
 		CDB829DF20F9864800BAC7BD /* AutoGraphTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829DB20F9864700BAC7BD /* AutoGraphTests.swift */; };
 		CDB829EF20F9870100BAC7BD /* Film.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829E620F9870000BAC7BD /* Film.swift */; };
 		CDB829F020F9870100BAC7BD /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E720F9870000BAC7BD /* AllFilms.json */; };
@@ -42,11 +33,6 @@
 		CDB829F220F9870100BAC7BD /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E920F9870000BAC7BD /* Film.json */; };
 		CDB829F320F9870100BAC7BD /* Film401.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829EA20F9870000BAC7BD /* Film401.json */; };
 		CDB829F620F9870100BAC7BD /* FilmRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829EE20F9870000BAC7BD /* FilmRequest.swift */; };
-		CDB829F720F9870B00BAC7BD /* AllFilms.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E720F9870000BAC7BD /* AllFilms.json */; };
-		CDB829F820F9870B00BAC7BD /* VariableFilm.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E820F9870000BAC7BD /* VariableFilm.json */; };
-		CDB829F920F9870B00BAC7BD /* Film.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829E920F9870000BAC7BD /* Film.json */; };
-		CDB829FA20F9870B00BAC7BD /* Film401.json in Resources */ = {isa = PBXBuildFile; fileRef = CDB829EA20F9870000BAC7BD /* Film401.json */; };
-		CDB829FD20F98EC500BAC7BD /* DispatcherRealmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */; };
 		CDB82A0120FEE23A00BAC7BD /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEA91E1CB1400029909A /* Errors.swift */; };
 		CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDBEBEAB1E1CB5E80029909A /* Utilities.swift */; };
@@ -56,7 +42,6 @@
 		CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */; };
 		CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE3C7221E00C4A700AB4EB1 /* Stub.swift */; };
 		CDFFEBC71E6788C100685110 /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFFEBC61E6788C100685110 /* Request.swift */; };
-		DCABB74D9F5789AD147B3C87 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49D4BAD32E7581AD72E6B222 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework */; };
 		EF8E4591AE7416F7A2E5EE3F /* Pods_AutoGraphQL_QueryBuilderTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F460CA8E756A06703DFF2AF0 /* Pods_AutoGraphQL_QueryBuilderTests.framework */; };
 /* End PBXBuildFile section */
 
@@ -67,13 +52,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CDA62BF81DB16998004BA66D;
 			remoteInfo = AutoGraph;
-		};
-		CDB829AD20F984A000BAC7BD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CDA62BF01DB16998004BA66D /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CDA62BF81DB16998004BA66D;
-			remoteInfo = AutoGraphQL;
 		};
 		CDB829FF20FEE23300BAC7BD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -104,6 +82,7 @@
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.debug.xcconfig"; sourceTree = "<group>"; };
 		A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
+		AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
 		B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.release.xcconfig"; sourceTree = "<group>"; };
 		C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Dispatcher.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
@@ -126,19 +105,6 @@
 		CDA62C321DB69B15004BA66D /* QueryDSL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryDSL.swift; sourceTree = "<group>"; };
 		CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensions.swift; sourceTree = "<group>"; };
 		CDA62C381DB6A586004BA66D /* FoundationExtensionsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationExtensionsTests.swift; sourceTree = "<group>"; };
-		CDB829A720F984A000BAC7BD /* AutoGraphRealmTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AutoGraphRealmTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CDB829A920F984A000BAC7BD /* AutoGraphRealmTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoGraphRealmTests.swift; sourceTree = "<group>"; };
-		CDB829AB20F984A000BAC7BD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CDB829B320F9857200BAC7BD /* RLMArray+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RLMArray+Utilities.m"; sourceTree = "<group>"; };
-		CDB829B420F9857200BAC7BD /* Models.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Models.m; sourceTree = "<group>"; };
-		CDB829B520F9857200BAC7BD /* RealmMappings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RealmMappings.swift; sourceTree = "<group>"; };
-		CDB829B620F9857200BAC7BD /* RLMArray+Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RLMArray+Utilities.h"; sourceTree = "<group>"; };
-		CDB829B720F9857200BAC7BD /* RLMSupport.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMSupport.swift; sourceTree = "<group>"; };
-		CDB829B820F9857200BAC7BD /* RLMArrayBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RLMArrayBridge.swift; sourceTree = "<group>"; };
-		CDB829B920F9857200BAC7BD /* Models.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Models.h; sourceTree = "<group>"; };
-		CDB829BD20F9857200BAC7BD /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
-		CDB829BE20F9857200BAC7BD /* VariableFilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VariableFilmRequest.swift; sourceTree = "<group>"; };
-		CDB829C120F9857200BAC7BD /* Stub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Stub.swift; sourceTree = "<group>"; };
 		CDB829DB20F9864700BAC7BD /* AutoGraphTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoGraphTests.swift; sourceTree = "<group>"; };
 		CDB829E620F9870000BAC7BD /* Film.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Film.swift; sourceTree = "<group>"; };
 		CDB829E720F9870000BAC7BD /* AllFilms.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = AllFilms.json; sourceTree = "<group>"; };
@@ -146,8 +112,6 @@
 		CDB829E920F9870000BAC7BD /* Film.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film.json; sourceTree = "<group>"; };
 		CDB829EA20F9870000BAC7BD /* Film401.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Film401.json; sourceTree = "<group>"; };
 		CDB829EE20F9870000BAC7BD /* FilmRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FilmRequest.swift; sourceTree = "<group>"; };
-		CDB829FB20F98E4D00BAC7BD /* AutoGraphRealmTests-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AutoGraphRealmTests-Bridging-Header.h"; sourceTree = "<group>"; };
-		CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DispatcherRealmTests.swift; sourceTree = "<group>"; };
 		CDBEBE9A1E00F3DD0029909A /* Crust.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Crust.framework; path = "../../../Library/Developer/Xcode/DerivedData/AutoGraph-ecnfnfghfxzpggasivymkfvdtyqk/Build/Products/Debug-iphonesimulator/Crust/Crust.framework"; sourceTree = "<group>"; };
 		CDBEBE9C1E01E6A60029909A /* Crust.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Crust.framework; path = "Pods/../build/Debug-iphoneos/Crust/Crust.framework"; sourceTree = "<group>"; };
 		CDBEBE9E1E01E6B30029909A /* Crust.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Crust.framework; path = "Pods/../build/Debug-iphoneos/Crust/Crust.framework"; sourceTree = "<group>"; };
@@ -203,15 +167,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CDB829A420F984A000BAC7BD /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CDB829AC20F984A000BAC7BD /* AutoGraphQL.framework in Frameworks */,
-				DCABB74D9F5789AD147B3C87 /* Pods_AutoGraphQL_AutoGraphRealmTests.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -242,7 +197,6 @@
 			children = (
 				CDA62BFB1DB16998004BA66D /* AutoGraphQL */,
 				CDA62C061DB16999004BA66D /* AutoGraphTests */,
-				CDB829A820F984A000BAC7BD /* AutoGraphRealmTests */,
 				CDA62C1C1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C271DB69ADE004BA66D /* QueryBuilderTests */,
 				CDA62BFA1DB16998004BA66D /* Products */,
@@ -258,7 +212,6 @@
 				CDA62C021DB16999004BA66D /* AutoGraphTests.xctest */,
 				CDA62C1B1DB69ADE004BA66D /* QueryBuilder.framework */,
 				CDA62C231DB69ADE004BA66D /* QueryBuilderTests.xctest */,
-				CDB829A720F984A000BAC7BD /* AutoGraphRealmTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -319,35 +272,6 @@
 			path = QueryBuilderTests;
 			sourceTree = "<group>";
 		};
-		CDB829A820F984A000BAC7BD /* AutoGraphRealmTests */ = {
-			isa = PBXGroup;
-			children = (
-				CDB829B220F9857200BAC7BD /* Realm */,
-				CDB829A920F984A000BAC7BD /* AutoGraphRealmTests.swift */,
-				CDB829FC20F98EC500BAC7BD /* DispatcherRealmTests.swift */,
-				CDB829BD20F9857200BAC7BD /* FilmRequest.swift */,
-				CDB829C120F9857200BAC7BD /* Stub.swift */,
-				CDB829BE20F9857200BAC7BD /* VariableFilmRequest.swift */,
-				CDB829AB20F984A000BAC7BD /* Info.plist */,
-				CDB829FB20F98E4D00BAC7BD /* AutoGraphRealmTests-Bridging-Header.h */,
-			);
-			path = AutoGraphRealmTests;
-			sourceTree = "<group>";
-		};
-		CDB829B220F9857200BAC7BD /* Realm */ = {
-			isa = PBXGroup;
-			children = (
-				CDB829B320F9857200BAC7BD /* RLMArray+Utilities.m */,
-				CDB829B420F9857200BAC7BD /* Models.m */,
-				CDB829B520F9857200BAC7BD /* RealmMappings.swift */,
-				CDB829B620F9857200BAC7BD /* RLMArray+Utilities.h */,
-				CDB829B720F9857200BAC7BD /* RLMSupport.swift */,
-				CDB829B820F9857200BAC7BD /* RLMArrayBridge.swift */,
-				CDB829B920F9857200BAC7BD /* Models.h */,
-			);
-			path = Realm;
-			sourceTree = "<group>";
-		};
 		CDB829E520F9870000BAC7BD /* Data */ = {
 			isa = PBXGroup;
 			children = (
@@ -364,6 +288,7 @@
 			isa = PBXGroup;
 			children = (
 				CDB829EE20F9870000BAC7BD /* FilmRequest.swift */,
+				AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */,
 			);
 			path = Requests;
 			sourceTree = "<group>";
@@ -492,26 +417,6 @@
 			productReference = CDA62C231DB69ADE004BA66D /* QueryBuilderTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		CDB829A620F984A000BAC7BD /* AutoGraphRealmTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CDB829B120F984A000BAC7BD /* Build configuration list for PBXNativeTarget "AutoGraphRealmTests" */;
-			buildPhases = (
-				0B372D5D822800C44AADBFC3 /* [CP] Check Pods Manifest.lock */,
-				CDB829A320F984A000BAC7BD /* Sources */,
-				CDB829A420F984A000BAC7BD /* Frameworks */,
-				CDB829A520F984A000BAC7BD /* Resources */,
-				798A3086EB9EB80F410AE1DE /* [CP] Embed Pods Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CDB829AE20F984A000BAC7BD /* PBXTargetDependency */,
-			);
-			name = AutoGraphRealmTests;
-			productName = AutoGraphRealmTests;
-			productReference = CDB829A720F984A000BAC7BD /* AutoGraphRealmTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -542,11 +447,6 @@
 						LastSwiftMigration = 0900;
 						ProvisioningStyle = Automatic;
 					};
-					CDB829A620F984A000BAC7BD = {
-						CreatedOnToolsVersion = 9.4;
-						DevelopmentTeam = X84685UL9T;
-						ProvisioningStyle = Automatic;
-					};
 				};
 			};
 			buildConfigurationList = CDA62BF31DB16998004BA66D /* Build configuration list for PBXProject "AutoGraph" */;
@@ -563,7 +463,6 @@
 			targets = (
 				CDA62BF81DB16998004BA66D /* AutoGraphQL */,
 				CDA62C011DB16999004BA66D /* AutoGraphTests */,
-				CDB829A620F984A000BAC7BD /* AutoGraphRealmTests */,
 				CDA62C1A1DB69ADE004BA66D /* QueryBuilder */,
 				CDA62C221DB69ADE004BA66D /* QueryBuilderTests */,
 			);
@@ -603,17 +502,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CDB829A520F984A000BAC7BD /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CDB829F720F9870B00BAC7BD /* AllFilms.json in Resources */,
-				CDB829FA20F9870B00BAC7BD /* Film401.json in Resources */,
-				CDB829F920F9870B00BAC7BD /* Film.json in Resources */,
-				CDB829F820F9870B00BAC7BD /* VariableFilm.json in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -629,24 +517,6 @@
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 				"$(DERIVED_FILE_DIR)/Pods-AutoGraphQL-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		0B372D5D822800C44AADBFC3 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AutoGraphQL-AutoGraphRealmTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -679,13 +549,11 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
-				"${BUILT_PRODUCTS_DIR}/Crust/Crust.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Crust.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -711,34 +579,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		798A3086EB9EB80F410AE1DE /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphRealmTests/Pods-AutoGraphQL-AutoGraphRealmTests-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
-				"${BUILT_PRODUCTS_DIR}/Crust/Crust.framework",
-				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
-				"${BUILT_PRODUCTS_DIR}/OHHTTPStubs/OHHTTPStubs.framework",
-				"${BUILT_PRODUCTS_DIR}/Realm/Realm.framework",
-				"${BUILT_PRODUCTS_DIR}/RealmSwift/RealmSwift.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Crust.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/OHHTTPStubs.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Realm.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RealmSwift.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphRealmTests/Pods-AutoGraphQL-AutoGraphRealmTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		7B1AEEC26433BAF327C93B9B /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -747,13 +587,11 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
-				"${BUILT_PRODUCTS_DIR}/Crust/Crust.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Crust.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -820,6 +658,7 @@
 				CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */,
 				CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
+				AE6477EE218208FB00E3337B /* AllFilmsRequest.swift in Sources */,
 				CDB829F620F9870100BAC7BD /* FilmRequest.swift in Sources */,
 				CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */,
 				CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */,
@@ -847,23 +686,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CDB829A320F984A000BAC7BD /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CDB829C220F9857200BAC7BD /* RLMArray+Utilities.m in Sources */,
-				CDB829CE20F9857200BAC7BD /* Stub.swift in Sources */,
-				CDB829C320F9857200BAC7BD /* Models.m in Sources */,
-				CDB829C620F9857200BAC7BD /* RLMArrayBridge.swift in Sources */,
-				CDB829CB20F9857200BAC7BD /* VariableFilmRequest.swift in Sources */,
-				CDB829CA20F9857200BAC7BD /* FilmRequest.swift in Sources */,
-				CDB829C520F9857200BAC7BD /* RLMSupport.swift in Sources */,
-				CDB829C420F9857200BAC7BD /* RealmMappings.swift in Sources */,
-				CDB829AA20F984A000BAC7BD /* AutoGraphRealmTests.swift in Sources */,
-				CDB829FD20F98EC500BAC7BD /* DispatcherRealmTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -871,11 +693,6 @@
 			isa = PBXTargetDependency;
 			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
 			targetProxy = CDA62C041DB16999004BA66D /* PBXContainerItemProxy */;
-		};
-		CDB829AE20F984A000BAC7BD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CDA62BF81DB16998004BA66D /* AutoGraphQL */;
-			targetProxy = CDB829AD20F984A000BAC7BD /* PBXContainerItemProxy */;
 		};
 		CDB82A0020FEE23300BAC7BD /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1175,52 +992,6 @@
 			};
 			name = Release;
 		};
-		CDB829AF20F984A000BAC7BD /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 562ED5B876F75D9A6D542930 /* Pods-AutoGraphQL-AutoGraphRealmTests.debug.xcconfig */;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = X84685UL9T;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AutoGraphRealmTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.remind.AutoGraphRealmTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "AutoGraphRealmTests/AutoGraphRealmTests-Bridging-Header.h";
-				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		CDB829B020F984A000BAC7BD /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6BAAABFB4EAAEC52F72AD808 /* Pods-AutoGraphQL-AutoGraphRealmTests.release.xcconfig */;
-			buildSettings = {
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = X84685UL9T;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				INFOPLIST_FILE = AutoGraphRealmTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.remind.AutoGraphRealmTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "AutoGraphRealmTests/AutoGraphRealmTests-Bridging-Header.h";
-				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1265,15 +1036,6 @@
 			buildConfigurations = (
 				CDA62C301DB69ADE004BA66D /* Debug */,
 				CDA62C311DB69ADE004BA66D /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CDB829B120F984A000BAC7BD /* Build configuration list for PBXNativeTarget "AutoGraphRealmTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CDB829AF20F984A000BAC7BD /* Debug */,
-				CDB829B020F984A000BAC7BD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

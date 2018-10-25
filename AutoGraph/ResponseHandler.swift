@@ -1,9 +1,15 @@
 import Alamofire
-import Crust
 import Foundation
 import JSONValueRX
 
 open class ResponseHandler {
+    
+    public struct ObjectKeyPathError: LocalizedError {
+        let keyPath: String
+        public var errorDescription: String? {
+            return "No object to map found at keyPath '\(self.keyPath)'"
+        }
+    }
     
     private let queue: OperationQueue
     private let callbackQueue: OperationQueue
@@ -16,14 +22,12 @@ open class ResponseHandler {
         self.callbackQueue = callbackQueue
     }
     
-    func handle<MappingKey, Mapping, KeyCollection, ThreadAdapter>(
-        response: DataResponse<Any>,
-        objectBinding: ObjectBinding<MappingKey, Mapping, KeyCollection, ThreadAdapter>,
-        preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
+    func handle<SerializedObject: Decodable>(response: DataResponse<Any>,
+                                             objectBinding: ObjectBinding<SerializedObject>,
+                                             preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             
             do {
                 let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
-                
                 try preMappingHook(response.response, json)
                 
                 self.queue.addOperation { [weak self] in
@@ -35,23 +39,21 @@ open class ResponseHandler {
             }
     }
     
-    private func map<_MappingKey, _Mapping, _KeyCollection, _ThreadAdapter>(
-        json: JSONValue,
-        objectBinding: ObjectBinding<_MappingKey, _Mapping, _KeyCollection, _ThreadAdapter>) {
+    private func map<SerializedObject: Decodable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
             
             do {
                 switch objectBinding {
-                case .object(let binding, let threadAdapter, let keys, let completion):
-                    let mapper = Mapper()
-                    let result: _Mapping.MappedObject = try mapper.map(from: json, using: binding(), keyedBy: keys)
+                case .object(let keyPath, let completion):
                     
-                    if let threadAdapter = threadAdapter {
-                        self.refetchAndComplete(result: result, json: json, mapping: binding, threadAdapter: threadAdapter, completion: completion)
+                    guard let objectJson = json[keyPath] else {
+                        throw ObjectKeyPathError(keyPath: keyPath)
                     }
-                    else {
-                        self.callbackQueue.addOperation {
-                            completion(.success(result))
-                        }
+                    
+                    let decoder = JSONDecoder()
+                    let object = try decoder.decode(SerializedObject.self, from: objectJson.encode())
+                    
+                    self.callbackQueue.addOperation {
+                        completion(.success(object))
                     }
                 }
             }
@@ -68,48 +70,10 @@ open class ResponseHandler {
         }
     }
     
-    func fail<_MappingKey, _Mapping, _KeyCollection, _ThreadAdapter>(error: Error, objectBinding: ObjectBinding<_MappingKey, _Mapping, _KeyCollection, _ThreadAdapter>) {
+    func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
         switch objectBinding {
-        case .object(mappingBinding: _, threadAdapter: _, mappingKeys: _, completion: let completion):
+        case .object(_, completion: let completion):
             self.fail(error: error, completion: completion)
         }
-    }
-
-    private func refetchAndComplete<RootKey, Mapping, Result, T: ThreadAdapter>
-        (result: Result,
-         json: JSONValue,
-         mapping: @escaping () -> Binding<RootKey, Mapping>,
-         threadAdapter: T,
-         completion: @escaping RequestCompletion<Result>)
-        where Result == Mapping.MappedObject {
-        
-            do {
-                let threadAdapterResult = try coerceToType(result) as T.CollectionType.Iterator.Element
-                let collection = T.CollectionType([threadAdapterResult])
-                let representation = try threadAdapter.threadSafeRepresentations(for: collection, ofType: Result.self)
-                self.callbackQueue.addOperation { [weak self] in
-                    guard let strongSelf = self else { return }
-                    
-                    do {
-                        let objects = try threadAdapter.retrieveObjects(for: representation)
-                        completion(.success(try strongSelf.coerceToType(objects.first)))
-                    }
-                    catch let e {
-                        strongSelf.fail(error: AutoGraphError.refetching(error: e), completion: completion)
-                    }
-                }
-            }
-            catch let e {
-                self.callbackQueue.addOperation {
-                    self.fail(error: AutoGraphError.refetching(error: e), completion: completion)
-                }
-            }
-    }
-    
-    internal func coerceToType<T, U>(_ instance: T) throws -> U {
-        guard case let coerced as U = instance else {
-            throw AutoGraphError.typeCoercion(from: T.self, to: U.self)
-        }
-        return coerced
     }
 }
