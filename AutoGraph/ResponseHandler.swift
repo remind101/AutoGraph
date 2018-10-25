@@ -39,7 +39,7 @@ open class ResponseHandler {
                 case .object(let keyPath, let completion):
                     
                     guard let objectJson = json[keyPath] else {
-                        throw AutoGraphError.mapping(error: nil)
+                        throw "No object to map found at keyPath '\(keyPath)'"
                     }
                     
                     let decoder = JSONDecoder()

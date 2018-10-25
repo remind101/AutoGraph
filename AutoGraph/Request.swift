@@ -16,7 +16,7 @@ public protocol Request {
     var variables: Variables? { get }
     
     /// The key path to the result object in the data
-    var objectRootKeyPath: String { get }
+    var rootKeyPath: String { get }
     
     /// Called at the moment before the request will be sent from the `Client`.
     func willSend() throws
@@ -35,6 +35,6 @@ public enum ObjectBinding<SerializedObject: Decodable> {
 
 extension Request {
     func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<SerializedObject> {
-        return ObjectBinding<SerializedObject>.object(keyPath: self.objectRootKeyPath, completion: completion)
+        return ObjectBinding<SerializedObject>.object(keyPath: self.rootKeyPath, completion: completion)
     }
 }

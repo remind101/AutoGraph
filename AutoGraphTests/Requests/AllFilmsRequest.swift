@@ -35,7 +35,7 @@ class AllFilmsRequest: Request {
     
     let variables: [AnyHashable : Any]? = nil
     
-    let objectRootKeyPath: String = "data.allFilms.films"
+    let rootKeyPath: String = "data.allFilms.films"
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
