@@ -205,9 +205,10 @@ class SelectionSetTests: XCTestCase {
     func testMergingFragmentSpreads() {
         let fragment1: Selection = .fragmentSpread(name: "frag", directives: nil)
         let fragment2: Selection = .fragmentSpread(name: "frag", directives: nil)
+        let fragment3: Selection = .fragmentSpread(name: "frag", directives: [Directive(name: "dir")])
         
-        try! self.subject = fragment1.merge(selection: fragment2)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [try! fragment1.lexemeKey()])
+        self.subject = SelectionSet([fragment1, fragment2, fragment3])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, try! [fragment1.lexemeKey(), fragment3.lexemeKey()])
     }
     
     func testMergingSelectionsOfSameKeyButDifferentTypeFails() {
@@ -321,11 +322,17 @@ class SelectionSetTests: XCTestCase {
         selection = .fragmentSpread(name: "frag", directives: nil)
         XCTAssertEqual(try! selection.lexemeKey(), "...frag")
         
+        selection = .fragmentSpread(name: "frag", directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])])
+        XCTAssertEqual(try! selection.lexemeKey(), "...frag @dir @dir2(dir_arg: \"yo\")")
+        
         selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [])
         XCTAssertEqual(try! selection.lexemeKey(), "... on ")
         
         selection = .inlineFragment(namedType: "name", directives: nil, selectionSet: [])
         XCTAssertEqual(try! selection.lexemeKey(), "... on name")
+        
+        selection = .inlineFragment(namedType: "name", directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])], selectionSet: ["select"])
+        XCTAssertEqual(try! selection.lexemeKey(), "... on name @dir @dir2(dir_arg: \"yo\")")
     }
 }
 
