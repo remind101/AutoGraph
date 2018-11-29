@@ -2,7 +2,6 @@ import XCTest
 @testable import AutoGraphQL
 
 class FoundationExtensionsTests: XCTestCase {
-    
     func testArgumentStringJsonEncodes() {
         XCTAssertEqual(try! "arg arg".graphQLInputValue(), "\"arg arg\"")
     }
