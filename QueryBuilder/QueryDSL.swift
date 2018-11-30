@@ -6,14 +6,14 @@ public protocol QueryConvertible {
     func graphQLString() throws -> String
 }
 
-/// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
-public protocol Field: AcceptsArguments, AcceptsDirectives, QueryConvertible, SelectionType {
+/// Defines a type representing a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
+public protocol FieldRepresenting: AcceptsArguments, AcceptsDirectives, QueryConvertible, SelectionType {
     var name: String { get }
     var alias: String? { get }
     func serializedAlias() -> String
 }
 
-public extension Field {
+public extension FieldRepresenting {
     func serializedAlias() -> String {
         guard let alias = self.alias else {
             return ""
@@ -27,8 +27,20 @@ public extension Field {
 }
 
 /// Defines a _Field_ from the GraphQL language that is a Scalar type.
-public protocol ScalarField: Field { }
+public protocol ScalarField: FieldRepresenting { }
 public extension ScalarField {
+    public var alias: String? {
+        return nil
+    }
+    
+    public var arguments: [String : InputValue]? {
+        return nil
+    }
+    
+    public var directives: [Directive]? {
+        return nil
+    }
+    
     var asSelection: Selection {
         return .scalar(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives)
     }
@@ -692,7 +704,7 @@ public struct Scalar: ScalarField {
     }
 }
 
-public typealias ObjectSerializable = Field & SelectionSetSerializable
+public typealias ObjectSerializable = FieldRepresenting & SelectionSetSerializable
 
 public func objectGraphQLString(for object: ObjectSerializable) throws -> String {
     return "\(try object.serializedWithoutSelectionSet())\(try object.serializedSelectionSet())"

@@ -119,18 +119,6 @@ extension String: ScalarField, InputValue, GraphQLDocument {
         return .scalar(.string)
     }
 
-    public var alias: String? {
-        return nil
-    }
-    
-    public var arguments: [String : InputValue]? {
-        return nil
-    }
-    
-    public var directives: [Directive]? {
-        return nil
-    }
-
     public func graphQLString() throws -> String {
         return self.name
     }

@@ -517,7 +517,7 @@ class OperationTests: XCTestCase {
     }
     
     func testInitializersOnSelectionTypeArray() {
-        let fields: [Field] = ["scalar"]
+        let fields: [FieldRepresenting] = ["scalar"]
         let _ = Object(name: "object", selectionSet: fields)
         let _ = AutoGraphQL.Operation(type: .query, name: "Query", selectionSet: fields)
         let _ = InlineFragment(typeName: "Derp", selectionSet: fields)
