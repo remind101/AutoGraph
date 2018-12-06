@@ -266,7 +266,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
             case (.object(var lselectionSet), .object(let rselectionSet)):
                 try lselectionSet.insert(contentsOf: rselectionSet)
                 self = .object(selectionSet: lselectionSet)
-            default:
+            case (.scalar, .object), (.object, .scalar):
                 struct Err: LocalizedError {
                     var localizedDescription: String { return "Cannot merge object with scalar" }
                 }
