@@ -6,14 +6,14 @@ public protocol QueryConvertible {
     func graphQLString() throws -> String
 }
 
-/// Defines a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
-public protocol Field: AcceptsArguments, AcceptsDirectives, QueryConvertible, SelectionType {
+/// Defines a type representing a _Field_ from the GraphQL language. Inherited by `Object` and `Scalar`.
+public protocol FieldRepresenting: AcceptsArguments, AcceptsDirectives, QueryConvertible, SelectionType {
     var name: String { get }
     var alias: String? { get }
     func serializedAlias() -> String
 }
 
-public extension Field {
+public extension FieldRepresenting {
     func serializedAlias() -> String {
         guard let alias = self.alias else {
             return ""
@@ -27,10 +27,22 @@ public extension Field {
 }
 
 /// Defines a _Field_ from the GraphQL language that is a Scalar type.
-public protocol ScalarField: Field { }
+public protocol ScalarField: FieldRepresenting { }
 public extension ScalarField {
-    var asSelection: Selection {
-        return .scalar(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives)
+    public var alias: String? {
+        return nil
+    }
+    
+    public var arguments: [String : InputValue]? {
+        return nil
+    }
+    
+    public var directives: [Directive]? {
+        return nil
+    }
+    
+    public var asSelection: Selection {
+        return .field(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, type: .scalar)
     }
 }
 
@@ -244,8 +256,26 @@ public protocol SelectionType {
 
 /// Concretely represents a _Selection_ from the GraphQL Language.
 public enum Selection: ObjectSerializable, InlineFragmentSerializable, SelectionType {
-    case scalar(name: String, alias: String?, arguments: [String : InputValue]?, directives: [Directive]?)
-    case object(name: String, alias: String?, arguments: [String : InputValue]?, directives: [Directive]?, selectionSet: SelectionSet)
+    public enum FieldType {
+        case scalar
+        case object(selectionSet: SelectionSet)
+        
+        public mutating func merge(_ other: FieldType) throws {
+            switch (self, other) {
+            case (.scalar, .scalar): return
+            case (.object(var lselectionSet), .object(let rselectionSet)):
+                try lselectionSet.insert(contentsOf: rselectionSet)
+                self = .object(selectionSet: lselectionSet)
+            case (.scalar, .object), (.object, .scalar):
+                struct Err: LocalizedError {
+                    var localizedDescription: String { return "Cannot merge object with scalar" }
+                }
+                throw Err()
+            }
+        }
+    }
+    
+    case field(name: String, alias: String?, arguments: [String : InputValue]?, directives: [Directive]?, type: FieldType)
     case fragmentSpread(name: String, directives: [Directive]?)
     case inlineFragment(namedType: String?, directives: [Directive]?, selectionSet: SelectionSet)
     
@@ -261,8 +291,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var name: String {
         switch self {
-        case .scalar(name: let name, alias: _, arguments: _, directives: _): return name
-        case .object(name: let name, alias: _, arguments: _, directives: _, selectionSet: _): return name
+        case .field(name: let name, alias: _, arguments: _, directives: _, type: _): return name
         case .fragmentSpread(name: let name, directives: _): return name
         case .inlineFragment(namedType: let namedType, directives: _, selectionSet: _): return namedType ?? ""
         }
@@ -270,8 +299,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var alias: String? {
         switch self {
-        case .scalar(name: _, alias: let alias, arguments: _, directives: _): return alias
-        case .object(name: _, alias: let alias, arguments: _, directives: _, selectionSet: _): return alias
+        case .field(name: _, alias: let alias, arguments: _, directives: _, type: _): return alias
         case .fragmentSpread: return nil
         case .inlineFragment: return nil
         }
@@ -279,8 +307,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var arguments: [String : InputValue]? {
         switch self {
-        case .scalar(name: _, alias: _, arguments: let args, directives: _): return args
-        case .object(name: _, alias: _, arguments: let args, directives: _, selectionSet: _): return args
+        case .field(name: _, alias: _, arguments: let args, directives: _, type: _): return args
         case .fragmentSpread: return nil
         case .inlineFragment: return nil
         }
@@ -288,8 +315,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var directives: [Directive]? {
         switch self {
-        case .scalar(name: _, alias: _, arguments: _, directives: let dirs): return dirs
-        case .object(name: _, alias: _, arguments: _, directives: let dirs, selectionSet: _): return dirs
+        case .field(name: _, alias: _, arguments: _, directives: let dirs, type: _): return dirs
         case .fragmentSpread(name: _, directives: let dirs): return dirs
         case .inlineFragment(namedType: _, directives: let dirs, selectionSet: _): return dirs
         }
@@ -300,7 +326,7 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     /// A unique key for this selection in the selection set based on it's lexical definition.
     public func lexemeKey() throws -> String {
         switch self {
-        case .scalar, .object: return try self.serializedWithoutSelectionSet()
+        case .field: return try self.serializedWithoutSelectionSet()
         case .fragmentSpread(name: let name, directives: let directives):
             return try FragmentSpread(name: name, directives: directives).graphQLString()
         case .inlineFragment(namedType: let type, directives: let directives, selectionSet: _):
@@ -310,8 +336,11 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public var kind: SelectionKind {
         switch self {
-        case .scalar: return .scalar
-        case .object: return .object
+        case .field(_, _, _, _, type: let type):
+            switch type {
+            case .scalar: return .scalar
+            case .object: return .object
+            }
         case .fragmentSpread: return .fragmentSpread
         case .inlineFragment: return .inlineFragment
         }
@@ -319,10 +348,11 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
     
     public func serializedSelections() throws -> [String] {
         switch self {
-        case .scalar:
-            return []
-        case .object(name: _, alias: _, arguments: _, directives: _, selectionSet: let selectionSet):
-            return try selectionSet.serializedSelections()
+        case .field(name: _, alias: _, arguments: _, directives: _, type: let type):
+            switch type {
+            case .scalar: return []
+            case .object(selectionSet: let selectionSet): return try selectionSet.serializedSelections()
+            }
         case .fragmentSpread:
             return []
         case .inlineFragment(namedType: _, directives: _, selectionSet: let selectionSet):
@@ -332,10 +362,11 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
         
     public func graphQLString() throws -> String {
         switch self {
-        case .scalar(name: let name, alias: let alias, arguments: let arguments, directives: let directives):
-            return try Scalar(name: name, alias: alias, arguments: arguments, directives: directives).graphQLString()
-        case .object:
-            return try objectGraphQLString(for: self)
+        case .field(_, _, _, _, type: let type):
+            switch type {
+            case .scalar: return try self.serializedWithoutSelectionSet()
+            case .object: return try objectGraphQLString(for: self)
+            }
         case .fragmentSpread(name: let name, directives: let directives):
             return try FragmentSpread(name: name, directives: directives).graphQLString()
         case .inlineFragment(namedType: let namedType, directives: _, selectionSet: _):
@@ -373,13 +404,10 @@ public enum Selection: ObjectSerializable, InlineFragmentSerializable, Selection
         }
         
         switch (self, selection) {
-        case (.object(let lname, let lalias, let largs, let ldirs, var lfields), .object(_, _, _, _, let rfields)):
-            try lfields.insert(contentsOf: rfields)
-            let mergedObject = Selection.object(name: lname, alias: lalias, arguments: largs, directives: ldirs, selectionSet: lfields)
+        case (.field(let lname, let lalias, let largs, let ldirs, var lfields), .field(_, _, _, _, let rfields)):
+            try lfields.merge(rfields)
+            let mergedObject = Selection.field(name: lname, alias: lalias, arguments: largs, directives: ldirs, type: lfields)
             return SelectionSet(mergedObject)
-            
-        case (.scalar, .scalar):
-            return SelectionSet(self)
             
         case (.fragmentSpread, .fragmentSpread):
             return SelectionSet(self)
@@ -692,7 +720,7 @@ public struct Scalar: ScalarField {
     }
 }
 
-public typealias ObjectSerializable = Field & SelectionSetSerializable
+public typealias ObjectSerializable = FieldRepresenting & SelectionSetSerializable
 
 public func objectGraphQLString(for object: ObjectSerializable) throws -> String {
     return "\(try object.serializedWithoutSelectionSet())\(try object.serializedSelectionSet())"
@@ -707,7 +735,7 @@ public struct Object: ObjectSerializable, AcceptsSelectionSet {
     public let selectionSet: SelectionSet
     
     public var asSelection: Selection {
-        return .object(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, selectionSet: self.selectionSet)
+        return .field(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, type: .object(selectionSet: self.selectionSet))
     }
     
     public var selectionSetDebugName: String {
