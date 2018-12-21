@@ -189,7 +189,7 @@ class SelectionSetTests: XCTestCase {
         
         try! self.subject = scalar1.merge(selection: object)
         try! self.subject.insert(dupe)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [try! scalar1.lexemeKey(), try! object.lexemeKey()])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.0 }, [try! scalar1.lexemeKey(), try! object.lexemeKey()])
     }
     
     func testMergingScalars() {
@@ -199,7 +199,7 @@ class SelectionSetTests: XCTestCase {
         
         try! self.subject = scalar1.merge(selection: scalar2)
         try! self.subject.insert(scalar3)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [try! scalar1.lexemeKey(), try! scalar2.lexemeKey()])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.0 }, [try! scalar1.lexemeKey(), try! scalar2.lexemeKey()])
     }
     
     func testMergingFragmentSpreads() {
@@ -208,7 +208,7 @@ class SelectionSetTests: XCTestCase {
         let fragment3: Selection = .fragmentSpread(name: "frag", directives: [Directive(name: "dir")])
         
         self.subject = SelectionSet([fragment1, fragment2, fragment3])
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, try! [fragment1.lexemeKey(), fragment3.lexemeKey()])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.0 }, try! [fragment1.lexemeKey(), fragment3.lexemeKey()])
     }
     
     func testMergingSelectionsOfSameKeyButDifferentTypeFails() {
@@ -632,5 +632,17 @@ class VariableTest: XCTestCase {
     
     func testVariableTypeThrows() {
         XCTAssertThrowsError(try Variable.inputType())
+    }
+}
+
+class FieldTypeTest: XCTestCase {
+    func testMergingFieldType() {
+        var fieldType = FieldType.object(selectionSet: [Selection.field(name: "name", alias: "alias", arguments: nil, directives: [Directive(name: "dir")], type: .scalar)])
+        let fieldTypeMerge = FieldType.object(selectionSet: [Selection.field(name: "name", alias: "alias", arguments: nil, directives: [Directive(name: "dir")], type: .scalar)])
+        
+        XCTAssertNoThrow(try fieldType.merge(fieldTypeMerge))
+        let gqlString = try! fieldType.selectionSet?.graphQLString()
+        XCTAssertNotNil(gqlString)
+        XCTAssertEqual(gqlString!, " {\nalias: name @dir\n}")
     }
 }

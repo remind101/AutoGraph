@@ -94,16 +94,6 @@ public struct OrderedDictionary<Key: Hashable, Value> {
         return value
     }
     
-    public func map<T>(_ transform: ((key: Key, value: Value)) throws -> T) rethrows -> [T] {
-        var output = [T]()
-        for key in keys {
-            if let value = self.dictionary[key] {
-                output.append(try transform((key, value)))
-            }
-        }
-        return output
-    }
-    
     var description: String {
         var result = "{\n"
         for i in 0..<self.count {
@@ -111,6 +101,45 @@ public struct OrderedDictionary<Key: Hashable, Value> {
         }
         result += "}"
         return result
+    }
+}
+
+extension OrderedDictionary: Sequence {
+    public func makeIterator() -> AnyIterator<(Key, Value)> {
+        var counter = 0
+        return AnyIterator {
+            guard counter < self.keys.count else {
+                return nil
+            }
+            let nextKey = self.keys[counter]
+            let nextValue = self.dictionary[nextKey]
+            counter += 1
+            return nextValue.map { (val) in
+                (nextKey, val)
+            }
+        }
+    }
+    
+    func mapValues<OutValue>(_ transform: (Value) throws -> OutValue) rethrows -> OrderedDictionary<Key, OutValue> {
+        var outDict = OrderedDictionary<Key, OutValue>()
+        try self.forEach {
+            outDict[$0.0] = try transform($0.1)
+        }
+        return outDict
+    }
+}
+
+extension OrderedDictionary where Value == [Field] {
+    public mutating func append(key: Key, value: Field) {
+        if var removed = self.dictionary.removeValue(forKey: key) {
+            // NOTE: We don't mess with `keys`, just updating in place.
+            removed.append(value)
+            self.dictionary[key] = removed
+        }
+        else {
+            self.dictionary[key] = [value]
+            self.keys.append(key)
+        }
     }
 }
 
@@ -276,5 +305,19 @@ extension Dictionary: InputValue {
 extension Dictionary: GraphQLVariables {
     public func graphQLVariablesDictionary() throws -> [AnyHashable : Any] {
         return self
+    }
+}
+
+extension Array {
+    public func unzipped<T1, T2>() -> ([T1], [T2]) where Element == (T1, T2) {
+        var result = ([T1](), [T2]())
+        
+        result.0.reserveCapacity(self.count)
+        result.1.reserveCapacity(self.count)
+        
+        return reduce(into: result) { acc, pair in
+            acc.0.append(pair.0)
+            acc.1.append(pair.1)
+        }
     }
 }
