@@ -11,13 +11,13 @@ let package = Package(
             targets: ["AutoGraphQL"]),
         ],
     dependencies: [
-        .package(url: "https://github.com/rexmas/Crust.git", .upToNextMinor(from: "0.10.0")),
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.7.3"))
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.8.0")),
+        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "4.2.0"))
     ],
     targets: [
         .target(
             name: "AutoGraphQL",
-            dependencies: ["Crust", "Alamofire"],
+            dependencies: ["Alamofire", "JSONValueRX"],
             path: ".",
             sources: ["AutoGraph", "QueryBuilder"]),
         .testTarget(
