@@ -295,6 +295,7 @@ Sending via Objective-C isn't directly possible because of AutoGraph's use of `a
 - You may begin working immediately if you so please, by adding an issue it helps inform others of what is already being worked on and facilitates discussion.
 - Fork the project and submit a pull request. Please include tests for new code and an explanation of the problem being solved. An admin will review your code and approve it before merging.
 - Keep LinuxTests up-to-date `swift test --generate-linuxmain`
+- If you see an error like this while building from the command line `could not build Objective-C module` try prepending commands with `xcrun -sdk macosx`
 
 ## License
 The MIT License (MIT)

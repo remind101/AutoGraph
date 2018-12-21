@@ -20,13 +20,13 @@ extension AuthHandlerTests {
 
 extension AutoGraphTests {
     static let __allTests = [
+        ("testArrayObjectSerialization", testArrayObjectSerialization),
         ("testAuthHandlerBeganReauthenticationPausesDispatcher", testAuthHandlerBeganReauthenticationPausesDispatcher),
         ("testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher", testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher),
         ("testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll", testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll),
         ("testCancelAllCancelsDispatcherAndClient", testCancelAllCancelsDispatcherAndClient),
         ("testFunctional401Request", testFunctional401Request),
         ("testFunctional401RequestNotHandled", testFunctional401RequestNotHandled),
-        ("testFunctionalAllFilmsRequest", testFunctionalAllFilmsRequest),
         ("testFunctionalGlobalLifeCycle", testFunctionalGlobalLifeCycle),
         ("testFunctionalLifeCycle", testFunctionalLifeCycle),
         ("testFunctionalSingleFilmRequest", testFunctionalSingleFilmRequest),
