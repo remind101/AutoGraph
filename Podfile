@@ -5,7 +5,7 @@ inhibit_all_warnings!
 use_frameworks!
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 4.7.3'
+  pod 'Alamofire', '~> 4.8.0'
   pod 'JSONValueRX', '~> 4.2'
     
   target 'AutoGraphTests' do
