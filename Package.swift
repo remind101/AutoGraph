@@ -19,11 +19,15 @@ let package = Package(
             name: "AutoGraphQL",
             dependencies: ["Alamofire", "JSONValueRX"],
             path: ".",
-            sources: ["AutoGraph", "QueryBuilder"]),
+            sources: ["AutoGraph", "QueryBuilder", "OperationExecution"]),
         .testTarget(
             name: "AutoGraphTests",
             dependencies: ["AutoGraphQL"],
             path: "./AutoGraphTests"),
+        .testTarget(
+            name: "OperationExecutionTests",
+            dependencies: ["AutoGraphQL"],
+            path: "./OperationExecutionTests"),
         .testTarget(
             name: "QueryBuilderTests",
             dependencies: ["AutoGraphQL"],
