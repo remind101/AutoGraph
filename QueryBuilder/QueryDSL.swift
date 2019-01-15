@@ -59,7 +59,7 @@ public struct Field {
     }
     
     public var asSelection: Selection {
-        return .field(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, type: type)
+        return .field(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, type: self.type)
     }
     
     // TODO: FieldRepresenting.

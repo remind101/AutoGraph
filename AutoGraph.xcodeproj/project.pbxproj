@@ -23,6 +23,16 @@
 		CD83559721CCFC040096810A /* OperationExecution.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD83558E21CCFC030096810A /* OperationExecution.framework */; };
 		CD83559C21CCFC040096810A /* OperationExecutionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD83559B21CCFC040096810A /* OperationExecutionTests.swift */; };
 		CD83559E21CCFC040096810A /* OperationExecution.h in Headers */ = {isa = PBXBuildFile; fileRef = CD83559021CCFC040096810A /* OperationExecution.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CD8355A821CD00520096810A /* Execution.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A521CD00520096810A /* Execution.swift */; };
+		CD8355A921CD00520096810A /* CollectFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A621CD00520096810A /* CollectFields.swift */; };
+		CD8355AA21CD00520096810A /* DataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A721CD00520096810A /* DataModels.swift */; };
+		CD8355AD21CD00990096810A /* CollectFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A621CD00520096810A /* CollectFields.swift */; };
+		CD8355AE21CD00990096810A /* DataModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A721CD00520096810A /* DataModels.swift */; };
+		CD8355AF21CD00990096810A /* Execution.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355A521CD00520096810A /* Execution.swift */; };
+		CD8355B021CD00AC0096810A /* QueryDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C321DB69B15004BA66D /* QueryDSL.swift */; };
+		CD8355B121CD00AC0096810A /* FoundationExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C341DB69F4E004BA66D /* FoundationExtensions.swift */; };
+		CD8355B321CD62A10096810A /* Resolvers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355B221CD62A10096810A /* Resolvers.swift */; };
+		CD8355B621CD993C0096810A /* Resolvers.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD8355B221CD62A10096810A /* Resolvers.swift */; };
 		CDA62C031DB16999004BA66D /* AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */; };
 		CDA62C0A1DB16999004BA66D /* AutoGraph.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA62BFC1DB16998004BA66D /* AutoGraph.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CDA62C291DB69ADE004BA66D /* QueryBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDA62C281DB69ADE004BA66D /* QueryBuilderTests.swift */; };
@@ -114,6 +124,10 @@
 		CD83559621CCFC040096810A /* OperationExecutionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OperationExecutionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD83559B21CCFC040096810A /* OperationExecutionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationExecutionTests.swift; sourceTree = "<group>"; };
 		CD83559D21CCFC040096810A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CD8355A521CD00520096810A /* Execution.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Execution.swift; sourceTree = "<group>"; };
+		CD8355A621CD00520096810A /* CollectFields.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectFields.swift; sourceTree = "<group>"; };
+		CD8355A721CD00520096810A /* DataModels.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataModels.swift; sourceTree = "<group>"; };
+		CD8355B221CD62A10096810A /* Resolvers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Resolvers.swift; sourceTree = "<group>"; };
 		CDA62BF91DB16998004BA66D /* AutoGraphQL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AutoGraphQL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDA62BFC1DB16998004BA66D /* AutoGraph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoGraph.h; sourceTree = "<group>"; };
 		CDA62BFD1DB16998004BA66D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -238,6 +252,10 @@
 		CD83558F21CCFC040096810A /* OperationExecution */ = {
 			isa = PBXGroup;
 			children = (
+				CD8355A621CD00520096810A /* CollectFields.swift */,
+				CD8355A721CD00520096810A /* DataModels.swift */,
+				CD8355A521CD00520096810A /* Execution.swift */,
+				CD8355B221CD62A10096810A /* Resolvers.swift */,
 				CD83559021CCFC040096810A /* OperationExecution.h */,
 				CD83559121CCFC040096810A /* Info.plist */,
 			);
@@ -546,6 +564,7 @@
 					CD83558D21CCFC030096810A = {
 						CreatedOnToolsVersion = 10.1;
 						DevelopmentTeam = Q8MPH9LCNM;
+						LastSwiftMigration = 1010;
 						ProvisioningStyle = Automatic;
 					};
 					CD83559521CCFC040096810A = {
@@ -809,7 +828,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\nswiftlint\nelse\necho \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi";
+			shellScript = "if which swiftlint >/dev/null; then\nswiftlint\nelse\necho \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		FCD66F8FF6BC937C3F7DC567 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -836,6 +855,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD8355B021CD00AC0096810A /* QueryDSL.swift in Sources */,
+				CD8355B121CD00AC0096810A /* FoundationExtensions.swift in Sources */,
+				CD8355AA21CD00520096810A /* DataModels.swift in Sources */,
+				CD8355A821CD00520096810A /* Execution.swift in Sources */,
+				CD8355A921CD00520096810A /* CollectFields.swift in Sources */,
+				CD8355B321CD62A10096810A /* Resolvers.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -851,10 +876,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD8355AD21CD00990096810A /* CollectFields.swift in Sources */,
+				CD8355AE21CD00990096810A /* DataModels.swift in Sources */,
+				CD8355AF21CD00990096810A /* Execution.swift in Sources */,
 				CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */,
 				CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */,
 				CD3BFF2E1E205D74008CE41A /* AuthHandler.swift in Sources */,
 				CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */,
+				CD8355B621CD993C0096810A /* Resolvers.swift in Sources */,
 				CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */,
 				CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */,
 				CD3BFF301E22D0D8008CE41A /* ResponseHandler.swift in Sources */,
@@ -926,6 +955,7 @@
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -945,6 +975,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.remind.OperationExecution;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -956,6 +987,7 @@
 			buildSettings = {
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -983,6 +1015,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1CEDA185DC553823D127D91E /* Pods-AutoGraphQL-OperationExecutionTests.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -1007,6 +1040,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 6D326BA102FB2075F1221EDE /* Pods-AutoGraphQL-OperationExecutionTests.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
 				CLANG_ENABLE_OBJC_WEAK = YES;
