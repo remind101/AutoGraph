@@ -19,7 +19,7 @@ enum QueryBuilderError: LocalizedError {
         case .missingFields(selectionSetName: let selectionSetName):
             return "Selection Set on \(selectionSetName) must have either `fields` or `fragments` or both"
         case .selectionMergeFailure(selection1: let selection1, selection2: let selection2):
-            return "Cannot merge selection \(selection1.key) of kind \(selection1.kind) with selection \(selection2.key) of kind \(selection2.kind)"
+            return "Cannot merge selection \(selection1.selectionSetDebugName) of kind \(selection1.kind) with selection \(selection2.selectionSetDebugName) of kind \(selection2.kind)"
         }
     }
 }
@@ -117,14 +117,6 @@ public struct OrderedDictionary<Key: Hashable, Value> {
 extension String: ScalarField, InputValue, GraphQLDocument {
     public static func inputType() throws -> InputType {
         return .scalar(.string)
-    }
-
-    public var alias: String? {
-        return nil
-    }
-    
-    public var directives: [Directive]? {
-        return nil
     }
 
     public func graphQLString() throws -> String {

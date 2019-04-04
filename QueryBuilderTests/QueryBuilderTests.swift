@@ -20,16 +20,16 @@ class DocumentTests: XCTestCase {
                                                selectionSet: [
                                                 subobj,
                                                 scalar2,
-                                                Selection.object(
+                                                Selection.field(
                                                     name: "object2",
                                                     alias: nil,
                                                     arguments: ["key" : "val"],
                                                     directives: nil,
-                                                    selectionSet: [
+                                                    type: .object(selectionSet: [
                                                         "scalar",
-                                                        Selection.scalar(name: "scalar", alias: "cool"),
+                                                        Selection.field(name: "scalar", alias: "cool", arguments: nil, directives: nil, type: .scalar),
                                                         Object(name: "object", selectionSet: ["objectScalar"])
-                                                    ])])
+                                                    ]))])
         
         self.subject = AutoGraphQL.Document(operations: [operation1, operation2], fragments: [fragment!])
         XCTAssertEqual(try! self.subject.graphQLString(),
@@ -64,6 +64,7 @@ class DocumentTests: XCTestCase {
 class FieldTests: XCTestCase {
     
     class FieldMock: ScalarField {
+        var arguments: [String : InputValue]?
         var directives: [Directive]?
 
         var name: String {
@@ -85,9 +86,9 @@ class FieldTests: XCTestCase {
     }
     
     func testSerializeAlias() {
-        XCTAssertEqual(try! self.subject.serializedAlias(), "")
+        XCTAssertEqual(self.subject.serializedAlias(), "")
         self.subject.alias = "field"
-        XCTAssertEqual(try! self.subject.serializedAlias(), "field: ")
+        XCTAssertEqual(self.subject.serializedAlias(), "field: ")
     }
 }
 
@@ -152,7 +153,7 @@ class InlineFragmentTests: XCTestCase {
     
     func testSelectionSetName() {
         let inlineFrag = InlineFragment(typeName: "Derp", selectionSet: [])
-        XCTAssertEqual(inlineFrag.selectionSetName, "... on Derp")
+        XCTAssertEqual(inlineFrag.selectionSetDebugName, "... on Derp")
     }
     
     func testInlineFragment() {
@@ -181,55 +182,56 @@ class SelectionSetTests: XCTestCase {
     var subject: SelectionSet!
     
     func testMergingSelections() {
-        let scalar1: Selection = .scalar(name: "scalar1", alias: "alias")
-        let scalar2: Selection = .scalar(name: "scalar2", alias: nil)
-        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar1])
-        let dupe: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar2])
+        let scalar1: Selection = .field(name: "scalar1", alias: "alias", arguments: nil, directives: nil, type: .scalar)
+        let scalar2: Selection = .field(name: "scalar2", alias: nil, arguments: nil, directives: nil, type: .scalar)
+        let object: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: [scalar1]))
+        let dupe: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: [scalar2]))
         
         try! self.subject = scalar1.merge(selection: object)
         try! self.subject.insert(dupe)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [scalar1.key, object.key])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [try! scalar1.lexemeKey(), try! object.lexemeKey()])
     }
     
     func testMergingScalars() {
-        let scalar1: Selection = .scalar(name: "scalar", alias: "alias")
-        let scalar2: Selection = .scalar(name: "scalar", alias: nil)
-        let scalar3: Selection = .scalar(name: "scalar", alias: nil)
+        let scalar1: Selection = .field(name: "scalar", alias: "alias", arguments: nil, directives: nil, type: .scalar)
+        let scalar2: Selection = .field(name: "scalar", alias: nil, arguments: nil, directives: nil, type: .scalar)
+        let scalar3: Selection = .field(name: "scalar", alias: nil, arguments: nil, directives: nil, type: .scalar)
         
         try! self.subject = scalar1.merge(selection: scalar2)
         try! self.subject.insert(scalar3)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [scalar1.key, scalar2.key])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [try! scalar1.lexemeKey(), try! scalar2.lexemeKey()])
     }
     
     func testMergingFragmentSpreads() {
         let fragment1: Selection = .fragmentSpread(name: "frag", directives: nil)
         let fragment2: Selection = .fragmentSpread(name: "frag", directives: nil)
+        let fragment3: Selection = .fragmentSpread(name: "frag", directives: [Directive(name: "dir")])
         
-        try! self.subject = fragment1.merge(selection: fragment2)
-        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, [fragment1.key])
+        self.subject = SelectionSet([fragment1, fragment2, fragment3])
+        XCTAssertEqual(self.subject.selectionSet.map { $0.key }, try! [fragment1.lexemeKey(), fragment3.lexemeKey()])
     }
     
     func testMergingSelectionsOfSameKeyButDifferentTypeFails() {
-        let scalar: Selection = .scalar(name: "key", alias: nil)
-        let object: Selection = .object(name: "key", alias: nil, arguments: nil, directives: nil, selectionSet: [scalar])
+        let scalar: Selection = .field(name: "key", alias: nil, arguments: nil, directives: nil, type: .scalar)
+        let object: Selection = .field(name: "key", alias: nil, arguments: nil, directives: nil, type: .object(selectionSet: [scalar]))
         XCTAssertThrowsError(try scalar.merge(selection: object))
     }
     
     func testGraphQLString() {
-        let scalar: Selection = .scalar(name: "scalar", alias: "alias")
+        let scalar: Selection = .field(name: "scalar", alias: "alias", arguments: nil, directives: nil, type: .scalar)
         let directive = Directive(name: "cool", arguments: ["best" : "directive"])
         
-        let internalScalar: Selection = .scalar(name: "internalScalar", alias: nil)
-        let internalInternalObject: Selection = .object(name: "internalInternalObject", alias: "anAlias", arguments: ["arg" : "value"], directives: nil, selectionSet: [internalScalar])
+        let internalScalar: Selection = .field(name: "internalScalar", alias: nil, arguments: nil, directives: nil, type: .scalar)
+        let internalInternalObject: Selection = .field(name: "internalInternalObject", alias: "anAlias", arguments: ["arg" : "value"], directives: nil, type: .object(selectionSet: [internalScalar]))
         let internalInlineFragment: Selection = .inlineFragment(namedType: "SomeType", directives: [directive], selectionSet: [internalInternalObject])
         let internalFragment: Selection = .fragmentSpread(name: "fraggie", directives: nil)
-        let internalObject: Selection = .object(name: "internalObject", alias: nil, arguments: nil, directives: [directive], selectionSet: [internalScalar, internalInternalObject, internalFragment])
+        let internalObject: Selection = .field(name: "internalObject", alias: nil, arguments: nil, directives: [directive], type: .object(selectionSet: [internalScalar, internalInternalObject, internalFragment]))
         
-        let object: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalObject])
-        let dupeObject: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [internalInlineFragment])
+        let object: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: [internalObject]))
+        let dupeObject: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: [internalInlineFragment]))
         
-        let inlineFragmentScalar1: Selection = .scalar(name: "inlineFragmentScalar1", alias: "alias")
-        let inlineFragmentScalar2: Selection = .scalar(name: "inlineFragmentScalar2", alias: nil)
+        let inlineFragmentScalar1: Selection = .field(name: "inlineFragmentScalar1", alias: "alias", arguments: nil, directives: nil, type: .scalar)
+        let inlineFragmentScalar2: Selection = .field(name: "inlineFragmentScalar2", alias: nil, arguments: nil, directives: nil, type: .scalar)
         let inlineFragment1: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1, inlineFragmentScalar2])
         let inlineFragment2: Selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [inlineFragmentScalar1])
         
@@ -260,11 +262,11 @@ class SelectionSetTests: XCTestCase {
     }
     
     func testSerializedSelections() {
-        let scalar: Selection = .scalar(name: "scalar", alias: "alias")
-        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [scalar])
+        let scalar: Selection = .field(name: "scalar", alias: "alias", arguments: nil, directives: nil, type: .scalar)
+        var selection: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: [scalar]))
         XCTAssertEqual(try! selection.serializedSelections(), ["alias: scalar"])
         
-        selection = .scalar(name: "scalar", alias: "scalar")
+        selection = .field(name: "scalar", alias: "scalar", arguments: nil, directives: nil, type: .scalar)
         XCTAssertEqual(try! selection.serializedSelections(), [])
         
         selection = .fragmentSpread(name: "frag", directives: nil)
@@ -275,10 +277,10 @@ class SelectionSetTests: XCTestCase {
     }
     
     func testKind() {
-        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [])
+        var selection: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: []))
         XCTAssertEqual(selection.kind, .object)
         
-        selection = .scalar(name: "scalar", alias: "scalar")
+        selection = .field(name: "scalar", alias: "scalar", arguments: nil, directives: nil, type: .scalar)
         XCTAssertEqual(selection.kind, .scalar)
         
         selection = .fragmentSpread(name: "frag", directives: nil)
@@ -289,33 +291,48 @@ class SelectionSetTests: XCTestCase {
     }
     
     func testSelectionSetName() {
-        let selection: Selection = .scalar(name: "scalar", alias: "scalar")
-        XCTAssertEqual(selection.selectionSetName, "scalar: scalar")
+        let selection: Selection = .field(name: "scalar", alias: "scalar", arguments: nil, directives: nil, type: .scalar)
+        XCTAssertEqual(selection.selectionSetDebugName, "scalar: scalar")
         
-        let scalar1: Selection = .scalar(name: "scalar1", alias: "alias")
-        let scalar2: Selection = .scalar(name: "scalar2", alias: "alias")
+        let scalar1: Selection = .field(name: "scalar1", alias: "alias", arguments: nil, directives: nil, type: .scalar)
+        let scalar2: Selection = .field(name: "scalar2", alias: "alias", arguments: nil, directives: nil, type: .scalar)
         let selectionSet = try! scalar1.merge(selection: scalar2)
-        XCTAssertEqual(selectionSet.selectionSetName, "alias: scalar1, alias: scalar2")
+        XCTAssertEqual(selectionSet.selectionSetDebugName, "alias: scalar1, alias: scalar2")
     }
     
     func testKey() {
-        var selection: Selection = .object(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, selectionSet: [])
-        XCTAssertEqual(selection.key, "object: object")
+        var selection: Selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: nil, type: .object(selectionSet: []))
+        XCTAssertEqual(try! selection.lexemeKey(), "object: object(arg: 1)")
         
-        selection = .scalar(name: "scalar", alias: "scalar")
-        XCTAssertEqual(selection.key, "scalar: scalar")
+        selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: [Directive(name: "dir")], type: .object(selectionSet: ["select"]))
+        XCTAssertEqual(try! selection.lexemeKey(), "object: object(arg: 1) @dir")
         
-        selection = .scalar(name: "scalar", alias: nil)
-        XCTAssertEqual(selection.key, "scalar")
+        selection = .field(name: "object", alias: "object", arguments: ["arg" : 1], directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])], type: .object(selectionSet: ["select"]))
+        XCTAssertEqual(try! selection.lexemeKey(), "object: object(arg: 1) @dir @dir2(dir_arg: \"yo\")")
+        
+        selection = .field(name: "scalar", alias: nil, arguments: ["arg" : 1], directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])], type: .scalar)
+        XCTAssertEqual(try! selection.lexemeKey(), "scalar(arg: 1) @dir @dir2(dir_arg: \"yo\")")
+        
+        selection = .field(name: "scalar", alias: "scalar", arguments: nil, directives: nil, type: .scalar)
+        XCTAssertEqual(try! selection.lexemeKey(), "scalar: scalar")
+        
+        selection = .field(name: "scalar", alias: nil, arguments: nil, directives: nil, type: .scalar)
+        XCTAssertEqual(try! selection.lexemeKey(), "scalar")
         
         selection = .fragmentSpread(name: "frag", directives: nil)
-        XCTAssertEqual(selection.key, "frag")
+        XCTAssertEqual(try! selection.lexemeKey(), "...frag")
+        
+        selection = .fragmentSpread(name: "frag", directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])])
+        XCTAssertEqual(try! selection.lexemeKey(), "...frag @dir @dir2(dir_arg: \"yo\")")
         
         selection = .inlineFragment(namedType: nil, directives: nil, selectionSet: [])
-        XCTAssertEqual(selection.key, "... on ")
+        XCTAssertEqual(try! selection.lexemeKey(), "... on ")
         
         selection = .inlineFragment(namedType: "name", directives: nil, selectionSet: [])
-        XCTAssertEqual(selection.key, "... on name")
+        XCTAssertEqual(try! selection.lexemeKey(), "... on name")
+        
+        selection = .inlineFragment(namedType: "name", directives: [Directive(name: "dir"), Directive(name: "dir2", arguments: ["dir_arg" : "yo"])], selectionSet: ["select"])
+        XCTAssertEqual(try! selection.lexemeKey(), "... on name @dir @dir2(dir_arg: \"yo\")")
     }
 }
 
@@ -374,7 +391,7 @@ class FragmentDefinitionTests: XCTestCase {
         let scalar2 = Scalar(name: "scalar2", alias: nil)
         
         self.subject = FragmentDefinition(name: "frag", type: "CoolType", selectionSet: [scalar1, scalar2])
-        XCTAssertEqual(self.subject.selectionSetName, "frag")
+        XCTAssertEqual(self.subject.selectionSetDebugName, "frag")
     }
 }
 
@@ -473,16 +490,16 @@ class OperationTests: XCTestCase {
                                              selectionSet: [
                                                 subobj,
                                                 scalar2,
-                                                Selection.object(
+                                                Selection.field(
                                                     name: "object2",
                                                     alias: nil,
                                                     arguments: ["key" : "val"],
                                                     directives: nil,
-                                                    selectionSet: [
+                                                    type: .object(selectionSet: [
                                                         "scalar",
-                                                        Selection.scalar(name: "scalar", alias: "cool"),
+                                                        Selection.field(name: "scalar", alias: "cool", arguments: nil, directives: nil, type: .scalar),
                                                         Object(name: "object", selectionSet: ["objectScalar"])
-                                                    ])])
+                                                    ]))])
         
         XCTAssertEqual(try! self.subject.graphQLString(), "mutation Mutation {\n" +
             "cool_obj: object1 {\n" +
@@ -500,7 +517,7 @@ class OperationTests: XCTestCase {
     }
     
     func testInitializersOnSelectionTypeArray() {
-        let fields: [Field] = ["scalar"]
+        let fields: [FieldRepresenting] = ["scalar"]
         let _ = Object(name: "object", selectionSet: fields)
         let _ = AutoGraphQL.Operation(type: .query, name: "Query", selectionSet: fields)
         let _ = InlineFragment(typeName: "Derp", selectionSet: fields)
