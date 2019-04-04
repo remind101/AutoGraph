@@ -11,7 +11,7 @@ let package = Package(
             targets: ["AutoGraphQL"]),
         ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.8.0")),
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.8.2")),
         .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "4.2.0"))
     ],
     targets: [
