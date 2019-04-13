@@ -29,19 +29,19 @@ public extension FieldRepresenting {
 /// Defines a _Field_ from the GraphQL language that is a Scalar type.
 public protocol ScalarField: FieldRepresenting { }
 public extension ScalarField {
-    public var alias: String? {
+    var alias: String? {
         return nil
     }
     
-    public var arguments: [String : InputValue]? {
+    var arguments: [String : InputValue]? {
         return nil
     }
     
-    public var directives: [Directive]? {
+    var directives: [Directive]? {
         return nil
     }
     
-    public var asSelection: Selection {
+    var asSelection: Selection {
         return .field(name: self.name, alias: self.alias, arguments: self.arguments, directives: self.directives, type: .scalar)
     }
 }
@@ -151,11 +151,11 @@ public protocol SelectionSetSerializable {
 }
 
 public extension SelectionSetSerializable {
-    public func serializedSelectionSet() throws -> String {
+    func serializedSelectionSet() throws -> String {
         return try self.serializedSelectionSet(serializedSelections: try self.serializedSelections())
     }
     
-    public func serializedSelectionSet(serializedSelections: [String]) throws -> String {
+    func serializedSelectionSet(serializedSelections: [String]) throws -> String {
         let selectionSetString = serializedSelections.compactMap { selection -> String? in
             guard selection.count > 0 else {
                 return nil
@@ -177,7 +177,7 @@ public protocol AcceptsSelectionSet: SelectionSetSerializable {
 }
 
 public extension AcceptsSelectionSet {
-    public func serializedSelections() throws -> [String] {
+    func serializedSelections() throws -> [String] {
         return try self.selectionSet.selections.map { try $0.graphQLString() }
     }
 }
@@ -526,7 +526,7 @@ public protocol EnumValueProtocol: InputValue {
 }
 
 public extension EnumValueProtocol {
-    public static func inputType() throws -> InputType {
+    static func inputType() throws -> InputType {
         return .enumValue(typeName: "\(Self.self)")
     }
 }
