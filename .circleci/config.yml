@@ -44,7 +44,7 @@ jobs:
 
       - run:
           name: Run tests
-          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator12.0 -destination 'platform=iOS Simulator,OS=12.2,name=iPhone SE' ONLY_ACTIVE_ARCH=NO build test
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator12.2 -destination 'platform=iOS Simulator,OS=12.2,name=iPhone SE' ONLY_ACTIVE_ARCH=NO build test
 
       - store_test_results:
           path: output/scan
