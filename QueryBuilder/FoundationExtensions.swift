@@ -73,7 +73,7 @@ public struct OrderedDictionary<Key: Hashable, Value> {
             }
             else {
                 if self.dictionary.removeValue(forKey: key) != nil {
-                    guard let index = self.keys.index(of: key) else {
+                    guard let index = self.keys.firstIndex(of: key) else {
                         fatalError("OrderedDictionary attempted to remove value for key \"\(key)\" that has no index.")
                     }
                     self.keys.remove(at: index)
