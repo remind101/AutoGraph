@@ -4,9 +4,13 @@ platform :ios, '8.0'
 inhibit_all_warnings!
 use_frameworks!
 
+def jsonvalue
+  pod 'JSONValueRX', '~> 5.0'
+end
+
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 4.8.0'
-  pod 'JSONValueRX', '~> 4.2'
+  pod 'Alamofire', '~> 4.8.2'
+  jsonvalue
     
   target 'AutoGraphTests' do
     inherit! :complete
@@ -18,7 +22,7 @@ target 'AutoGraphQL' do
 end
 
 target 'QueryBuilder' do
-  pod 'JSONValueRX', '~> 4.2'
+  jsonvalue
 end
 
 post_install do |installer|
