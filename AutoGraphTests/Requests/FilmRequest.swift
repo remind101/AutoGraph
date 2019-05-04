@@ -35,7 +35,7 @@ class FilmRequest: Request {
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    public func didFinish(result: Result<Film>) throws { }
+    public func didFinish(result: Result<Film, Error>) throws { }
 }
 
 class FilmStub: Stub {
