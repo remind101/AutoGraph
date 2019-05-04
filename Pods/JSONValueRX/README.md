@@ -20,7 +20,7 @@ iOS 8.0+
 MacOS 10.12+
 
 ### Supported Languages
-Swift 4.1+
+Swift 5.0+
 
 # Installation
 ### CocoaPods
@@ -33,7 +33,7 @@ pod 'JSONValueRX'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rexmas/JSONValue.git", from: "4.0.1")
+    .package(url: "https://github.com/rexmas/JSONValue.git", from: "5.0.0")
 ]
 ```
 

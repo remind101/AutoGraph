@@ -29,10 +29,10 @@ The Swiftest way to GraphQL
 AutoGraph is a Swift client framework for making requests using GraphQL and mapping the responses to strongly typed models. Models may be represented by any type, including database model objects such as Realm or Core Data models. AutoGraph relies heavily on Swift's type safety to drive it, leading to safer, compile time checked code.
 
 ## Requirements
-Swift 4.2+ - use version `0.6.0`+.
-Swift 4.1.2 - use version `0.5.1`+.
-Swift 4.0 - use version `0.4.6`.
-Swift 3 use version `0.3.0`.
+Swift 5.0
+
+Swift 4.2+ - use version `0.7.0`.
+Swift 4.1.2 - use version `0.5.1`.
 
 ### Platforms
 - [x] iOS 8.0+
@@ -52,7 +52,7 @@ pod 'AutoGraph'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.7.0"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.8.0"))
 ]
 ```
 
@@ -182,7 +182,7 @@ This is a planned feature that is not yet supported.
 ### Request Protocol
 
 1. Create a class that conforms to the Request protocol. You can also extend an existing class to conform to this protocol. Request is a base protocol used for GraphQL requests sent through AutoGraph. It provides the following parameters.
-    1. `query` - The query being sent. You may use the Query Builder or a String.
+    1. `queryDocument` - The query document being sent. You may use the Query Builder or a String.
     2.  `mapping` - Defines how to map from the returned JSON payload to the result object.
     3. `threadAdapter` - Used to pass result objects across threads to return to the caller.
     4. A number of methods to inform the Request of its point in the life cycle.
