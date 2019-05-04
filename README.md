@@ -182,7 +182,7 @@ This is a planned feature that is not yet supported.
 ### Request Protocol
 
 1. Create a class that conforms to the Request protocol. You can also extend an existing class to conform to this protocol. Request is a base protocol used for GraphQL requests sent through AutoGraph. It provides the following parameters.
-    1. `query` - The query being sent. You may use the Query Builder or a String.
+    1. `queryDocument` - The query document being sent. You may use the Query Builder or a String.
     2.  `mapping` - Defines how to map from the returned JSON payload to the result object.
     3. `threadAdapter` - Used to pass result objects across threads to return to the caller.
     4. A number of methods to inform the Request of its point in the life cycle.
