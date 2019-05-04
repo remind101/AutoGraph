@@ -197,7 +197,7 @@ public struct Mapper {
 }
 
 public extension Mapping {
-    public func fetchOrCreateObject(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> MappedObject {
+    func fetchOrCreateObject(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> MappedObject {
         guard let primaryKeyValues = try self.primaryKeyValuePairs(from: json, in: parentPayload) else {
             return try self.generateNewInstance()
         }
@@ -218,7 +218,7 @@ public extension Mapping {
         return object
     }
     
-    public func primaryKeyValuePairs(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> [String: CVarArg]? {
+    func primaryKeyValuePairs(from json: JSONValue, in parentPayload: MappingPayload<AnyMappingKey>?) throws -> [String: CVarArg]? {
         guard let primaryKeys = self.primaryKeys else {
             return nil
         }
@@ -323,7 +323,7 @@ public extension Mapping {
         }
     }
     
-    public func execute(object: inout MappedObject, payload: MappingPayload<MappingKeyType>) {
+    func execute(object: inout MappedObject, payload: MappingPayload<MappingKeyType>) {
         do {
             try self.mapping(toMap: &object, payload: payload)
         }

@@ -6,7 +6,7 @@ use_frameworks!
 
 target 'AutoGraphQL' do
   pod 'Alamofire', '~> 4.8.2'
-  pod 'Crust', '~> 0.10.1'
+  pod 'Crust', '~> 0.11.0'
     
   target 'AutoGraphTests' do
     inherit! :complete
@@ -24,7 +24,7 @@ target 'AutoGraphQL' do
 end
 
 target 'QueryBuilder' do
-  pod 'JSONValueRX', '~> 4.2'
+  pod 'JSONValueRX', '~> 5.0'
 end
 
 post_install do |installer|

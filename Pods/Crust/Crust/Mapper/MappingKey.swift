@@ -22,11 +22,11 @@ public protocol MappingKey: JSONKeyPath, DynamicMappingKey, Hashable {
 }
 
 public extension MappingKey {
-    public var hashValue: Int {
-        return self.keyPath.hashValue
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(self.keyPath)
     }
     
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    static func ==(lhs: Self, rhs: Self) -> Bool {
         return lhs.keyPath == rhs.keyPath
     }
 }
@@ -44,7 +44,7 @@ extension RawMappingKey {
 }
 
 public extension RawRepresentable where Self: MappingKey, RawValue == String {
-    public var keyPath: String {
+    var keyPath: String {
         return self.rawValue
     }
 }
@@ -77,11 +77,6 @@ extension String: RawMappingKey { }
 extension Int: RawMappingKey { }
 
 public struct AnyMappingKey: MappingKey, ExpressibleByStringLiteral {
-    public var hashValue: Int {
-        return _hashValue()
-    }
-    private let _hashValue: () -> Int
-    
     public var keyPath: String {
         return _keyPath()
     }
@@ -94,7 +89,6 @@ public struct AnyMappingKey: MappingKey, ExpressibleByStringLiteral {
         self.base = base
         self.type = K.self
         self._keyPath = { base.keyPath }
-        self._hashValue = { base.hashValue }
     }
     
     public func nestedMappingKeys<Key: MappingKey>() -> AnyKeyCollection<Key>? {
@@ -127,14 +121,14 @@ public protocol KeyCollection: DynamicKeyCollection {
 }
 
 public extension KeyCollection {
-    public func nestedDynamicKeyCollection<Key: MappingKey>(`for` key: Any) -> AnyKeyCollection<Key>? {
+    func nestedDynamicKeyCollection<Key: MappingKey>(`for` key: Any) -> AnyKeyCollection<Key>? {
         guard case let key as MappingKeyType = key else {
             return nil
         }
         return self.nestedKeyCollection(for: key)
     }
     
-    public func anyKeyCollection<TargetKey: MappingKey>() -> AnyKeyCollection<TargetKey>? {
+    func anyKeyCollection<TargetKey: MappingKey>() -> AnyKeyCollection<TargetKey>? {
         return AnyKeyCollection(self) as? AnyKeyCollection<TargetKey>
     }
     
@@ -285,7 +279,7 @@ extension Set: KeyCollection where Element: MappingKey {
     }
     
     public func nestedKeyCollection<Key>(for key: Element) -> AnyKeyCollection<Key>? where Key : MappingKey {
-        guard let index = self.index(of: key) else {
+        guard let index = self.firstIndex(of: key) else {
             return nil
         }
         let key = self[index]
