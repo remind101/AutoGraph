@@ -25,7 +25,7 @@ public protocol Request {
     func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws
     
     /// Called right before calling the completion handler for the sent request, i.e. at the end of the lifecycle.
-    func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws
+    func didFinish(result: AutoGraphResult<SerializedObject>) throws
 }
 
 /// A weird enum that collects info for a request.

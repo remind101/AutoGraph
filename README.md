@@ -30,8 +30,6 @@ Swift 5.0
 - Swift 5.0 pre Decodable - use version `0.8.0`
 - Swift 4.2+ - use version `0.7.0`.
 - Swift 4.1.2 - use version `0.5.1`.
-- Swift 4.0 - use version `0.4.6`.
-- Swift 3 use version `0.3.0`.
 
 ### Platforms
 

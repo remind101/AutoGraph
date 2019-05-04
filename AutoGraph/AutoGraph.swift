@@ -13,11 +13,11 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<SerializedObject> = (_ result: Result<SerializedObject>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: AutoGraphResult<SerializedObject>) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
-    open func didFinish<SerializedObject>(result: Result<SerializedObject>) throws { }
+    open func didFinish<SerializedObject>(result: AutoGraphResult<SerializedObject>) throws { }
 }
 
 open class AutoGraph {
@@ -77,7 +77,7 @@ open class AutoGraph {
         self.dispatcher.send(sendable: sendable)
     }
     
-    private func complete<SerializedObject>(result: Result<SerializedObject>, sendable: Sendable, requestDidFinish: (Result<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+    private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
         
         do {
             try self.raiseAuthenticationError(from: result)
@@ -99,7 +99,7 @@ open class AutoGraph {
         }
     }
     
-    private func raiseAuthenticationError<SerializedObject>(from result: Result<SerializedObject>) throws {
+    private func raiseAuthenticationError<SerializedObject>(from result: AutoGraphResult<SerializedObject>) throws {
         guard
             case .failure(let error) = result,
             case let autoGraphError as AutoGraphError = error,

@@ -2,10 +2,7 @@ import Alamofire
 import Foundation
 import JSONValueRX
 
-public enum Result<Value> {
-    case success(Value, JSONValue)
-    case failure(Error)
-}
+public typealias AutoGraphResult<Value> = Swift.Result<(Value, JSONValue), Error>
 
 extension DataResponse {
     func extractValue() throws -> Any {

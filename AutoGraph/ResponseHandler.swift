@@ -53,7 +53,7 @@ open class ResponseHandler {
                     let object = try decoder.decode(SerializedObject.self, from: objectJson.encode())
                     
                     self.callbackQueue.addOperation {
-                        completion(.success(object, objectJson))
+                        completion(.success((object, objectJson)))
                     }
                 }
             }
