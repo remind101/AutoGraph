@@ -45,7 +45,7 @@ class FilmRequest: Request {
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    public func didFinish(result: Result<Film>) throws { }
+    public func didFinish(result: Swift.Result<Film, Error>) throws { }
 }
 
 enum FilmKey: String, RawMappingKey {
@@ -148,7 +148,7 @@ class FilmThreadUnconfinedRequest: ThreadUnconfinedRequest {
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    public func didFinish(result: Result<Film>) throws { }
+    public func didFinish(result: Swift.Result<Film, Error>) throws { }
 }
 
 class FilmThreadUnconfinedMapping: AnyMapping {
