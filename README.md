@@ -203,7 +203,7 @@ class FilmRequest: Request {
 
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    public func didFinish(result: Result<Film>) throws { }
+    public func didFinish(result: Result<Film, Error>) throws { }
 }
 ```
 
@@ -214,7 +214,7 @@ class FilmRequest: Request {
 1. Call send on AutoGraph
    1. `autoGraph.send(request, completion: { [weak self] result in ... }`
 2. Handle the response
-   1. result is a generic `Result<MappedObject>` enum with success and failure cases.
+   1. result is a generic `Result<SerializedObject, Error>` enum with success and failure cases.
 
 #### Objective-C
 
