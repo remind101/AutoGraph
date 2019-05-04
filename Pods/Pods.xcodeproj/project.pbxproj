@@ -784,7 +784,6 @@
 /* Begin XCBuildConfiguration section */
 		05DF210AC65EBB0E593AAF976B2C2177 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8CC7327CE3A338B436EE5F53FA42CF6A /* Pods-AutoGraphQL-QueryBuilderTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -843,10 +842,11 @@
 			};
 			name = Release;
 		};
-		12D5DA80A79AA8726A72D21CF1B4A082 /* Release */ = {
+		180F4FAA391BDD24E6F085701CAA6932 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 422EB06860EA670FE1E70C4B171CCAE7 /* JSONValueRX.xcconfig */;
+			baseConfigurationReference = 2BCC769B66862C4CF953D557ECE91620 /* Pods-QueryBuilder.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
