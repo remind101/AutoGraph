@@ -1,4 +1,4 @@
-// swift-tools-version:4.2
+// swift-tools-version:5.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -11,8 +11,8 @@ let package = Package(
             targets: ["AutoGraphQL"]),
         ],
     dependencies: [
-        .package(url: "https://github.com/rexmas/Crust.git", .upToNextMinor(from: "0.10.0")),
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.7.3"))
+        .package(url: "https://github.com/rexmas/Crust.git", .upToNextMinor(from: "0.11.0")),
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.8.2"))
     ],
     targets: [
         .target(
