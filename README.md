@@ -29,10 +29,10 @@ The Swiftest way to GraphQL
 AutoGraph is a Swift client framework for making requests using GraphQL and mapping the responses to strongly typed models. Models may be represented by any type, including database model objects such as Realm or Core Data models. AutoGraph relies heavily on Swift's type safety to drive it, leading to safer, compile time checked code.
 
 ## Requirements
-Swift 4.2+ - use version `0.6.0`+.
-Swift 4.1.2 - use version `0.5.1`+.
-Swift 4.0 - use version `0.4.6`.
-Swift 3 use version `0.3.0`.
+Swift 5.0
+
+Swift 4.2+ - use version `0.7.0`.
+Swift 4.1.2 - use version `0.5.1`.
 
 ### Platforms
 - [x] iOS 8.0+
@@ -52,7 +52,7 @@ pod 'AutoGraph'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.7.0"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.8.0"))
 ]
 ```
 
