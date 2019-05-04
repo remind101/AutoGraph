@@ -6,7 +6,7 @@ import JSONValueRX
 public extension AutoGraphQL.Request {
     func willSend() throws { }
     func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    func didFinish(result: AutoGraphQL.Result<SerializedObject>) throws { }
+    func didFinish(result: AutoGraphResult<SerializedObject>) throws { }
 }
 
 class FilmRequestWithLifeCycle: FilmRequest {
@@ -16,7 +16,7 @@ class FilmRequestWithLifeCycle: FilmRequest {
     }
     
     var didFinishCalled = false
-    override func didFinish(result: AutoGraphQL.Result<FilmRequest.SerializedObject>) throws {
+    override func didFinish(result: AutoGraphResult<FilmRequest.SerializedObject>) throws {
         didFinishCalled = true
     }
 }
@@ -184,7 +184,7 @@ class AutoGraphTests: XCTestCase {
             }
             
             var didFinishCalled = false
-            override func didFinish<SerializedObject>(result: AutoGraphQL.Result<SerializedObject>) throws {
+            override func didFinish<SerializedObject>(result: AutoGraphResult<SerializedObject>) throws {
                 guard case .success(let value, _) = result else {
                     return
                 }
@@ -210,7 +210,7 @@ class AutoGraphTests: XCTestCase {
         
         class GlobalLifeCycleMock: GlobalLifeCycle {
             var gotArray = false
-            override func didFinish<SerializedObject>(result: AutoGraphQL.Result<SerializedObject>) throws {
+            override func didFinish<SerializedObject>(result: AutoGraphResult<SerializedObject>) throws {
                 guard case .success(let value, _) = result else {
                     return
                 }
