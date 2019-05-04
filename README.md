@@ -67,7 +67,7 @@ Code generation is in an early-alpha stage. If you're interested in testing it p
 ## Databases
 
 ##### Update
-Previously this project would map into any arbitrary database directly via a database mapping library. In practice we've found that mapping to pure structs through Codable is simpler and enables more flexibility when combined with code generation. If you wish to still map directly to a database in the old style please use version `0.8.0`. Going forward we are internally exploring different methods of code generation that enable flexible, code generated database caching behind the scenes. We hope to open source our efforts in the future, stay tuned.
+Previously this project would map into any arbitrary database directly via a database mapping library. In practice we've found that mapping to pure structs through Codable is simpler and enables more flexibility when combined with code generation. If you wish to still map directly to a database in the old style please use version `0.8.0`. Going forward we are internally exploring different methods of code generation that enable flexible, code generated database caching behind the scenes. We hope to open source these efforts in the future, stay tuned.
 
 ## Query Builder
 
