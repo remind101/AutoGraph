@@ -31,10 +31,11 @@ class Stub {
             #else
             let fileManager = FileManager.default
             let currentDirectoryPath = fileManager.currentDirectoryPath
-            return "\(currentDirectoryPath)/AutoGraphTests/Data/\(self.jsonFixtureFile).json"
+            return "\(currentDirectoryPath)/AutoGraphTests/Data/\(self.jsonFixtureFile!).json"
             
             #endif
         }()
+        print("loading stub at path: \(path)")
         return FileManager.default.contents(atPath: path)!
     }
     

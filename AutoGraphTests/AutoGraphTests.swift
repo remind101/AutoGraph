@@ -239,7 +239,6 @@ class AutoGraphTests: XCTestCase {
         var called = false
         self.subject.send(includingJSONResponse: request) { result in
             called = true
-            print(result)
             guard case .success(let data) = result else {
                 XCTFail()
                 return
