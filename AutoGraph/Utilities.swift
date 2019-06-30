@@ -2,7 +2,8 @@ import Alamofire
 import Foundation
 import JSONValueRX
 
-public typealias AutoGraphResult<Value> = Swift.Result<(Value, JSONValue), Error>
+public typealias AutoGraphResult<Value> = Swift.Result<Value, Error>
+public typealias ResultIncludingJSON<Value: Decodable> = AutoGraphResult<DataIncludingJSON<Value>>
 
 extension DataResponse {
     func extractValue() throws -> Any {

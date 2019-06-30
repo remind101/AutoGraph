@@ -1,11 +1,13 @@
+import AutoGraphQL
 import Foundation
+import JSONValueRX
 
 struct Film: Decodable, Equatable {
-    var remoteId: String
-    var title: String
-    var episode: Int
-    var openingCrawl: String
-    var director: String
+    let remoteId: String
+    let title: String
+    let episode: Int
+    let openingCrawl: String
+    let director: String
     
     enum CodingKeys: String, CodingKey {
         case remoteId = "id"
