@@ -5,7 +5,7 @@ inhibit_all_warnings!
 use_frameworks!
 
 def jsonvalue
-  pod 'JSONValueRX', '~> 5.0'
+  pod 'JSONValueRX', '~> 5.1'
 end
 
 target 'AutoGraphQL' do
