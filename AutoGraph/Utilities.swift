@@ -1,7 +1,9 @@
 import Alamofire
-import Crust
 import Foundation
 import JSONValueRX
+
+public typealias AutoGraphResult<Value> = Swift.Result<Value, Error>
+public typealias ResultIncludingJSON<Value: Decodable> = AutoGraphResult<DataIncludingJSON<Value>>
 
 extension DataResponse {
     func extractValue() throws -> Any {
@@ -37,16 +39,5 @@ extension DataResponse {
         }
         
         return json
-    }
-}
-
-public protocol GraphQLKey: MappingKey {
-    var graphQLSelection: Selection { get }
-}
-
-extension SelectionSet {
-    public init<Key: GraphQLKey>(keys: [Key]) {
-        let selections = keys.map { $0.graphQLSelection }
-        self.init(selections)
     }
 }

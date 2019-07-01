@@ -290,18 +290,59 @@ public enum JSONValue: CustomStringConvertible, Hashable {
     public var description: String {
         switch self {
         case .null:
-            return "JSONNull()"
+            return "null"
         case let .bool(b):
-            return "JSONBool(\(b))"
+            return "\(b)"
         case let .string(s):
-            return "JSONString(\(s))"
+            return "\(s)"
         case let .number(n):
-            return "JSONNumber(\(n))"
+            return "\(n)"
         case let .object(o):
-            return "JSONObject(\(o))"
+            return "JSON(\(o))"
         case let .array(a):
-            return "JSONArray(\(a))"
+            return "JSON(\(a))"
         }
+    }
+}
+
+extension JSONValue: Codable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let value = try? container.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? container.decode(Int.self) {
+            self = .number(Double(value))
+        } else if let value = try? container.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? container.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? container.decode([String: JSONValue].self) {
+            self = .object(value)
+        } else if let value = try? container.decode([JSONValue].self) {
+            self = .array(value)
+        } else if container.decodeNil() {
+            self = .null
+        }
+        else {
+            throw DecodingError.typeMismatch(JSONValue.self, DecodingError.Context(codingPath: container.codingPath, debugDescription: "Decoded value is not JSON"))
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .array(let array): try container.encode(array)
+        case .object(let object): try container.encode(object)
+        case .number(let double): try container.encode(double)
+        case .string(let string): try container.encode(string)
+        case .bool(let bool): try container.encode(bool)
+        case .null: try container.encodeNil()
+        }
+    }
+    
+    public func decode<T: Decodable>() throws -> T {
+        let encoded = try JSONEncoder().encode(self)
+        return try JSONDecoder().decode(T.self, from: encoded)
     }
 }
 

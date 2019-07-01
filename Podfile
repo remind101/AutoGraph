@@ -4,18 +4,16 @@ platform :ios, '8.0'
 inhibit_all_warnings!
 use_frameworks!
 
+def jsonvalue
+  pod 'JSONValueRX', '~> 5.1'
+end
+
 target 'AutoGraphQL' do
   pod 'Alamofire', '~> 4.8.2'
-  pod 'Crust', '~> 0.11.0'
+  jsonvalue
     
   target 'AutoGraphTests' do
     inherit! :complete
-  end
-
-  target 'AutoGraphRealmTests' do
-    inherit! :complete
-    pod 'RealmSwift', '3.10.0'
-    pod 'OHHTTPStubs', :git => 'https://github.com/AliSoftware/OHHTTPStubs.git'
   end
 
   target 'QueryBuilderTests' do
@@ -24,7 +22,7 @@ target 'AutoGraphQL' do
 end
 
 target 'QueryBuilder' do
-  pod 'JSONValueRX', '~> 5.0'
+  jsonvalue
 end
 
 post_install do |installer|

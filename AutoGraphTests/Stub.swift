@@ -18,27 +18,25 @@ class Stub {
         AllStubs.removeAll()
     }
     
-    var json: Any? {
-        if let jsonFixtureFile = self.jsonFixtureFile {
-            let path: String = {
-                #if os(iOS)
-                return Bundle(for: type(of: self)).path(forResource: jsonFixtureFile, ofType: "json")!
-                
-                #else
-                let fileManager = FileManager.default
-                let currentDirectoryPath = fileManager.currentDirectoryPath
-                return "\(currentDirectoryPath)/AutoGraphTests/Data/\(jsonFixtureFile).json"
-                
-                #endif
-            }()
-            if let jsonData = NSData(contentsOfFile: path) {
-                if let jsonResult = try? JSONSerialization.jsonObject(with: jsonData as Data, options: JSONSerialization.ReadingOptions(rawValue: UInt(0))) {
-                    return jsonResult
-                }
-            }
-        }
-        
-        return nil
+    var json: Any {
+        return try! JSONSerialization.jsonObject(with: self.jsonData)
+    }
+    
+    var jsonData: Data {
+        precondition(self.jsonFixtureFile != nil, "Stub is missing jsonFixtureFile: \(self)")
+        let path: String = {
+            #if os(iOS)
+            return Bundle(for: type(of: self)).path(forResource: self.jsonFixtureFile, ofType: "json")!
+            
+            #else
+            let fileManager = FileManager.default
+            let currentDirectoryPath = fileManager.currentDirectoryPath
+            return "\(currentDirectoryPath)/AutoGraphTests/Data/\(self.jsonFixtureFile!).json"
+            
+            #endif
+        }()
+        print("loading stub at path: \(path)")
+        return FileManager.default.contents(atPath: path)!
     }
     
     var graphQLQuery: String = ""
@@ -52,7 +50,7 @@ class Stub {
     var jsonFixtureFile: String?
     
     var responseData: Data? {
-        let data = try! JSONSerialization.data(withJSONObject: self.json!, options: JSONSerialization.WritingOptions(rawValue: 0))
+        let data = try! JSONSerialization.data(withJSONObject: self.json, options: JSONSerialization.WritingOptions(rawValue: 0))
         return data
     }
     

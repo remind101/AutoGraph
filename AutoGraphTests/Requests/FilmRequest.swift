@@ -1,9 +1,8 @@
 @testable import AutoGraphQL
-import Crust
 import Foundation
 import JSONValueRX
 
-class FilmRequest: ThreadUnconfinedRequest {
+class FilmRequest: Request {
     /*
      query film {
         film(id: "ZmlsbXM6MQ==") {
@@ -32,15 +31,11 @@ class FilmRequest: ThreadUnconfinedRequest {
     
     let variables: [AnyHashable : Any]? = nil
     
-    var mapping: Binding<String, Film.Mapping> {
-        return .mapping("data.film", Film.Mapping())
-    }
-    
-    let mappingKeys: Set<Film.Key> = [.id, .director, .episodeID, .openingCrawl, .title]
+    let rootKeyPath: String = "data.film"
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }
-    public func didFinish(result: Result<Film, Error>) throws { }
+    public func didFinish(result: AutoGraphResult<Film>) throws { }
 }
 
 class FilmStub: Stub {

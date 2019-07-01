@@ -11,21 +11,12 @@
         }
       },
       {
-        "package": "Crust",
-        "repositoryURL": "https://github.com/rexmas/Crust.git",
-        "state": {
-          "branch": null,
-          "revision": "15f694ad4521ae9da128de4fff9f4c648104b320",
-          "version": "0.11.0"
-        }
-      },
-      {
         "package": "JSONValue",
         "repositoryURL": "https://github.com/rexmas/JSONValue.git",
         "state": {
           "branch": null,
-          "revision": "e7648a3aa5036f70376605419605263a48f15fdb",
-          "version": "5.0.0"
+          "revision": "358b41b51fd06e67fb4813dd11960986e11691ae",
+          "version": "5.1.0"
         }
       }
     ]

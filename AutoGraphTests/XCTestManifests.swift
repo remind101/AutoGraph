@@ -30,6 +30,7 @@ extension AutoGraphTests {
     //   `swift test --generate-linuxmain`
     // to regenerate.
     static let __allTests__AutoGraphTests = [
+        ("testArrayObjectSerialization", testArrayObjectSerialization),
         ("testAuthHandlerBeganReauthenticationPausesDispatcher", testAuthHandlerBeganReauthenticationPausesDispatcher),
         ("testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher", testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher),
         ("testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll", testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll),
@@ -39,6 +40,7 @@ extension AutoGraphTests {
         ("testFunctionalGlobalLifeCycle", testFunctionalGlobalLifeCycle),
         ("testFunctionalLifeCycle", testFunctionalLifeCycle),
         ("testFunctionalSingleFilmRequest", testFunctionalSingleFilmRequest),
+        ("testRequestIncludingJSON", testRequestIncludingJSON),
         ("testTriggeringReauthenticationPausesSystem", testTriggeringReauthenticationPausesSystem),
     ]
 }

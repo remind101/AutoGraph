@@ -13,11 +13,11 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<SerializedObject> = (_ result: Result<SerializedObject, Error>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: AutoGraphResult<SerializedObject>) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
-    open func didFinish<SerializedObject>(result: Result<SerializedObject, Error>) throws { }
+    open func didFinish<SerializedObject>(result: AutoGraphResult<SerializedObject>) throws { }
 }
 
 open class AutoGraph {
@@ -62,8 +62,7 @@ open class AutoGraph {
         self.client.authHandler.delegate = self
     }
     
-    open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>)
-    where R.SerializedObject == R.Mapping.MappedObject {
+    open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
         
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in
@@ -78,7 +77,12 @@ open class AutoGraph {
         self.dispatcher.send(sendable: sendable)
     }
     
-    private func complete<SerializedObject>(result: Result<SerializedObject, Error>, sendable: Sendable, requestDidFinish: (Result<SerializedObject, Error>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+    open func send<R: Request>(includingJSONResponse request: R, completion: @escaping (_ result: ResultIncludingJSON<R.SerializedObject>) -> ()) {
+        let requestIncludingJSON = RequestIncludingJSON(request: request)
+        self.send(requestIncludingJSON, completion: completion)
+    }
+    
+    private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
         
         do {
             try self.raiseAuthenticationError(from: result)
@@ -100,7 +104,7 @@ open class AutoGraph {
         }
     }
     
-    private func raiseAuthenticationError<SerializedObject>(from result: Result<SerializedObject, Error>) throws {
+    private func raiseAuthenticationError<SerializedObject>(from result: AutoGraphResult<SerializedObject>) throws {
         guard
             case .failure(let error) = result,
             case let autoGraphError as AutoGraphError = error,
