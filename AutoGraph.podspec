@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
   s.requires_arc = true
 
   s.dependency 'Alamofire', '~> 4.8.2'
-  s.dependency 'JSONValueRX', '~> 5.0.0'
+  s.dependency 'JSONValueRX', '~> 5.1.0'
 
   s.source_files = 'AutoGraph/**/*.swift', 'QueryBuilder/**/*.swift'
   s.resource_bundles = {
