@@ -17,7 +17,6 @@ open class ResponseHandler {
     
     public init(queue: OperationQueue = OperationQueue(),
                 callbackQueue: OperationQueue = OperationQueue.main) {
-        
         self.queue = queue
         self.callbackQueue = callbackQueue
     }
@@ -25,7 +24,6 @@ open class ResponseHandler {
     func handle<SerializedObject: Decodable>(response: DataResponse<Any>,
                                              objectBinding: ObjectBinding<SerializedObject>,
                                              preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
-            
             do {
                 let json = try response.extractJSON(networkErrorParser: self.networkErrorParser ?? { _ in return nil })
                 try preMappingHook(response.response, json)
@@ -40,20 +38,24 @@ open class ResponseHandler {
     }
     
     private func map<SerializedObject: Decodable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
-            
             do {
                 switch objectBinding {
-                case .object(let keyPath, let completion):
-                    
-                    guard let objectJson = json[keyPath] else {
-                        throw ObjectKeyPathError(keyPath: keyPath)
-                    }
-                    
+                case .object(let keyPath, let isRequestIncludingJSON, let completion):
                     let decoder = JSONDecoder()
-                    let object = try decoder.decode(SerializedObject.self, from: objectJson.encode())
+                    let decodingJSON: JSONValue = try {
+                        guard let objectJson = json[keyPath] else {
+                            throw ObjectKeyPathError(keyPath: keyPath)
+                        }
+                        
+                        switch isRequestIncludingJSON {
+                        case true:  return .object(["json" : objectJson, "value" : objectJson])
+                        case false: return objectJson
+                        }
+                    }()
+                    let object = try decoder.decode(SerializedObject.self, from: decodingJSON.encode())
                     
                     self.callbackQueue.addOperation {
-                        completion(.success((object, objectJson)))
+                        completion(.success(object))
                     }
                 }
             }
@@ -72,7 +74,7 @@ open class ResponseHandler {
     
     func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
         switch objectBinding {
-        case .object(_, completion: let completion):
+        case .object(_, _, completion: let completion):
             self.fail(error: error, completion: completion)
         }
     }

@@ -40,6 +40,7 @@ extension AutoGraphTests {
         ("testFunctionalGlobalLifeCycle", testFunctionalGlobalLifeCycle),
         ("testFunctionalLifeCycle", testFunctionalLifeCycle),
         ("testFunctionalSingleFilmRequest", testFunctionalSingleFilmRequest),
+        ("testRequestIncludingJSON", testRequestIncludingJSON),
         ("testTriggeringReauthenticationPausesSystem", testTriggeringReauthenticationPausesSystem),
     ]
 }

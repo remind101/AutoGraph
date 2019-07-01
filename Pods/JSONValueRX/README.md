@@ -78,14 +78,76 @@ let hashable2 = try! JSONValue(object: ["drive" : "warp"])
 print(hashable1.hashValue) // -7189088994080390660
 print(hashable2.hashValue) // -215843780535174243
 ```
-# Encoding/Decoding from String, Data
+
+# Codable
+
+#### Decode from JSON to JSONValue
+
+```swift
+let jsonString = """
+{
+    "_id": "5d140a3fb5bbd5eaa41b512e",
+    "guid": "9b0f3717-2f21-4a81-8902-92d2278a92f0",
+    "isActive": false,
+    "age": 30
+}
+"""
+let jsonValue = try! JSONDecoder().decode(JSONValue.self, from: jsonString.data(using: .utf8)!)
+```
+
+#### Encode JSONValue to JSON
+
+```swift
+let jsonValue = JSONValue.object(["_id" : .string("5d140a3fb5bbd5eaa41b512e")])
+let jsonData = try! JSONEncoder().encode(jsonValue)
+```
+
+#### Decode from JSONValue to a Struct
+
+```swift
+let jsonValue = JSONValue.array([
+    .object([
+        "_id": .string("5d140a3fb5bbd5eaa41b512e"),
+        "guid": .string("9b0f3717-2f21-4a81-8902-92d2278a92f0"),
+        "isActive": .bool(false),
+        "age": .number(30),
+        "name": .object([
+        "first": .string("Rosales"),
+        "last": .string("Mcintosh")
+        ]),
+        "company": JSONValue.null,
+        "latitude": .string("-58.182284"),
+        "longitude": .string("-159.420718"),
+        "tags": .array([
+        .string("aute"),
+        .string("aute")
+        ])
+    ])
+])
+
+struct Output: Decodable, Equatable {
+    let _id: String
+    let guid: String
+    let isActive: Bool
+    let age: Int
+    let name: [String: String]
+    let company: String?
+    let latitude: String
+    let longitude: String
+    let tags: [String]
+}
+
+let output: Array<Output> = try! jsonValue.decode()
+```
+
+# Encoding/Decoding from String, Data without Codable
 ```swift
 public func encode() throws -> Data
 public static func decode(_ data: Data) throws -> JSONValue
 public static func decode(_ string: String) throws -> JSONValue
 ```
 
-# Custom Encoding/Decoding
+# Custom Encoding/Decoding without Codable
 ```swift
 public protocol JSONDecodable {
     associatedtype ConversionType = Self
