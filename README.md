@@ -14,7 +14,7 @@ The Swiftest way to GraphQL
 
 - [ ] ⚡️ [Code Generation](#code-generation)
 - [x] 🔨 [Query Builder](#query-builder)
-- [x] ⛑ [Type safe Mapping](#crust-for-type-safe-mapping)
+- [x] ⛑ [Type safe Mapping](#decodable-for-type-safe-models)
 - [x] 🆒 [Type safe JSON](#jsonvalue-for-type-safe-json)
 - [x] 🐙 [Threading](#threading)
 - [x] 🌐 [Network Library](#network-library)
@@ -147,6 +147,10 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 ## Decodable for type safe Models
 
 AutoGraph relies entirely on [Decodable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) for mapping GraphQL JSON responses to data models. It's as easy as conforming the model to `Decodable`!
+
+## JSONValue for type safe JSON
+
+Behind the scenes AutoGraph uses [JSONValue](https://github.com/rexmas/JSONValue.git) for type safe JSON. Feel free to import it for your own needs.
 
 ## Threading
 
