@@ -36,25 +36,24 @@ public protocol NetworkError: Error {
 public typealias NetworkErrorParser = (_ graphQLError: GraphQLError) -> NetworkError?
 
 public indirect enum AutoGraphError: LocalizedError {
-    case graphQL(errors: [GraphQLError])
+    case graphQL(errors: [GraphQLError], response: HTTPURLResponse?)
     case network(error: Error, statusCode: Int, response: HTTPURLResponse?, underlying: AutoGraphError?)
-    case mapping(error: Error)
-    case refetching(error: Error?)
+    case mapping(error: Error, response: HTTPURLResponse?)
     case typeCoercion(from: Any.Type, to: Any.Type)
-    case invalidResponse
+    case invalidResponse(response: HTTPURLResponse?)
     
-    public init?(graphQLResponseJSON: JSONValue, networkErrorParser: NetworkErrorParser?) {
+    public init?(graphQLResponseJSON: JSONValue, networkErrorParser: NetworkErrorParser?, response: HTTPURLResponse?) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
         }
         
         guard case .array(let errorsArray) = errorsJSON else {
-            self = .invalidResponse
+            self = .invalidResponse(response: response)
             return
         }
         
         let errors = errorsArray.compactMap { GraphQLError(json: $0) }
-        let graphQLError = AutoGraphError.graphQL(errors: errors)
+        let graphQLError = AutoGraphError.graphQL(errors: errors, response: response)
         if let networkError: NetworkError = networkErrorParser.flatMap({
             for error in errors {
                 if let networkError = $0(error) {
@@ -67,28 +66,20 @@ public indirect enum AutoGraphError: LocalizedError {
             self = .network(error: networkError, statusCode: networkError.statusCode, response: nil, underlying: graphQLError)
         }
         else {
-            self = .graphQL(errors: errorsArray.compactMap { GraphQLError(json: $0) })
+            self = .graphQL(errors: errorsArray.compactMap { GraphQLError(json: $0) }, response: response)
         }
     }
     
     public var errorDescription: String? {
         switch self {
-        case .graphQL(let errors):
+        case .graphQL(let errors, _):
             return errors.compactMap { $0.localizedDescription }.joined(separator: "\n")
             
         case .network(let error, let statusCode, _, let underlying):
             return "Network Failure - \(statusCode): " + error.localizedDescription + "\n" + (underlying?.localizedDescription ?? "")
             
-        case .mapping(let error):
+        case .mapping(let error, _):
             return "Mapping Failure: " + error.localizedDescription
-        
-        case .refetching(let error):
-            let baseMessage = "Failed to refetch data on main thread"
-            if let message = error?.localizedDescription {
-                return baseMessage + ": \(message)"
-            }
-            
-            return baseMessage
         
         case .typeCoercion(from: let from, to: let to):
             return "Type \(from) cannot be cast to type \(to)"

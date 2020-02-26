@@ -23,7 +23,7 @@ extension DataResponse {
                         return nil
                 }
                 
-                return AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil)
+                return AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil, response: self.response)
             }()
             
             throw AutoGraphError.network(error: e, statusCode: self.response?.statusCode ?? -1, response: self.response, underlying: gqlError)
@@ -34,7 +34,7 @@ extension DataResponse {
         let value = try self.extractValue()
         let json = try JSONValue(object: value)
         
-        if let queryError = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: networkErrorParser) {
+        if let queryError = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: networkErrorParser, response: self.response) {
             throw queryError
         }
         

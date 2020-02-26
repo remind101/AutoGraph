@@ -33,7 +33,7 @@ open class ResponseHandler {
                 }
             }
             catch let e {
-                self.fail(error: e, response: response.response, objectBinding: objectBinding)
+                self.fail(error: e, objectBinding: objectBinding)
             }
     }
     
@@ -55,27 +55,27 @@ open class ResponseHandler {
                     let object = try decoder.decode(SerializedObject.self, from: decodingJSON.encode())
                     
                     self.callbackQueue.addOperation {
-                        completion(.success(object), response)
+                        completion(.success(object))
                     }
                 }
             }
             catch let e {
-                self.fail(error: AutoGraphError.mapping(error: e), response: response, objectBinding: objectBinding)
+                self.fail(error: AutoGraphError.mapping(error: e, response: response), objectBinding: objectBinding)
             }
     }
     
     // MARK: - Post mapping.
     
-    func fail<R>(error: Error, response: HTTPURLResponse?, completion: @escaping RequestCompletion<R>) {
+    func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
         self.callbackQueue.addOperation {
-            completion(.failure(error), response)
+            completion(.failure(error))
         }
     }
     
-    func fail<SerializedObject>(error: Error, response: HTTPURLResponse?, objectBinding: ObjectBinding<SerializedObject>) {
+    func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
         switch objectBinding {
         case .object(_, _, completion: let completion):
-            self.fail(error: error, response: response, completion: completion)
+            self.fail(error: error, completion: completion)
         }
     }
 }

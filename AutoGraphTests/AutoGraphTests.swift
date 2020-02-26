@@ -68,7 +68,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         var called = false
-        self.subject.send(FilmRequest()) { (result, _) in
+        self.subject.send(FilmRequest()) { result in
             called = true
             
             guard case .success(_) = result else {
@@ -102,7 +102,7 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequest()
         
         var called = false
-        self.subject.send(request) { (result, _) in
+        self.subject.send(request) { result in
             called = true
             
             XCTFail()
@@ -138,14 +138,14 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequest()
         
         var called = false
-        self.subject.send(request) { (result, _) in
+        self.subject.send(request) { result in
             called = true
             
             guard
                 case .failure(let failureError) = result,
                 case let error as AutoGraphError = failureError,
                 case .network(let baseError, let statusCode, _, let underlying) = error,
-                case .some(.graphQL(errors: let underlyingErrors)) = underlying,
+                case .some(.graphQL(errors: let underlyingErrors, _)) = underlying,
                 case let networkError as NetworkError = baseError,
                 networkError.statusCode == -1,
                 networkError.underlyingError == underlyingErrors.first,
@@ -169,7 +169,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = FilmRequestWithLifeCycle()
-        self.subject.send(request, completion: { _,_ in })
+        self.subject.send(request, completion: { _ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(request.willSendCalled)
@@ -199,7 +199,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = FilmRequest()
-        self.subject.send(request, completion: { _,_ in })
+        self.subject.send(request, completion: { _ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(lifeCycle.willSendCalled)
@@ -225,7 +225,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = AllFilmsRequest()
-        self.subject.send(request, completion: { _,_ in })
+        self.subject.send(request, completion: { _ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(lifeCycle.gotArray)
@@ -237,7 +237,7 @@ class AutoGraphTests: XCTestCase {
         let request = AllFilmsRequest()
         
         var called = false
-        self.subject.send(includingJSONResponse: request) { (result, _) in
+        self.subject.send(includingJSONResponse: request) { result in
             called = true
             guard case .success(let data) = result else {
                 XCTFail()

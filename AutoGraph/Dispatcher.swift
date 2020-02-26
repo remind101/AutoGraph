@@ -30,7 +30,7 @@ public final class Sendable {
         
         let earlyFailure: (Sendable) -> (Error) -> () = { [weak dispatcher] sendable in
             { [weak dispatcher] e in
-                dispatcher?.responseHandler.fail(error: e, response: nil, objectBinding: objectBindingPromise(sendable))
+                dispatcher?.responseHandler.fail(error: e, objectBinding: objectBindingPromise(sendable))
             }
         }
         

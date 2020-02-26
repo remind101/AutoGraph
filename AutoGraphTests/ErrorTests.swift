@@ -10,7 +10,7 @@ struct MockNetworkError: NetworkError {
 
 class ErrorTests: XCTestCase {
     func testInvalidResponseLocalizedErrorDoesntCrash() {
-        let description = AutoGraphError.invalidResponse.localizedDescription
+        let description = AutoGraphError.invalidResponse(response: nil).localizedDescription
         XCTAssertGreaterThan(description.count, 0)
     }
     
@@ -43,7 +43,7 @@ class ErrorTests: XCTestCase {
         ]
         
         let json = try! JSONValue(object: jsonObj)
-        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil)!
+        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil, response: nil)!
         XCTAssertEqual(error.errorDescription!, "\(message1)\n\(message2)")
         XCTAssertEqual(error.localizedDescription, "\(message1)\n\(message2)")
     }
@@ -86,17 +86,17 @@ class ErrorTests: XCTestCase {
         ]
         
         let json = try! JSONValue(object: jsonObj)
-        let error = AutoGraphError(graphQLResponseJSON: json) { gqlError -> NetworkError? in
+        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: { (gqlError) -> NetworkError? in
             guard message == gqlError.message else {
                 return nil
             }
             
             return MockNetworkError(statusCode: 401, underlyingError: gqlError)
-        }
+        }, response: nil)
         
         guard
             case .some(.network(let baseError, let statusCode, _, let underlying)) = error,
-            case .some(.graphQL(errors: let underlyingErrors)) = underlying,
+            case .some(.graphQL(errors: let underlyingErrors, _)) = underlying,
             case let networkError as NetworkError = baseError,
             networkError.statusCode == 401,
             networkError.underlyingError == underlyingErrors.first,
