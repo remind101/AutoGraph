@@ -68,7 +68,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         var called = false
-        self.subject.send(FilmRequest()) { result in
+        self.subject.send(FilmRequest()) { (result, _) in
             called = true
             
             guard case .success(_) = result else {
@@ -102,7 +102,7 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequest()
         
         var called = false
-        self.subject.send(request) { result in
+        self.subject.send(request) { (result, _) in
             called = true
             
             XCTFail()
@@ -138,7 +138,7 @@ class AutoGraphTests: XCTestCase {
         let request = FilmRequest()
         
         var called = false
-        self.subject.send(request) { result in
+        self.subject.send(request) { (result, _) in
             called = true
             
             guard
@@ -169,7 +169,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = FilmRequestWithLifeCycle()
-        self.subject.send(request, completion: { _ in })
+        self.subject.send(request, completion: { _,_ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(request.willSendCalled)
@@ -199,7 +199,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = FilmRequest()
-        self.subject.send(request, completion: { _ in })
+        self.subject.send(request, completion: { _,_ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(lifeCycle.willSendCalled)
@@ -225,7 +225,7 @@ class AutoGraphTests: XCTestCase {
         stub.registerStub()
         
         let request = AllFilmsRequest()
-        self.subject.send(request, completion: { _ in })
+        self.subject.send(request, completion: { _,_ in })
         
         waitFor(delay: kDelay)
         XCTAssertTrue(lifeCycle.gotArray)
@@ -237,7 +237,7 @@ class AutoGraphTests: XCTestCase {
         let request = AllFilmsRequest()
         
         var called = false
-        self.subject.send(includingJSONResponse: request) { result in
+        self.subject.send(includingJSONResponse: request) { (result, _) in
             called = true
             guard case .success(let data) = result else {
                 XCTFail()

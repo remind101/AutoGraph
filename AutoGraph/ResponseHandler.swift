@@ -29,15 +29,15 @@ open class ResponseHandler {
                 try preMappingHook(response.response, json)
                 
                 self.queue.addOperation { [weak self] in
-                    self?.map(json: json, objectBinding: objectBinding)
+                    self?.map(json: json, response: response.response, objectBinding: objectBinding)
                 }
             }
             catch let e {
-                self.fail(error: e, objectBinding: objectBinding)
+                self.fail(error: e, response: response.response, objectBinding: objectBinding)
             }
     }
     
-    private func map<SerializedObject: Decodable>(json: JSONValue, objectBinding: ObjectBinding<SerializedObject>) {
+    private func map<SerializedObject: Decodable>(json: JSONValue, response: HTTPURLResponse?, objectBinding: ObjectBinding<SerializedObject>) {
             do {
                 switch objectBinding {
                 case .object(let keyPath, let isRequestIncludingJSON, let completion):
@@ -55,27 +55,27 @@ open class ResponseHandler {
                     let object = try decoder.decode(SerializedObject.self, from: decodingJSON.encode())
                     
                     self.callbackQueue.addOperation {
-                        completion(.success(object))
+                        completion(.success(object), response)
                     }
                 }
             }
             catch let e {
-                self.fail(error: AutoGraphError.mapping(error: e), objectBinding: objectBinding)
+                self.fail(error: AutoGraphError.mapping(error: e), response: response, objectBinding: objectBinding)
             }
     }
     
     // MARK: - Post mapping.
     
-    func fail<R>(error: Error, completion: @escaping RequestCompletion<R>) {
+    func fail<R>(error: Error, response: HTTPURLResponse?, completion: @escaping RequestCompletion<R>) {
         self.callbackQueue.addOperation {
-            completion(.failure(error))
+            completion(.failure(error), response)
         }
     }
     
-    func fail<SerializedObject>(error: Error, objectBinding: ObjectBinding<SerializedObject>) {
+    func fail<SerializedObject>(error: Error, response: HTTPURLResponse?, objectBinding: ObjectBinding<SerializedObject>) {
         switch objectBinding {
         case .object(_, _, completion: let completion):
-            self.fail(error: error, completion: completion)
+            self.fail(error: error, response: response, completion: completion)
         }
     }
 }

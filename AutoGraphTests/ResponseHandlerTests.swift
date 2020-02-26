@@ -49,7 +49,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { (result, _) in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -82,7 +82,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { (result, _) in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -108,7 +108,7 @@ class ResponseHandlerTests: XCTestCase {
         
         var called = false
         
-        self.subject.handle(response: response, objectBinding: FilmBadRequest().generateBinding { result in
+        self.subject.handle(response: response, objectBinding: FilmBadRequest().generateBinding { (result, _) in
             called = true
             
             guard case .failure(let error as AutoGraphError) = result else {
@@ -137,7 +137,7 @@ class ResponseHandlerTests: XCTestCase {
         let response = DataResponse(request: nil, response: nil, data: nil, result: result)
         let request = MockRequest()
         
-        self.subject.handle(response: response, objectBinding: request.generateBinding(completion: { _ in }), preMappingHook: request.didFinishRequest)
+        self.subject.handle(response: response, objectBinding: request.generateBinding(completion: { _,_ in }), preMappingHook: request.didFinishRequest)
         
         XCTAssertTrue(request.called)
     }

@@ -13,7 +13,7 @@ public protocol Client: RequestSender, Cancellable {
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
-public typealias RequestCompletion<SerializedObject> = (_ result: AutoGraphResult<SerializedObject>) -> ()
+public typealias RequestCompletion<SerializedObject> = (_ result: AutoGraphResult<SerializedObject>, _ response: HTTPURLResponse?) -> ()
 
 open class GlobalLifeCycle {
     open func willSend<R: Request>(request: R) throws { }
@@ -65,8 +65,8 @@ open class AutoGraph {
     open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
         
         let objectBindingPromise = { sendable in
-            return request.generateBinding { [weak self] result in
-                self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
+            return request.generateBinding { [weak self] (result, response) in
+                self?.complete(result: result, response: response, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
             }
         }
         
@@ -77,12 +77,12 @@ open class AutoGraph {
         self.dispatcher.send(sendable: sendable)
     }
     
-    open func send<R: Request>(includingJSONResponse request: R, completion: @escaping (_ result: ResultIncludingJSON<R.SerializedObject>) -> ()) {
+    open func send<R: Request>(includingJSONResponse request: R, completion: @escaping (_ result: ResultIncludingJSON<R.SerializedObject>, _ response: HTTPURLResponse?) -> ()) {
         let requestIncludingJSON = RequestIncludingJSON(request: request)
         self.send(requestIncludingJSON, completion: completion)
     }
     
-    private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
+    private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, response: HTTPURLResponse?, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
         
         do {
             try self.raiseAuthenticationError(from: result)
@@ -97,10 +97,10 @@ open class AutoGraph {
         do {
             try requestDidFinish(result)
             try self.lifeCycle?.didFinish(result: result)
-            completion(result)
+            completion(result, response)
         }
         catch let e {
-            completion(.failure(e))
+            completion(.failure(e), response)
         }
     }
     
