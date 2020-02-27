@@ -43,7 +43,7 @@ class ErrorTests: XCTestCase {
         ]
         
         let json = try! JSONValue(object: jsonObj)
-        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: nil, response: nil)!
+        let error = AutoGraphError(graphQLResponseJSON: json, response: nil, networkErrorParser: nil)!
         XCTAssertEqual(error.errorDescription!, "\(message1)\n\(message2)")
         XCTAssertEqual(error.localizedDescription, "\(message1)\n\(message2)")
     }
@@ -86,13 +86,13 @@ class ErrorTests: XCTestCase {
         ]
         
         let json = try! JSONValue(object: jsonObj)
-        let error = AutoGraphError(graphQLResponseJSON: json, networkErrorParser: { (gqlError) -> NetworkError? in
+        let error = AutoGraphError(graphQLResponseJSON: json, response: nil, networkErrorParser: { (gqlError) -> NetworkError? in
             guard message == gqlError.message else {
                 return nil
             }
             
             return MockNetworkError(statusCode: 401, underlyingError: gqlError)
-        }, response: nil)
+        })
         
         guard
             case .some(.network(let baseError, let statusCode, _, let underlying)) = error,

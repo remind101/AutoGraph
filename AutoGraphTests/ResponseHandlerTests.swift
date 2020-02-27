@@ -141,4 +141,129 @@ class ResponseHandlerTests: XCTestCase {
         
         XCTAssertTrue(request.called)
     }
+    
+    func testResponseReturnedFromNetworkError() {
+        let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
+        let result = Alamofire.Result<Any>.failure(NSError(domain: "", code: 0, userInfo: nil))
+        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        
+        var requestId: String?
+        
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .network(_,_,let response, _) = error else {
+                XCTFail("`error` should be an `.network` error")
+                return
+            }
+            
+            requestId = response?.allHeaderFields["request_id"] as? String
+        }, preMappingHook: { (_, _) in })
+        
+        XCTAssertNotNil(requestId)
+        XCTAssertEqual(requestId, "1234")
+    }
+    
+    func testResponseReturnedFromMapping() {
+        class FilmBadRequest: FilmRequest {
+        }
+        
+        let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
+        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
+        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        
+        var requestId: String?
+        
+        self.subject.handle(response: response, objectBinding: FilmBadRequest().generateBinding { result in
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .mapping(error: _, let response) = error else {
+                XCTFail("`error` should be an `.mapping` error")
+                return
+            }
+            
+            requestId = response?.allHeaderFields["request_id"] as? String
+        }, preMappingHook: { (_, _) in })
+        
+        XCTAssertNotNil(requestId)
+        XCTAssertEqual(requestId, "1234")
+    }
+    
+    func testResponseReturnedGraphQLError() {
+        let message = "Cannot query field \"d\" on type \"Planet\"."
+        let line = 18
+        let column = 7
+        
+        let result = Alamofire.Result.success([
+            "dumb" : "data",
+            "errors": [
+                [
+                    "message": message,
+                    "locations": [
+                        [
+                            "line": line,
+                            "column": column
+                        ]
+                    ]
+                ]
+            ]
+            ] as Any)
+        
+        let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
+        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        
+        var requestId: String?
+        
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .graphQL(errors: _, let response) = error else {
+                XCTFail("`error` should be an `.graphQL` error")
+                return
+            }
+            
+             requestId = response?.allHeaderFields["request_id"] as? String
+        }, preMappingHook: { (_, _) in })
+        
+        XCTAssertNotNil(requestId)
+        XCTAssertEqual(requestId, "1234")
+    }
+    
+    func testResponseReturnedInvaildResponse() {
+        let result = Alamofire.Result.success([
+            "dumb" : "data",
+            "errors": "Invalid",
+            ] as Any)
+        
+        let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 200, httpVersion: nil, headerFields: ["request_id" : "1234"])
+        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        
+        var requestId: String?
+        
+        self.subject.handle(response: response, objectBinding: FilmRequest().generateBinding { result in
+            guard case .failure(let error as AutoGraphError) = result else {
+                XCTFail("`result` should be an `AutoGraphError`")
+                return
+            }
+            
+            guard case .invalidResponse(let response) = error else {
+                XCTFail("`error` should be an `.network` error")
+                return
+            }
+            
+            requestId = response?.allHeaderFields["request_id"] as? String
+        }, preMappingHook: { (_, _) in })
+        
+        XCTAssertNotNil(requestId)
+        XCTAssertEqual(requestId, "1234")
+    }
 }

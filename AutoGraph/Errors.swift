@@ -39,10 +39,9 @@ public indirect enum AutoGraphError: LocalizedError {
     case graphQL(errors: [GraphQLError], response: HTTPURLResponse?)
     case network(error: Error, statusCode: Int, response: HTTPURLResponse?, underlying: AutoGraphError?)
     case mapping(error: Error, response: HTTPURLResponse?)
-    case typeCoercion(from: Any.Type, to: Any.Type)
     case invalidResponse(response: HTTPURLResponse?)
     
-    public init?(graphQLResponseJSON: JSONValue, networkErrorParser: NetworkErrorParser?, response: HTTPURLResponse?) {
+    public init?(graphQLResponseJSON: JSONValue, response: HTTPURLResponse?, networkErrorParser: NetworkErrorParser?) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
         }
@@ -81,9 +80,6 @@ public indirect enum AutoGraphError: LocalizedError {
         case .mapping(let error, _):
             return "Mapping Failure: " + error.localizedDescription
         
-        case .typeCoercion(from: let from, to: let to):
-            return "Type \(from) cannot be cast to type \(to)"
-            
         case .invalidResponse:
             return "Invalid Response"
         }
