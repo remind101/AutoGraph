@@ -9,14 +9,14 @@
 Pod::Spec.new do |s|
   s.name             = "AutoGraph"
   s.module_name      = "AutoGraphQL"
-  s.version          = "0.9.0"
+  s.version          = "0.10.0"
   s.summary          = "Swift GraphQL Client and Mapping library with Realm support"
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
 #   * Try to keep it short, snappy and to the point.
 #   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!  
+#   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description      = <<-DESC
   A flexible Swift framework for requesting and mapping data from a GraphQL server with support for storage solutions such as Realm.
                        DESC
