@@ -167,7 +167,7 @@ class ResponseHandlerTests: XCTestCase {
         XCTAssertEqual(requestId, "1234")
     }
     
-    func testResponseReturnedFromMapping() {
+    func testResponseReturnedFromMappingError() {
         class FilmBadRequest: FilmRequest {
         }
         
@@ -195,7 +195,7 @@ class ResponseHandlerTests: XCTestCase {
         XCTAssertEqual(requestId, "1234")
     }
     
-    func testResponseReturnedGraphQLError() {
+    func testResponseReturnedFromGraphQLError() {
         let message = "Cannot query field \"d\" on type \"Planet\"."
         let line = 18
         let column = 7
@@ -238,7 +238,7 @@ class ResponseHandlerTests: XCTestCase {
         XCTAssertEqual(requestId, "1234")
     }
     
-    func testResponseReturnedInvaildResponse() {
+    func testResponseReturnedFromInvalidResponseError() {
         let result = Alamofire.Result.success([
             "dumb" : "data",
             "errors": "Invalid",
