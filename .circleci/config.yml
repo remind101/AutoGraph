@@ -40,11 +40,11 @@ jobs:
 
       - run:
           name: pre-start simulator
-          command: xcrun instruments -w "iPhone SE (13.2) [" || true
+          command: xcrun instruments -w "iPhone 11 (13.3) [" || true
 
       - run:
           name: Run tests
-          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator12.2 -destination 'platform=iOS Simulator,OS=13.2,name=iPhone X' ONLY_ACTIVE_ARCH=NO build test
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator12.2 -destination 'platform=iOS Simulator,OS=13.3,name=iPhone 11' ONLY_ACTIVE_ARCH=NO build test
 
       - store_test_results:
           path: output/scan
