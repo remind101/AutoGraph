@@ -32,6 +32,5 @@ let package = Package(
             name: "QueryBuilderTests",
             dependencies: ["AutoGraphQL"],
             path: "./QueryBuilderTests"),
-        ],
-    swiftLanguageVersions: [.version("5.1")]
+        ]
 )
