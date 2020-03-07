@@ -25,18 +25,19 @@ AutoGraph is a Swift client framework for making requests using GraphQL and mapp
 
 ## Requirements
 
-Swift 5.0
+Swift 5.1.3
 
+- Swift 5.0 iOS 8 - user version `0.10.0`
 - Swift 5.0 pre Decodable - use version `0.8.0`
 - Swift 4.2+ - use version `0.7.0`.
 - Swift 4.1.2 - use version `0.5.1`.
 
 ### Platforms
 
-- [x] iOS 8.0+
+- [x] iOS 10.0+
 - [ ] tvOS
 - [ ] watchOS
-- [ ] macOS
+- [x] macOS 10.12+
 - [ ] Linux
 
 ## Installation
@@ -44,7 +45,7 @@ Swift 5.0
 ### CocoaPods
 
 ```
-platform :ios, '8.0'
+platform :ios, '10.0'
 use_frameworks!
 
 pod 'AutoGraph'
@@ -54,7 +55,7 @@ pod 'AutoGraph'
 
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.9.0"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.11.0"))
 ]
 ```
 

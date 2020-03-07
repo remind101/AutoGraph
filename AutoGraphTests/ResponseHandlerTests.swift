@@ -30,7 +30,7 @@ class ResponseHandlerTests: XCTestCase {
         let line = 18
         let column = 7
         
-        let result = Alamofire.Result.success([
+        let result = Result<Any, AFError>.success([
             "dumb" : "data",
             "errors": [
                 [
@@ -45,7 +45,7 @@ class ResponseHandlerTests: XCTestCase {
             ]
             ] as Any)
         
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        let response = AFDataResponse(request: nil, response: nil, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var called = false
         
@@ -77,8 +77,8 @@ class ResponseHandlerTests: XCTestCase {
     }
     
     func testNetworkErrorReturnsNetworkError() {
-        let result = Alamofire.Result<Any>.failure(NSError(domain: "", code: 0, userInfo: nil))
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        let result = Result<Any, AFError>.failure(AFError.sessionTaskFailed(error: NSError(domain: "", code: 0, userInfo: nil)))
+        let response = AFDataResponse(request: nil, response: nil, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var called = false
         
@@ -103,8 +103,8 @@ class ResponseHandlerTests: XCTestCase {
         class FilmBadRequest: FilmRequest {
         }
         
-        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        let result = Result<Any, AFError>.success([ "dumb" : "data" ] as Any)
+        let response = AFDataResponse(request: nil, response: nil, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var called = false
         
@@ -133,8 +133,8 @@ class ResponseHandlerTests: XCTestCase {
             }
         }
         
-        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
-        let response = DataResponse(request: nil, response: nil, data: nil, result: result)
+        let result = Result<Any, AFError>.success([ "dumb" : "data" ] as Any)
+        let response = AFDataResponse(request: nil, response: nil, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         let request = MockRequest()
         
         self.subject.handle(response: response, objectBinding: request.generateBinding(completion: { _ in }), preMappingHook: request.didFinishRequest)
@@ -144,8 +144,8 @@ class ResponseHandlerTests: XCTestCase {
     
     func testResponseReturnedFromNetworkError() {
         let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
-        let result = Alamofire.Result<Any>.failure(NSError(domain: "", code: 0, userInfo: nil))
-        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        let result = Result<Any, AFError>.failure(AFError.sessionTaskFailed(error: NSError(domain: "", code: 0, userInfo: nil)))
+        let response = AFDataResponse(request: nil, response: httpResponse, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var requestId: String?
         
@@ -172,8 +172,8 @@ class ResponseHandlerTests: XCTestCase {
         }
         
         let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
-        let result = Alamofire.Result.success([ "dumb" : "data" ] as Any)
-        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        let result = Result<Any, AFError>.success([ "dumb" : "data" ] as Any)
+        let response = AFDataResponse(request: nil, response: httpResponse, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var requestId: String?
         
@@ -200,7 +200,7 @@ class ResponseHandlerTests: XCTestCase {
         let line = 18
         let column = 7
         
-        let result = Alamofire.Result.success([
+        let result = Result<Any, AFError>.success([
             "dumb" : "data",
             "errors": [
                 [
@@ -216,7 +216,7 @@ class ResponseHandlerTests: XCTestCase {
             ] as Any)
         
         let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 400, httpVersion: nil, headerFields: ["request_id" : "1234"])
-        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        let response = AFDataResponse(request: nil, response: httpResponse, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var requestId: String?
         
@@ -239,13 +239,13 @@ class ResponseHandlerTests: XCTestCase {
     }
     
     func testResponseReturnedFromInvalidResponseError() {
-        let result = Alamofire.Result.success([
+        let result = Result<Any, AFError>.success([
             "dumb" : "data",
             "errors": "Invalid",
             ] as Any)
         
         let httpResponse = HTTPURLResponse(url: URL(string: "www.test.com")!, statusCode: 200, httpVersion: nil, headerFields: ["request_id" : "1234"])
-        let response = DataResponse(request: nil, response: httpResponse, data: nil, result: result)
+        let response = AFDataResponse(request: nil, response: httpResponse, data: nil, metrics: nil, serializationDuration: 0.0, result: result)
         
         var requestId: String?
         

@@ -2,17 +2,17 @@ import Alamofire
 import Foundation
 
 public protocol RequestSender {
-    func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ())
+    func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ())
 }
 
 public final class Sendable {
     public let queryDocument: GraphQLDocument
     public let variables: GraphQLVariables?
     public let willSend: (() throws -> ())?
-    public let dispatcherCompletion: (Sendable) -> (DataResponse<Any>) -> ()
+    public let dispatcherCompletion: (Sendable) -> (AFDataResponse<Any>) -> ()
     public let dispatcherEarlyFailure: (Sendable) -> (Error) -> ()
     
-    public required init(queryDocument: GraphQLDocument, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) -> (DataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
+    public required init(queryDocument: GraphQLDocument, variables: GraphQLVariables?, willSend: (() throws -> ())?, dispatcherCompletion: @escaping (Sendable) -> (AFDataResponse<Any>) -> (), dispatcherEarlyFailure: @escaping (Sendable) -> (Error) -> ()) {
         self.queryDocument = queryDocument
         self.variables = variables
         self.willSend = willSend
@@ -22,7 +22,7 @@ public final class Sendable {
     
     public convenience init<R :Request>(dispatcher: Dispatcher, request: R, objectBindingPromise: @escaping (Sendable) -> ObjectBinding<R.SerializedObject>, globalWillSend: ((R) throws -> ())?) {
         
-        let completion: (Sendable) -> (DataResponse<Any>) -> () = { [weak dispatcher] sendable in
+        let completion: (Sendable) -> (AFDataResponse<Any>) -> () = { [weak dispatcher] sendable in
         { [weak dispatcher] response in
             dispatcher?.responseHandler.handle(response: response, objectBinding: objectBindingPromise(sendable), preMappingHook: request.didFinishRequest)
             }

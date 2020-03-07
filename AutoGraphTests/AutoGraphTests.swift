@@ -35,7 +35,7 @@ class AutoGraphTests: XCTestCase {
     class MockClient: Client {
         public var sessionConfiguration: URLSessionConfiguration = URLSessionConfiguration.default
         public var authTokens: AuthTokens = ("", "")
-        public var authHandler: AuthHandler = AuthHandler(baseUrl: "localhost", accessToken: nil, refreshToken: nil)
+        public var authHandler: AuthHandler? = AuthHandler(accessToken: nil, refreshToken: nil)
         public var baseUrl: String = ""
 
         var cancelCalled = false
@@ -43,7 +43,7 @@ class AutoGraphTests: XCTestCase {
             cancelCalled = true
         }
         
-        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ()) { }
+        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) { }
     }
     
     var subject: AutoGraph!
@@ -52,7 +52,7 @@ class AutoGraphTests: XCTestCase {
         super.setUp()
         
         let client = AlamofireClient(baseUrl: AutoGraph.localHost,
-                                     sessionManager: SessionManager(configuration: MockURLProtocol.sessionConfiguration()))
+                                     session: Session(configuration: MockURLProtocol.sessionConfiguration(), interceptor: AuthHandler()))
         self.subject = AutoGraph(client: client)
     }
     
@@ -112,7 +112,7 @@ class AutoGraphTests: XCTestCase {
         XCTAssertFalse(called)
         
         XCTAssertTrue(self.subject.dispatcher.paused)
-        XCTAssertTrue(self.subject.authHandler.isRefreshing)
+        XCTAssertTrue(self.subject.authHandler!.isRefreshing)
         XCTAssertTrue(( try! self.subject.dispatcher.pendingRequests.first!.queryDocument.graphQLString()) == (try! request.queryDocument.graphQLString()))
     }
     
@@ -160,7 +160,7 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(called)
         
         XCTAssertFalse(self.subject.dispatcher.paused)
-        XCTAssertFalse(self.subject.authHandler.isRefreshing)
+        XCTAssertFalse(self.subject.authHandler!.isRefreshing)
         XCTAssertEqual(self.subject.dispatcher.pendingRequests.count, 0)
     }
     
@@ -266,14 +266,14 @@ class AutoGraphTests: XCTestCase {
     
     func testAuthHandlerBeganReauthenticationPausesDispatcher() {
         XCTAssertFalse(self.subject.dispatcher.paused)
-        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        self.subject.authHandlerBeganReauthentication(AuthHandler(accessToken: nil, refreshToken: nil))
         XCTAssertTrue(self.subject.dispatcher.paused)
     }
     
     func testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher() {
-        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        self.subject.authHandlerBeganReauthentication(AuthHandler(accessToken: nil, refreshToken: nil))
         XCTAssertTrue(self.subject.dispatcher.paused)
-        self.subject.authHandler(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: true)
+        self.subject.authHandler(AuthHandler(accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: true)
         XCTAssertFalse(self.subject.dispatcher.paused)
     }
     
@@ -282,9 +282,9 @@ class AutoGraphTests: XCTestCase {
         let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
         self.subject = AutoGraph(client: mockClient, dispatcher: mockDispatcher)
         
-        self.subject.authHandlerBeganReauthentication(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil))
+        self.subject.authHandlerBeganReauthentication(AuthHandler(accessToken: nil, refreshToken: nil))
         XCTAssertTrue(self.subject.dispatcher.paused)
-        self.subject.authHandler(AuthHandler(baseUrl: "blah", accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: false)
+        self.subject.authHandler(AuthHandler(accessToken: nil, refreshToken: nil), reauthenticatedSuccessfully: false)
         XCTAssertTrue(self.subject.dispatcher.paused)
         
         XCTAssertTrue(mockClient.cancelCalled)
@@ -295,7 +295,7 @@ class AutoGraphTests: XCTestCase {
         self.subject.triggerReauthentication()
         self.waitFor(delay: 0.01)
         XCTAssertTrue(self.subject.dispatcher.paused)
-        XCTAssertTrue(self.subject.authHandler.isRefreshing)
+        XCTAssertTrue(self.subject.authHandler!.isRefreshing)
     }
     
     func waitFor(delay: TimeInterval) {

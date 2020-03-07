@@ -1,7 +1,7 @@
 import Alamofire
 import Foundation
 
-public typealias RefreshCompletion = (_ succeeded: Bool, _ accessToken: String?, _ refreshToken: String?) -> Void
+public typealias ReauthenticationRefreshCompletion = (_ succeeded: Bool, _ accessToken: String?, _ refreshToken: String?) -> Void
 
 internal protocol AuthHandlerDelegate: class {
     func authHandlerBeganReauthentication(_ authHandler: AuthHandler)
@@ -9,7 +9,7 @@ internal protocol AuthHandlerDelegate: class {
 }
 
 public protocol ReauthenticationDelegate: class {
-    func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: RefreshCompletion)
+    func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: ReauthenticationRefreshCompletion)
 }
 
 public let Unauthorized401StatusCode = 401
@@ -17,66 +17,70 @@ public let Unauthorized401StatusCode = 401
 // NOTE: Currently too coupled to Alamofire, will need to write an adapter and
 // move some of this into AlamofireClient eventually.
 
-public class AuthHandler {
+public class AuthHandler: RequestInterceptor {
+    private typealias RequestRetryCompletion = (RetryResult) -> Void
     
     internal weak var delegate: AuthHandlerDelegate?
     public weak var reauthenticationDelegate: ReauthenticationDelegate?
     
-    public let baseUrl: String
     public fileprivate(set) var accessToken: String?
     public fileprivate(set) var refreshToken: String?
     public fileprivate(set) var isRefreshing = false
     
-    fileprivate let lock = NSRecursiveLock()
-    fileprivate let callbackQueue: DispatchQueue
-    fileprivate var requestsToRetry: [RequestRetryCompletion] = []
+    private let lock = NSRecursiveLock()
+    private var requestsToRetry: [RequestRetryCompletion] = []
     
-    public init(baseUrl: String, accessToken: String?, refreshToken: String?, callbackQueue: DispatchQueue = DispatchQueue.main) {
-        self.baseUrl = baseUrl
+    public init(accessToken: String? = nil, refreshToken: String? = nil) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
-        self.callbackQueue = callbackQueue
     }
 }
 
 // MARK: - RequestAdapter
 
 extension AuthHandler: RequestAdapter {
-    
-    public func adapt(_ urlRequest: URLRequest) throws -> URLRequest {
+    public func adapt(
+        _ urlRequest: URLRequest,
+        for session: Session,
+        completion: @escaping (Result<URLRequest, Error>) -> Void)
+    {
         self.lock.lock()
-        defer {
-            self.lock.unlock()
+        
+        var urlRequest = urlRequest
+        if let accessToken = self.accessToken {
+            urlRequest.headers.add(.authorization(bearerToken: accessToken))
         }
         
-        if let url = urlRequest.url, let accessToken = self.accessToken, url.absoluteString.hasPrefix(self.baseUrl) {
-            var mutableRequest = urlRequest
-            mutableRequest.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
-            return mutableRequest
-        }
-        
-        return urlRequest
+        self.lock.unlock()
+        completion(.success(urlRequest))
     }
 }
 
 // MARK: - RequestRetrier
 
 extension AuthHandler: RequestRetrier {
-    
-    public func should(_ manager: SessionManager, retry request: Alamofire.Request, with error: Error, completion: @escaping RequestRetryCompletion) {
-        
+    public func retry(
+        _ request: Alamofire.Request,
+        for session: Session, dueTo error: Error,
+        completion: @escaping (RetryResult) -> Void)
+    {
         self.lock.lock()
         defer {
             self.lock.unlock()
         }
         
+        // Don't retry if we already failed once.
         guard request.retryCount == 0 else {
-            completion(false, 0.0)
+            completion(.doNotRetry)
             return
         }
         
-        guard let response = request.task?.response as? HTTPURLResponse, response.statusCode == Unauthorized401StatusCode else {
-            completion(false, 0.0)
+        // Retry unless it's a 401, in which case, rauth.
+        guard
+            case let response as HTTPURLResponse = request.task?.response,
+            response.statusCode == Unauthorized401StatusCode
+        else {
+            completion(.retry)
             return
         }
         
@@ -97,7 +101,7 @@ extension AuthHandler: RequestRetrier {
         
         self.isRefreshing = true
         
-        self.callbackQueue.async { [weak self] in
+        DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             
             strongSelf.delegate?.authHandlerBeganReauthentication(strongSelf)
@@ -112,7 +116,7 @@ extension AuthHandler: RequestRetrier {
         }
     }
     
-    func reauthenticated(success: Bool, accessToken: String?, refreshToken: String?) {
+    public func reauthenticated(success: Bool, accessToken: String?, refreshToken: String?) {
         self.lock.lock()
         defer {
             self.lock.unlock()
@@ -121,13 +125,13 @@ extension AuthHandler: RequestRetrier {
         if success {
             self.accessToken = accessToken
             self.refreshToken = refreshToken
+            self.requestsToRetry.forEach { $0(.retry) }
         }
         else {
             self.accessToken = nil
             self.refreshToken = nil
         }
         
-        self.requestsToRetry.forEach { $0(success, 0.0) }
         self.requestsToRetry.removeAll()
         
         guard self.isRefreshing else {

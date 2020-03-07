@@ -21,7 +21,7 @@ open class ResponseHandler {
         self.callbackQueue = callbackQueue
     }
     
-    func handle<SerializedObject: Decodable>(response: DataResponse<Any>,
+    func handle<SerializedObject: Decodable>(response: AFDataResponse<Any>,
                                              objectBinding: ObjectBinding<SerializedObject>,
                                              preMappingHook: (HTTPURLResponse?, JSONValue) throws -> ()) {
             do {

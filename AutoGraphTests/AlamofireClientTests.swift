@@ -4,8 +4,10 @@ import JSONValueRX
 @testable import AutoGraphQL
 
 class MockDataRequest: DataRequest {
-    override func resume() {
+    @discardableResult
+    override public func resume() -> Self {
         // no-op
+        return self
     }
 }
 
@@ -16,7 +18,7 @@ class AlamofireClientTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        self.subject = AlamofireClient(baseUrl: "localhost")
+        self.subject = AlamofireClient(baseUrl: "localhost", session: Session(interceptor: AuthHandler()))
     }
     
     override func tearDown() {
@@ -25,21 +27,9 @@ class AlamofireClientTests: XCTestCase {
         super.tearDown()
     }
     
-    func testSetsRetrierAndAdapterOnSession() {
-        let sessionManager = Alamofire.SessionManager.default
+    func testSetsAuthHandlerOnSession() {
         let authHandler = self.subject.authHandler
-        XCTAssertEqual(ObjectIdentifier(sessionManager.retrier! as! AuthHandler), ObjectIdentifier(authHandler))
-        XCTAssertEqual(ObjectIdentifier(sessionManager.adapter! as! AuthHandler), ObjectIdentifier(authHandler))
-    }
-    
-    func testUpdatesRetrierAndAdapterWithNewAuthHandler() {
-        let sessionManager = Alamofire.SessionManager.default
-        let authHandler = AuthHandler(baseUrl: "localhost",
-                                      accessToken: nil,
-                                      refreshToken: nil)
-        self.subject.authHandler = authHandler
-        XCTAssertEqual(ObjectIdentifier(sessionManager.retrier! as! AuthHandler), ObjectIdentifier(authHandler))
-        XCTAssertEqual(ObjectIdentifier(sessionManager.adapter! as! AuthHandler), ObjectIdentifier(authHandler))
+        XCTAssertEqual(ObjectIdentifier(self.subject.session.interceptor as! AuthHandler), ObjectIdentifier(authHandler!))
     }
     
     func testAuthenticatingSetsTokens() {
@@ -80,54 +70,60 @@ class AlamofireClientTests: XCTestCase {
         }
         
         let delegate = MockAuthHandlerDelegate()
-        self.subject.authHandler.delegate = delegate
+        self.subject.authHandler!.delegate = delegate
         
-        XCTAssertFalse(self.subject.authHandler.isRefreshing)
+        XCTAssertFalse(self.subject.authHandler!.isRefreshing)
         
         self.subject.authenticate(authTokens: ("access", "refresh"))
         
         XCTAssertFalse(delegate.called)
+                
+        let request = Mock401Request(convertible: URLRequest(url: URL(string: "www.google.com")!),
+                                     underlyingQueue: self.subject.session.rootQueue,
+                                     serializationQueue: self.subject.session.serializationQueue,
+                                     eventMonitor: self.subject.session.eventMonitor,
+                                     interceptor: self.subject.session.interceptor,
+                                     delegate: self.subject.session)
         
-        let request = Mock401Request(session: self.subject.sessionManager.session, requestTask: .data(nil, nil))
-        self.subject.authHandler.should(self.subject.sessionManager, retry: request, with: NSError(domain: "", code: 0, userInfo: nil)) { (_, _) in }
+        self.subject.authHandler?.retry(request, for: self.subject.session, dueTo: NSError(domain: "", code: 0, userInfo: nil), completion: { _ in })
         
-        XCTAssertTrue(self.subject.authHandler.isRefreshing)
-        
+        XCTAssertTrue(self.subject.authHandler!.isRefreshing)
         self.subject.authenticate(authTokens: ("access", "refresh"))
-        
         XCTAssertTrue(delegate.called)
     }
     
     func testForwardsSendRequestToAlamofireAndRespectsHeaders() {
         
-        class MockSessionManager: SessionManager {
+        class MockSession: Session {
             var success = false
-            override var startRequestsImmediately: Bool {
-                get {
-                    return false
-                }
-                set { }
-            }
-            override func request(_ url: URLConvertible, method: HTTPMethod, parameters: Parameters?, encoding: ParameterEncoding, headers: HTTPHeaders?) -> DataRequest {
+            
+            override func request(_ convertible: URLConvertible, method: HTTPMethod = .get, parameters: Parameters? = nil, encoding: ParameterEncoding = URLEncoding.default, headers: HTTPHeaders? = nil, interceptor: RequestInterceptor? = nil) -> DataRequest {
                 
                 success =
-                    (url as! String == "url")
+                    (convertible as! String == "url")
                     && (method == .post)
                     && (parameters! as! [String : String] == ["cool" : "param"])
                     && (encoding is JSONEncoding)
-                    && (headers! == ["dumb" : "header"])
+                    && (headers!.dictionary == ["dumb" : "header"])
                 
-                let request = MockDataRequest(session: session, requestTask: .data(nil, nil))
+                let request = MockDataRequest(convertible: try! URLRequest(url: convertible,
+                                                                           method: method,
+                                                                           headers: headers),
+                                              underlyingQueue: self.rootQueue,
+                                              serializationQueue: self.serializationQueue,
+                                              eventMonitor: self.eventMonitor,
+                                              interceptor: self.interceptor,
+                                              delegate: self)
                 
                 return request
             }
         }
         
-        let sessionManager = MockSessionManager()
-        self.subject = AlamofireClient(baseUrl: "localhost", sessionManager: sessionManager)
+        let session = MockSession(startRequestsImmediately: false, interceptor: AuthHandler())
+        self.subject = AlamofireClient(baseUrl: "localhost", session: session)
         self.subject.httpHeaders["dumb"] = "header"
         self.subject.sendRequest(url: "url", parameters: ["cool" : "param"], completion: { _ in })
         
-        XCTAssertTrue(sessionManager.success)
+        XCTAssertTrue(session.success)
     }
 }

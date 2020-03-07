@@ -14,16 +14,11 @@ extension DataResponse {
         case .failure(let e):
             
             let gqlError: AutoGraphError? = {
-                guard let value = Alamofire.Request.serializeResponseJSON(
-                    options: .allowFragments,
-                    response: self.response,
-                    data: self.data, error: nil).value,
-                let json = try? JSONValue(object: value) else {
-                        
+                guard let data = self.data, let json = try? JSONValue.decode(data) else {
                         return nil
                 }
                 
-                return AutoGraphError(graphQLResponseJSON: json,  response: self.response, networkErrorParser: nil)
+                return AutoGraphError(graphQLResponseJSON: json, response: self.response, networkErrorParser: nil)
             }()
             
             throw AutoGraphError.network(error: e, statusCode: self.response?.statusCode ?? -1, response: self.response, underlying: gqlError)
