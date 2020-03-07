@@ -9,7 +9,7 @@ jobs:
 
     # Specify the Xcode version to use.
     macos:
-      xcode: "10.2.0"
+      xcode: "11.3.0"
     working_directory: /Users/distiller/project
     environment:
       FL_OUTPUT_DIR: output
