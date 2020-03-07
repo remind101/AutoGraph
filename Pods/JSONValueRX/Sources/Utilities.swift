@@ -13,6 +13,24 @@ extension NSNumber {
         
         return isTrueNumber || isFalseNumber
     }
+    
+    public var isDouble: Bool {
+        let encoding = String(cString: self.objCType)
+        return encoding == "d"
+    }
+
+    public var isFloat: Bool {
+        let encoding = String(cString: self.objCType)
+        return encoding == "f"
+    }
+
+    public var isReal: Bool {
+        return self.isDouble || self.isFloat
+    }
+    
+    public var isInteger: Bool {
+        return !self.isReal
+    }
 }
 
 extension Dictionary {

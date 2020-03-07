@@ -1,18 +1,22 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.1.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "AutoGraph",
+    platforms: [
+        .macOS(.v10_12),
+        .iOS(.v10)
+    ],
     products: [
         .library(
             name: "AutoGraphQL",
             targets: ["AutoGraphQL"]),
         ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "4.8.2")),
-        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "5.1.0"))
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "5.0.2")),
+        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "6.1.0"))
     ],
     targets: [
         .target(
@@ -29,5 +33,5 @@ let package = Package(
             dependencies: ["AutoGraphQL"],
             path: "./QueryBuilderTests"),
         ],
-    swiftLanguageVersions: [.v4, .v5]
+    swiftLanguageVersions: [.version("5.1")]
 )

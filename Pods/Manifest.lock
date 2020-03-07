@@ -1,20 +1,20 @@
 PODS:
-  - Alamofire (4.8.2)
-  - JSONValueRX (5.1.0)
+  - Alamofire (5.0.2)
+  - JSONValueRX (6.1.0)
 
 DEPENDENCIES:
-  - Alamofire (~> 4.8.2)
-  - JSONValueRX (~> 5.1)
+  - Alamofire (~> 5.0.2)
+  - JSONValueRX (~> 6.1)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  trunk:
     - Alamofire
     - JSONValueRX
 
 SPEC CHECKSUMS:
-  Alamofire: ae5c501addb7afdbb13687d7f2f722c78734c2d3
-  JSONValueRX: e11fe4afb8ba1701f2eeefb9de707233ef498e4c
+  Alamofire: 3ba7a4db18b4f62c4a1c0e1cb39d7f3d52e10ada
+  JSONValueRX: 4f5dac3692b53e3e0a52927a3f8e454b484b560e
 
-PODFILE CHECKSUM: 0d59adcae66a571e3921a1361f48d5bdd74f54d1
+PODFILE CHECKSUM: 07f8436ee72fc247bec8135865e96f8138888da3
 
-COCOAPODS: 1.6.1
+COCOAPODS: 1.9.0
