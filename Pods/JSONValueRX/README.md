@@ -39,7 +39,7 @@ pod 'JSONValueRX'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rexmas/JSONValue.git", from: "6.0.0")
+    .package(url: "https://github.com/rexmas/JSONValue.git", from: "6.2.0")
 ]
 ```
 

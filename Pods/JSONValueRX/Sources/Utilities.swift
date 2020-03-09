@@ -31,6 +31,13 @@ extension NSNumber {
     public var isInteger: Bool {
         return !self.isReal
     }
+    
+    public var asJSONNumber: JSONNumber {
+        if !self.isReal, let i = Int64(exactly: self) {
+            return .int(i)
+        }
+        return .fraction(self.doubleValue)
+    }
 }
 
 extension Dictionary {

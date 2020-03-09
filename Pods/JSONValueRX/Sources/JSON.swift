@@ -14,14 +14,21 @@ enum JSONValueError: LocalizedError {
     }
 }
 
-public enum JSONNumber: Hashable {
+public enum JSONNumber: CustomStringConvertible, Hashable {
     case int(Int64)
     case fraction(Double)
     
     public var asNSNumber: NSNumber {
         switch self {
-        case .int(let i): return NSNumber(value: i)
-        case .fraction(let f): return NSNumber(value: f)
+        case .int(let i):       return NSNumber(value: i)
+        case .fraction(let f):  return NSNumber(value: f)
+        }
+    }
+    
+    public var description: String {
+        switch self {
+        case .int(let i):       return "\(i)"
+        case .fraction(let f):  return "\(f)"
         }
     }
 }
