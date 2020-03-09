@@ -233,14 +233,7 @@ extension NSNumber: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        // TODO: This should be added as a function on JSONNumber directly.
-        let number: JSONNumber = {
-            if !self.isReal, let i = Int64(exactly: self) {
-                return .int(i)
-            }
-            return .fraction(self.doubleValue)
-        }()
-        return try JSONValue.number(number).encodeAsString()
+        return try JSONValue.number(self.asJSONNumber).encodeAsString()
     }
 }
 
