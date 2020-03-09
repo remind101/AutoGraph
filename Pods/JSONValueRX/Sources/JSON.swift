@@ -14,10 +14,22 @@ enum JSONValueError: LocalizedError {
     }
 }
 
+public enum JSONNumber: Hashable {
+    case int(Int64)
+    case fraction(Double)
+    
+    public var asNSNumber: NSNumber {
+        switch self {
+        case .int(let i): return NSNumber(value: i)
+        case .fraction(let f): return NSNumber(value: f)
+        }
+    }
+}
+
 public enum JSONValue: CustomStringConvertible, Hashable {
     case array([JSONValue])
     case object([String : JSONValue])
-    case number(Double)
+    case number(JSONNumber)
     case string(String)
     case bool(Bool)
     case null
@@ -29,7 +41,10 @@ public enum JSONValue: CustomStringConvertible, Hashable {
         case let .object(xs):
             return xs.mapValues { $0.values() } as AnyObject
         case let .number(n):
-            return n as AnyObject
+            switch n {
+            case .int(let i): return i as AnyObject
+            case .fraction(let f): return f as AnyObject
+            }
         case let .string(s):
             return s as AnyObject
         case let .bool(b):
@@ -46,7 +61,10 @@ public enum JSONValue: CustomStringConvertible, Hashable {
         case let .object(xs):
             return xs.mapValues { $0.values() } as NSObject
         case let .number(n):
-            return NSNumber(value: n as Double)
+            switch n {
+            case .int(let i): return NSNumber(value: i)
+            case .fraction(let f): return NSNumber(value: f)
+            }
         case let .string(s):
             return NSString(string: s)
         case let .bool(b):
@@ -107,8 +125,12 @@ public enum JSONValue: CustomStringConvertible, Hashable {
         case let val as NSNumber:
             if val.isBool {
                 self = .bool(val.boolValue)
-            } else {
-                self = .number(val.doubleValue)
+            }
+            else if val.isReal {
+                self = .number(.fraction(val.doubleValue))
+            }
+            else {
+                self = .number(.int(val.int64Value))
             }
             
         case let val as NSString:
@@ -310,17 +332,23 @@ extension JSONValue: Codable {
         let container = try decoder.singleValueContainer()
         if let value = try? container.decode(String.self) {
             self = .string(value)
-        } else if let value = try? container.decode(Int.self) {
-            self = .number(Double(value))
-        } else if let value = try? container.decode(Double.self) {
-            self = .number(value)
-        } else if let value = try? container.decode(Bool.self) {
+        }
+        else if let value = try? container.decode(Int64.self) {
+            self = .number(.int(value))
+        }
+        else if let value = try? container.decode(Double.self) {
+            self = .number(.fraction(value))
+        }
+        else if let value = try? container.decode(Bool.self) {
             self = .bool(value)
-        } else if let value = try? container.decode([String: JSONValue].self) {
+        }
+        else if let value = try? container.decode([String: JSONValue].self) {
             self = .object(value)
-        } else if let value = try? container.decode([JSONValue].self) {
+        }
+        else if let value = try? container.decode([JSONValue].self) {
             self = .array(value)
-        } else if container.decodeNil() {
+        }
+        else if container.decodeNil() {
             self = .null
         }
         else {
@@ -333,7 +361,11 @@ extension JSONValue: Codable {
         switch self {
         case .array(let array): try container.encode(array)
         case .object(let object): try container.encode(object)
-        case .number(let double): try container.encode(double)
+        case .number(let number):
+            switch number {
+            case .int(let integer): try container.encode(integer)
+            case .fraction(let fraction): try container.encode(fraction)
+            }
         case .string(let string): try container.encode(string)
         case .bool(let bool): try container.encode(bool)
         case .null: try container.encodeNil()
@@ -370,16 +402,22 @@ extension Int: JSONKeyPath {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(Double(self)).encodeAsString()
+        return try JSONValue.number(.int(Int64(self))).encodeAsString()
     }
 }
 
-extension Double: JSONKeyPath {
+extension Int64: JSONKeyPath {
     public var keyPath: String {
         return String(self)
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(self).encodeAsString()
+        return try JSONValue.number(.int(self)).encodeAsString()
+    }
+}
+
+extension Double {
+    public func jsonEncodedString() throws -> String {
+        return try JSONValue.number(.fraction(self)).encodeAsString()
     }
 }

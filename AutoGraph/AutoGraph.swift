@@ -1,4 +1,5 @@
 import Foundation
+import Alamofire
 
 public protocol Cancellable {
     func cancelAll()
@@ -8,8 +9,7 @@ public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
 
 public protocol Client: RequestSender, Cancellable {
     var baseUrl: String { get }
-    var authHandler: AuthHandler { get }
-    var authTokens: AuthTokens { get }
+    var authHandler: AuthHandler? { get }
     var sessionConfiguration: URLSessionConfiguration { get }
 }
 
@@ -25,7 +25,7 @@ open class AutoGraph {
         return self.client.baseUrl
     }
     
-    public var authHandler: AuthHandler {
+    public var authHandler: AuthHandler? {
         return self.client.authHandler
     }
     
@@ -44,14 +44,18 @@ open class AutoGraph {
     
     public static let localHost = "http://localhost:8080/graphql"
     
-    public required init(client: Client = AlamofireClient(baseUrl: localHost)) {
+    public required init(
+        client: Client = AlamofireClient(baseUrl: localHost,
+                                         session: Alamofire.Session(interceptor: AuthHandler())))
+    {
         self.client = client
         self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        self.client.authHandler.delegate = self
+        self.client.authHandler?.delegate = self
     }
     
     internal convenience init() {
-        let client = AlamofireClient(baseUrl: AutoGraph.localHost)
+        let client = AlamofireClient(baseUrl: AutoGraph.localHost,
+                                     session: Alamofire.Session(interceptor: AuthHandler()))
         let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
         self.init(client: client, dispatcher: dispatcher)
     }
@@ -59,7 +63,7 @@ open class AutoGraph {
     public init(client: Client, dispatcher: Dispatcher) {
         self.client = client
         self.dispatcher = dispatcher
-        self.client.authHandler.delegate = self
+        self.client.authHandler?.delegate = self
     }
     
     open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
@@ -118,7 +122,7 @@ open class AutoGraph {
     }
     
     public func triggerReauthentication() {
-        self.authHandler.reauthenticate()
+        self.authHandler?.reauthenticate()
     }
     
     public func cancelAll() {

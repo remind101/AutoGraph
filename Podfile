@@ -1,15 +1,15 @@
-platform :ios, '8.0'
+platform :ios, '10.0'
 
 # ignore all warnings from all pods
 inhibit_all_warnings!
 use_frameworks!
 
 def jsonvalue
-  pod 'JSONValueRX', '~> 5.1'
+  pod 'JSONValueRX', '~> 6.1'
 end
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 4.8.2'
+  pod 'Alamofire', '~> 5.0.2'
   jsonvalue
     
   target 'AutoGraphTests' do

@@ -5,14 +5,20 @@
 Simple JSON representation supporting subscripting and pattern matching.
 JSONValue uses an algebraic datatype representation of JSON for type safety and pattern matching.
 ```swift
-enum JSONValue: CustomStringConvertible {
+enum JSONValue: CustomStringConvertible, Hashable {
     case array([JSONValue])
     case object([String : JSONValue])
-    case number(Double)
+    case number(JSONNumber)
     case string(String)
     case bool(Bool)
     case null
 }
+
+public enum JSONNumber: Hashable {
+    case int(Int64)
+    case fraction(Double)
+}
+
 ```
 # Requirements
 ### Supported Platforms
@@ -33,7 +39,7 @@ pod 'JSONValueRX'
 ### Swift Package Manager (SPM)
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rexmas/JSONValue.git", from: "5.0.0")
+    .package(url: "https://github.com/rexmas/JSONValue.git", from: "6.0.0")
 ]
 ```
 
@@ -64,7 +70,7 @@ print(jsonVal["awe.some"]) // Optional(string(cool))
 
 # Equatable
 ```swift
-print(JSONValue.number(1.0) == JSONValue.number(1.0)) // true
+print(JSONValue.number(.int(1)) == JSONValue.number(.int(1))) // true
 ```
 
 # Hashable
@@ -110,7 +116,7 @@ let jsonValue = JSONValue.array([
         "_id": .string("5d140a3fb5bbd5eaa41b512e"),
         "guid": .string("9b0f3717-2f21-4a81-8902-92d2278a92f0"),
         "isActive": .bool(false),
-        "age": .number(30),
+        "age": .number(.int(30)),
         "name": .object([
         "first": .string("Rosales"),
         "last": .string("Mcintosh")

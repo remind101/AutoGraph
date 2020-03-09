@@ -11,9 +11,9 @@ class DispatcherTests: XCTestCase {
         
         var expectation: Bool = false
         
-        var testSendRequest: ((_ url: String, _ parameters: [String : Any], _ completion: @escaping (DataResponse<Any>) -> ()) -> Bool)?
+        var testSendRequest: ((_ url: String, _ parameters: [String : Any], _ completion: @escaping (AFDataResponse<Any>) -> ()) -> Bool)?
         
-        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (DataResponse<Any>) -> ()) {
+        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
             self.expectation = testSendRequest?(url, parameters, completion) ?? false
         }
     }

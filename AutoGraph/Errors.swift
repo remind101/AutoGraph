@@ -105,8 +105,8 @@ public struct GraphQLError: LocalizedError, Equatable {
                 return nil
             }
             
-            self.line = Int(line)
-            self.column = Int(column)
+            self.line = line.asNSNumber.intValue
+            self.column = column.asNSNumber.intValue
         }
     }
     

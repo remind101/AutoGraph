@@ -9,8 +9,7 @@ extension AlamofireClientTests {
         ("testAuthenticatingSetsTokens", testAuthenticatingSetsTokens),
         ("testAuthHandlerDelegateCallsBackWhenAuthenticatingDirectlyIfRefreshing", testAuthHandlerDelegateCallsBackWhenAuthenticatingDirectlyIfRefreshing),
         ("testForwardsSendRequestToAlamofireAndRespectsHeaders", testForwardsSendRequestToAlamofireAndRespectsHeaders),
-        ("testSetsRetrierAndAdapterOnSession", testSetsRetrierAndAdapterOnSession),
-        ("testUpdatesRetrierAndAdapterWithNewAuthHandler", testUpdatesRetrierAndAdapterWithNewAuthHandler),
+        ("testSetsAuthHandlerOnSession", testSetsAuthHandlerOnSession),
     ]
 }
 
@@ -79,6 +78,10 @@ extension ResponseHandlerTests {
         ("testMappingErrorReturnsMappingError", testMappingErrorReturnsMappingError),
         ("testNetworkErrorReturnsNetworkError", testNetworkErrorReturnsNetworkError),
         ("testPreMappingHookCalledBeforeMapping", testPreMappingHookCalledBeforeMapping),
+        ("testResponseReturnedFromGraphQLError", testResponseReturnedFromGraphQLError),
+        ("testResponseReturnedFromInvalidResponseError", testResponseReturnedFromInvalidResponseError),
+        ("testResponseReturnedFromMappingError", testResponseReturnedFromMappingError),
+        ("testResponseReturnedFromNetworkError", testResponseReturnedFromNetworkError),
     ]
 }
 

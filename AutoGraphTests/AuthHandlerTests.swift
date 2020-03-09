@@ -10,7 +10,7 @@ class AuthHandlerTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        self.subject = AuthHandler(baseUrl: "", accessToken: "token", refreshToken: "token")
+        self.subject = AuthHandler(accessToken: "token", refreshToken: "token")
     }
     
     override func tearDown() {
@@ -20,8 +20,14 @@ class AuthHandlerTests: XCTestCase {
     }
     
     func testAdaptsAuthToken() {
-        let urlRequest = try! self.subject.adapt(URLRequest(url: URL(string: "localhost")!))
-        XCTAssertEqual(urlRequest.allHTTPHeaderFields!["Authorization"]!, "Bearer token")
+        self.subject.adapt(
+            URLRequest(url: URL(string: "localhost")!),
+            for: Session(interceptor: self.subject),
+            completion:
+        { urlRequestResult in
+            let urlRequest = try! urlRequestResult.get()
+            XCTAssertEqual(urlRequest.allHTTPHeaderFields!["Authorization"]!, "Bearer token")
+        })
     }
     
     func testGetsAuthTokensIfSuccess() {

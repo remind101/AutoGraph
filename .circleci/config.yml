@@ -1,22 +1,20 @@
 # .circleci/config.yml
 
-# Specify the config version - version 2 is latest.
-version: 2
+# Specify the config version - version 2.1 is latest.
+version: 2.1
 
 # Define the jobs for the current project.
 jobs:
   build-and-test:
-
     # Specify the Xcode version to use.
     macos:
-      xcode: "10.2.0"
+      xcode: "11.3.1"
     working_directory: /Users/distiller/project
     environment:
       FL_OUTPUT_DIR: output
 
     # Define the steps required to build the project.
     steps:
-
       # Get the code from the VCS provider.
       - checkout
 
@@ -40,11 +38,11 @@ jobs:
 
       - run:
           name: pre-start simulator
-          command: xcrun instruments -w "iPhone SE (12.2) [" || true
+          command: xcrun instruments -w "iPhone 11 Pro (13.3) [" || true
 
       - run:
           name: Run tests
-          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -sdk iphonesimulator12.2 -destination 'platform=iOS Simulator,OS=12.2,name=iPhone SE' ONLY_ACTIVE_ARCH=NO build test
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -destination 'platform=iOS Simulator,OS=13.3,name=iPhone 11 Pro' ONLY_ACTIVE_ARCH=NO build test
 
       - store_test_results:
           path: output/scan
@@ -68,4 +66,3 @@ workflows:
     jobs:
       - swiftlint
       - build-and-test
-

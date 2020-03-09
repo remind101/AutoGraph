@@ -161,7 +161,13 @@ extension UInt: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(Double(self)).encodeAsString()
+        let jsonNumber: JSONNumber = {
+            guard let i = Int64(exactly: self) else {
+                return .fraction(Double(self))
+            }
+            return .int(i)
+        }()
+        return try JSONValue.number(jsonNumber).encodeAsString()
     }
 }
 
@@ -199,7 +205,7 @@ extension Float: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(Double(self)).encodeAsString()
+        return try JSONValue.number(.fraction(Double(self))).encodeAsString()
     }
 }
 
@@ -227,7 +233,14 @@ extension NSNumber: InputValue {
     }
     
     public func jsonEncodedString() throws -> String {
-        return try JSONValue.number(Double(truncating: self)).encodeAsString()
+        // TODO: This should be added as a function on JSONNumber directly.
+        let number: JSONNumber = {
+            if !self.isReal, let i = Int64(exactly: self) {
+                return .int(i)
+            }
+            return .fraction(self.doubleValue)
+        }()
+        return try JSONValue.number(number).encodeAsString()
     }
 }
 

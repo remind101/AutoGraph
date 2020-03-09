@@ -4,195 +4,44 @@ import Foundation
 
 public protocol JSONDecodable {
     associatedtype ConversionType = Self
-    static func fromJSON(_ x: JSONValue) -> ConversionType?
+    static func fromJSON(_ json: JSONValue) -> ConversionType?
 }
 
 public protocol JSONEncodable {
     associatedtype ConversionType
-    static func toJSON(_ x: ConversionType) -> JSONValue
+    static func toJSON(_ val: ConversionType) -> JSONValue
 }
 
 public protocol JSONable: JSONDecodable, JSONEncodable { }
 
 extension Dictionary: JSONable {
     public typealias ConversionType = Dictionary<String, Value>
-    public static func fromJSON(_ x: JSONValue) -> Dictionary.ConversionType? {
-        switch x {
+    public static func fromJSON(_ json: JSONValue) -> Dictionary.ConversionType? {
+        switch json {
         case .object:
-            return x.values() as? Dictionary<String, Value>
+            return json.values() as? Dictionary<String, Value>
         default:
             return nil
         }
     }
     
-    public static func toJSON(_ x: Dictionary.ConversionType) -> JSONValue {
+    public static func toJSON(_ dict: Dictionary.ConversionType) -> JSONValue {
         do {
-            return try JSONValue(dict: x)
+            return try JSONValue(dict: dict)
         } catch {
             return JSONValue.null
         }
     }
 }
 
-protocol AcceptsDouble {
-    init(_ other: Double)
-    static var maxDouble: Double { get }
-    static var minDouble: Double { get }
-}
-
-extension AcceptsDouble {
-    init?(safe double: Double) {
-        guard double > Self.minDouble && double < Self.maxDouble else {
-            return nil
-        }
-        self = Self(double)
-    }
-}
-
-extension Int: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension Int8: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension Int16: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension Int32: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension Int64: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension UInt: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension UInt8: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension UInt16: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension UInt32: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-extension UInt64: AcceptsDouble {
-    static var maxDouble: Double {
-        return Double(self.max)
-    }
-    static var minDouble: Double {
-        return Double(self.min)
-    }
-}
-
-struct ArrayMappingHelper<T: AcceptsDouble> {
-    func map(arr: [JSONValue]) -> [Any]? {
-        return try? arr.map {
-            guard case let val as Double = $0.values() else {
-                throw NSError()
-            }
-            guard let result = T(safe: val) else {
-                throw NSError()
-            }
-            return result
-        }
-    }
-}
-
 extension Array: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> Array? {
-        switch x {
-        case let .array(xs):
-            // TODO: Swift may have fixed integer overflow issues. Consider removing.
-            switch Element.self {
-            case is Int.Type:
-                let help = ArrayMappingHelper<Int>()
-                return help.map(arr: xs) as? Array
-            case is Int8.Type:
-                let help = ArrayMappingHelper<Int8>()
-                return help.map(arr: xs) as? Array
-            case is Int16.Type:
-                let help = ArrayMappingHelper<Int16>()
-                return help.map(arr: xs) as? Array
-            case is Int32.Type:
-                let help = ArrayMappingHelper<Int32>()
-                return help.map(arr: xs) as? Array
-            case is Int64.Type:
-                let help = ArrayMappingHelper<Int64>()
-                return help.map(arr: xs) as? Array
-            case is UInt.Type:
-                let help = ArrayMappingHelper<Int>()
-                return help.map(arr: xs) as? Array
-            case is UInt8.Type:
-                let help = ArrayMappingHelper<Int8>()
-                return help.map(arr: xs) as? Array
-            case is UInt16.Type:
-                let help = ArrayMappingHelper<Int16>()
-                return help.map(arr: xs) as? Array
-            case is UInt32.Type:
-                let help = ArrayMappingHelper<Int32>()
-                return help.map(arr: xs) as? Array
-            case is UInt64.Type:
-                let help = ArrayMappingHelper<Int64>()
-                return help.map(arr: xs) as? Array
-                
-            default:
-                return x.values() as? Array
-            }
-            
-        default:
-            return nil
-        }
+    public static func fromJSON(_ json: JSONValue) -> Array? {
+        return json.values() as? Array
     }
     
-    public static func toJSON(_ x: Array) -> JSONValue {
+    public static func toJSON(_ arr: Array) -> JSONValue {
         do {
-            return try JSONValue(array: x)
+            return try JSONValue(array: arr)
         } catch {
             return JSONValue.null
         }
@@ -200,29 +49,32 @@ extension Array: JSONable {
 }
 
 extension Bool: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> Bool? {
-        switch x {
-        case let .bool(n):
-            return n
-        case .number(0):
+    public static func fromJSON(_ json: JSONValue) -> Bool? {
+        switch json {
+        case let .bool(b):
+            return b
+        case .number(.int(0)):
             return false
-        case .number(1):
+        case .number(.int(1)):
             return true
         default:
             return nil
         }
     }
     
-    public static func toJSON(_ xs: Bool) -> JSONValue {
-        return JSONValue.bool(xs)
+    public static func toJSON(_ b: Bool) -> JSONValue {
+        return JSONValue.bool(b)
     }
 }
 
 extension Int: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> Int? {
-        switch x {
+    public static func fromJSON(_ json: JSONValue) -> Int? {
+        switch json {
         case let .number(n):
-            return Int(n)
+            switch n {
+            case .int(let i): return Int(exactly: i)
+            case .fraction(let f): return Int(exactly: f)
+            }
         case let .string(s):
             return Int(s)
         default:
@@ -230,16 +82,19 @@ extension Int: JSONable {
         }
     }
     
-    public static func toJSON(_ xs: Int) -> JSONValue {
-        return JSONValue.number(Double(xs))
+    public static func toJSON(_ val: Int) -> JSONValue {
+        return JSONValue.number(.int(Int64(val)))
     }
 }
 
 extension Double: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> Double? {
-        switch x {
+    public static func fromJSON(_ json: JSONValue) -> Double? {
+        switch json {
         case let .number(n):
-            return n
+            switch n {
+            case .int(let i): return Double(i)
+            case .fraction(let f): return f
+            }
         case let .string(s):
             return Double(s)
         default:
@@ -247,16 +102,19 @@ extension Double: JSONable {
         }
     }
     
-    public static func toJSON(_ xs: Double) -> JSONValue {
-        return JSONValue.number(xs)
+    public static func toJSON(_ val: Double) -> JSONValue {
+        return JSONValue.number(.fraction(val))
     }
 }
 
 extension NSNumber: JSONable {
-    public class func fromJSON(_ x: JSONValue) -> NSNumber? {
-        switch x {
+    public class func fromJSON(_ json: JSONValue) -> NSNumber? {
+        switch json {
         case let .number(n):
-            return NSNumber(value: n as Double)
+            switch n {
+            case .int(let i): return NSNumber(value: i)
+            case .fraction(let f): return NSNumber(value: f)
+            }
         case let .bool(b):
             return NSNumber(value: b)
         case let .string(s):
@@ -269,19 +127,22 @@ extension NSNumber: JSONable {
         }
     }
     
-    public class func toJSON(_ x: NSNumber) -> JSONValue {
-        if x.isBool {
-            return JSONValue.bool(x.boolValue)
+    public class func toJSON(_ num: NSNumber) -> JSONValue {
+        if num.isBool {
+            return JSONValue.bool(num.boolValue)
+        }
+        else if num.isReal {
+            return JSONValue.number(.fraction(num.doubleValue))
         }
         else {
-            return JSONValue.number(x.doubleValue)
+            return JSONValue.number(.int(num.int64Value))
         }
     }
 }
 
 extension String: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> String? {
-        switch x {
+    public static func fromJSON(_ json: JSONValue) -> String? {
+        switch json {
         case let .string(n):
             return n
         default:
@@ -289,14 +150,14 @@ extension String: JSONable {
         }
     }
     
-    public static func toJSON(_ x: String) -> JSONValue {
-        return JSONValue.string(x)
+    public static func toJSON(_ str: String) -> JSONValue {
+        return JSONValue.string(str)
     }
 }
 
 extension Date: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> Date? {
-        switch x {
+    public static func fromJSON(_ json: JSONValue) -> Date? {
+        switch json {
         case let .string(string):
             return Date(isoString: string)
         default:
@@ -304,24 +165,24 @@ extension Date: JSONable {
         }
     }
     
-    public static func toJSON(_ x: Date) -> JSONValue {
-        return .string(x.isoString)
+    public static func toJSON(_ date: Date) -> JSONValue {
+        return .string(date.isoString)
     }
 }
 
 extension NSDate: JSONable {
-    public static func fromJSON(_ x: JSONValue) -> NSDate? {
-        return Date.fromJSON(x) as NSDate?
+    public static func fromJSON(_ json: JSONValue) -> NSDate? {
+        return Date.fromJSON(json) as NSDate?
     }
     
-    public static func toJSON(_ x: NSDate) -> JSONValue {
-        return Date.toJSON(x as Date)
+    public static func toJSON(_ date: NSDate) -> JSONValue {
+        return Date.toJSON(date as Date)
     }
 }
 
 extension NSNull: JSONable {
-    public class func fromJSON(_ x: JSONValue) -> NSNull? {
-        switch x {
+    public class func fromJSON(_ json: JSONValue) -> NSNull? {
+        switch json {
         case .null:
             return NSNull()
         default:
@@ -329,7 +190,7 @@ extension NSNull: JSONable {
         }
     }
     
-    public class func toJSON(_ xs: NSNull) -> JSONValue {
+    public class func toJSON(_ val: NSNull) -> JSONValue {
         return JSONValue.null
     }
 }

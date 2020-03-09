@@ -26,11 +26,11 @@ Pod::Spec.new do |s|
   s.author           = { "rexmas" => "rex@remindhq.com" }
   s.source           = { :git => "https://github.com/remind101/AutoGraph.git", :tag => s.version.to_s }
 
-  s.platform     = :ios, '8.0'
+  s.platform     = :ios, '10.0'
   s.requires_arc = true
 
-  s.dependency 'Alamofire', '~> 4.8.2'
-  s.dependency 'JSONValueRX', '~> 5.1.0'
+  s.dependency 'Alamofire', '~> 5.0.2'
+  s.dependency 'JSONValueRX', '~> 6.1.0'
 
   s.source_files = 'AutoGraph/**/*.swift', 'QueryBuilder/**/*.swift'
   s.resource_bundles = {
