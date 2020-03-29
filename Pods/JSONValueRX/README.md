@@ -2,12 +2,14 @@
 [![Build Status](https://travis-ci.org/rexmas/JSONValue.svg)](https://travis-ci.org/rexmas/JSONValue)
 
 # JSONValue
+
 Simple JSON representation supporting subscripting and pattern matching.
 JSONValue uses an algebraic datatype representation of JSON for type safety and pattern matching.
+
 ```swift
 enum JSONValue: CustomStringConvertible, Hashable {
     case array([JSONValue])
-    case object([String : JSONValue])
+    case object([String: JSONValue])
     case number(JSONNumber)
     case string(String)
     case bool(Bool)
@@ -18,36 +20,46 @@ public enum JSONNumber: Hashable {
     case int(Int64)
     case fraction(Double)
 }
-
 ```
+
 # Requirements
+
 ### Supported Platforms
-iOS 8.0+
+
+iOS 10.0+
 MacOS 10.12+
 
 ### Supported Languages
+
 Swift 5.0+
 
 # Installation
+
 ### CocoaPods
+
 ```
-platform :ios, '8.0'
+platform :ios, '10.0'
 use_frameworks!
 
 pod 'JSONValueRX'
 ```
+
 ### Swift Package Manager (SPM)
+
 ```swift
 dependencies: [
-    .package(url: "https://github.com/rexmas/JSONValue.git", from: "6.2.0")
+    .package(url: "https://github.com/rexmas/JSONValue.git", from: "7.0.0")
 ]
 ```
 
 #### Build Xcode Project
+
 swift package generate-xcodeproj
 
 # Subscripting
+
 Supports `.` indexing
+
 ```swift
 let dict = [ "fis" : [ "h" : "food" ]]
 var jsonVal = try! JSONValue(object: dict)
@@ -57,7 +69,9 @@ print(jsonVal["fis.h"]) // Optional(JSONString(food))
 jsonVal["awe.some"] = try! JSONValue(object: "cool")
 print(jsonVal["awe.some"]) // Optional(JSONString(cool))
 ```
+
 Supports `.` in keys
+
 ```swift
 let dict = [ "fis.h" : "food" ]
 var jsonVal = try! JSONValue(object: dict)
@@ -69,14 +83,17 @@ print(jsonVal["awe.some"]) // Optional(string(cool))
 ```
 
 # Equatable
+
 ```swift
 print(JSONValue.number(.int(1)) == JSONValue.number(.int(1))) // true
 ```
 
 # Hashable
+
 `extension JSONValue: Hashable`
 
 Inverted key/value pairs do not collide.
+
 ```swift
 let hashable1 = try! JSONValue(object: ["warp" : "drive"])
 let hashable2 = try! JSONValue(object: ["drive" : "warp"])
@@ -147,6 +164,7 @@ let output: Array<Output> = try! jsonValue.decode()
 ```
 
 # Encoding/Decoding from String, Data without Codable
+
 ```swift
 public func encode() throws -> Data
 public static func decode(_ data: Data) throws -> JSONValue
@@ -154,6 +172,7 @@ public static func decode(_ string: String) throws -> JSONValue
 ```
 
 # Custom Encoding/Decoding without Codable
+
 ```swift
 public protocol JSONDecodable {
     associatedtype ConversionType = Self
@@ -167,7 +186,9 @@ public protocol JSONEncodable {
 
 public protocol JSONable: JSONDecodable, JSONEncodable { }
 ```
+
 The following support `JSONable` for out-of-the-box Encoding/Decoding.
+
 ```swift
 NSNull
 Double
@@ -180,6 +201,7 @@ Array
 String
 Dictionary
 ```
+
 `Date` uses built in `ISO` encoding/decoding to/from `.string`
 
 # Contributing
@@ -189,6 +211,7 @@ Dictionary
 - Keep Linux tests up-to-date `swift test --generate-linuxmain`
 
 # License
+
 The MIT License (MIT)
 
 Copyright (c) 2015-Present Rex

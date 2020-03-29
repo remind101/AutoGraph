@@ -18,12 +18,12 @@ extension NSNumber {
         let encoding = String(cString: self.objCType)
         return encoding == "d"
     }
-
+    
     public var isFloat: Bool {
         let encoding = String(cString: self.objCType)
         return encoding == "f"
     }
-
+    
     public var isReal: Bool {
         return self.isDouble || self.isFloat
     }
@@ -41,9 +41,9 @@ extension NSNumber {
 }
 
 extension Dictionary {
-    func mapValues<OutValue>(_ transform: (Value) throws -> OutValue) rethrows -> [Key : OutValue] {
-        var outDict = [Key : OutValue]()
-        try self.forEach { (key, value) in
+    func mapValues<OutValue>(_ transform: (Value) throws -> OutValue) rethrows -> [Key: OutValue] {
+        var outDict = [Key: OutValue]()
+        try self.forEach { key, value in
             outDict[key] = try transform(value)
         }
         return outDict
