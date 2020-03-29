@@ -90,7 +90,7 @@ class ResponseHandlerTests: XCTestCase {
                 return
             }
             
-            guard case .network(_) = error else {
+            guard case .network = error else {
                 XCTFail("`error` should be an `.network` error")
                 return
             }
