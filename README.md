@@ -18,16 +18,16 @@ The Swiftest way to GraphQL
 - [x] 🆒 [Type safe JSON](#jsonvalue-for-type-safe-json)
 - [x] 🐙 [Threading](#threading)
 - [x] 🌐 [Network Library](#network-library)
-- [ ] 🔮 Network Library Agnostic
 - [ ] 🥓 [Batched Queries](#batched-queries)
 
 AutoGraph is a Swift client framework for making requests using GraphQL and mapping the responses to strongly typed models. Models may be represented by any `Decodable` type. AutoGraph relies heavily on Swift's type safety to drive it, leading to safer, compile time checked code.
 
 ## Requirements
 
-Swift 5.1.3
+Swift 5.2
 
-- Swift 5.0 iOS 8 - user version `0.10.0`
+- Swift 5.1.3 iOS 10 - use version `0.11.1`
+- Swift 5.0 iOS 8 - use version `0.10.0`
 - Swift 5.0 pre Decodable - use version `0.8.0`
 - Swift 4.2+ - use version `0.7.0`.
 - Swift 4.1.2 - use version `0.5.1`.
@@ -55,7 +55,7 @@ pod 'AutoGraph'
 
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.11.0"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.12.0"))
 ]
 ```
 
@@ -66,6 +66,7 @@ Code generation is in an early-alpha stage. If you're interested in testing it p
 ## Databases
 
 ##### Update
+
 Previously this project would map into any arbitrary database directly via a database mapping library. In practice we've found that mapping to pure structs through Codable is simpler and enables more flexibility when combined with code generation. If you wish to still map directly to a database in the old style please use version `0.8.0`. Going forward we are internally exploring different methods of code generation that enable flexible, code generated database caching behind the scenes. We hope to open source these efforts in the future, stay tuned.
 
 ## Query Builder
@@ -168,9 +169,9 @@ AutoGraph currently relies on [Alamofire](https://github.com/Alamofire/Alamofire
 1. Create a class that conforms to the Request protocol. You can also extend an existing class to conform to this protocol. Request is a base protocol used for GraphQL requests sent through AutoGraph. It provides the following parameters.
    1. `queryDocument` - The query being sent. You may use the Query Builder or a String.
    2. `variables` - The variables to be sent with the query. A `Dictionary` is accepted.
-   2. `rootKeyPath` - Defines where to start mapping data from. Empty string (`""`) will map from the root of the JSON.
-   3. An `associatedtype SerializedObject: Decodable` must be provided to tell AutoGraph what data model to decode to.
-   4. A number of methods to inform the Request of its point in the life cycle.
+   3. `rootKeyPath` - Defines where to start mapping data from. Empty string (`""`) will map from the root of the JSON.
+   4. An `associatedtype SerializedObject: Decodable` must be provided to tell AutoGraph what data model to decode to.
+   5. A number of methods to inform the Request of its point in the life cycle.
 
 ```swift
 class FilmRequest: Request {
@@ -185,7 +186,7 @@ class FilmRequest: Request {
         }
      }
      */
-    
+
     let query = Operation(type: .query,
                           name: "film",
                           fields: [
@@ -199,7 +200,7 @@ class FilmRequest: Request {
                                     Scalar(name: "director", alias: nil),
                                     Scalar(name: "openingCrawl", alias: nil)])
                             ])
-    
+
     let variables: [AnyHashable : Any]? = nil
 
     let rootKeyPath: String = "data.film"
