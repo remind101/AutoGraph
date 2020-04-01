@@ -35,7 +35,7 @@ public enum JSONNumber: CustomStringConvertible, Hashable {
 
 public enum JSONValue: CustomStringConvertible, Hashable {
     case array([JSONValue])
-    case object([String : JSONValue])
+    case object([String: JSONValue])
     case number(JSONNumber)
     case string(String)
     case bool(Bool)
@@ -43,18 +43,18 @@ public enum JSONValue: CustomStringConvertible, Hashable {
     
     public func values() -> AnyObject {
         switch self {
-        case let .array(xs):
+        case .array(let xs):
             return xs.map { $0.values() } as AnyObject
-        case let .object(xs):
+        case .object(let xs):
             return xs.mapValues { $0.values() } as AnyObject
-        case let .number(n):
+        case .number(let n):
             switch n {
             case .int(let i): return i as AnyObject
             case .fraction(let f): return f as AnyObject
             }
-        case let .string(s):
+        case .string(let s):
             return s as AnyObject
-        case let .bool(b):
+        case .bool(let b):
             return b as AnyObject
         case .null:
             return NSNull()
@@ -63,33 +63,33 @@ public enum JSONValue: CustomStringConvertible, Hashable {
     
     public func valuesAsNSObjects() -> NSObject {
         switch self {
-        case let .array(xs):
+        case .array(let xs):
             return xs.map { $0.values() } as NSObject
-        case let .object(xs):
+        case .object(let xs):
             return xs.mapValues { $0.values() } as NSObject
-        case let .number(n):
+        case .number(let n):
             switch n {
             case .int(let i): return NSNumber(value: i)
             case .fraction(let f): return NSNumber(value: f)
             }
-        case let .string(s):
+        case .string(let s):
             return NSString(string: s)
-        case let .bool(b):
+        case .bool(let b):
             return NSNumber(value: b as Bool)
         case .null:
             return NSNull()
         }
     }
     
-    public init<T>(array: Array<T>) throws {
+    public init<T>(array: [T]) throws {
         let jsonValues = try array.map {
-            return try JSONValue(object: $0)
+            try JSONValue(object: $0)
         }
         self = .array(jsonValues)
     }
     
-    public init<V>(dict: Dictionary<String, V>) throws {
-        var jsonValues = [String : JSONValue]()
+    public init<V>(dict: [String: V]) throws {
+        var jsonValues = [String: JSONValue]()
         for (key, val) in dict {
             let x = try JSONValue(object: val)
             jsonValues[key] = x
@@ -101,20 +101,20 @@ public enum JSONValue: CustomStringConvertible, Hashable {
     // Array<Dictionary<String, Any>> doesn't seem to work. Maybe case eval on generic param too?
     public init(object: Any) throws {
         switch object {
-        case let array as Array<Any>:
+        case let array as [Any]:
             let jsonValues = try array.map {
-                return try JSONValue(object: $0)
+                try JSONValue(object: $0)
             }
             self = .array(jsonValues)
             
         case let array as NSArray:
             let jsonValues = try array.map {
-                return try JSONValue(object: $0)
+                try JSONValue(object: $0)
             }
             self = .array(jsonValues)
             
-        case let dict as Dictionary<String, Any>:
-            var jsonValues = [String : JSONValue]()
+        case let dict as [String: Any]:
+            var jsonValues = [String: JSONValue]()
             for (key, val) in dict {
                 let x = try JSONValue(object: val)
                 jsonValues[key] = x
@@ -122,13 +122,13 @@ public enum JSONValue: CustomStringConvertible, Hashable {
             self = .object(jsonValues)
             
         case let dict as NSDictionary:
-            var jsonValues = [String : JSONValue]()
+            var jsonValues = [String: JSONValue]()
             for (key, val) in dict {
                 let x = try JSONValue(object: val)
                 jsonValues[key as! String] = x
             }
             self = .object(jsonValues)
-        
+            
         case let val as NSNumber:
             if val.isBool {
                 self = .bool(val.boolValue)
@@ -172,7 +172,7 @@ public enum JSONValue: CustomStringConvertible, Hashable {
         if isWrapped {
             let start = string.index(string.startIndex, offsetBy: 1)
             let end = string.index(string.endIndex, offsetBy: -1)
-            let range = start..<end
+            let range = start ..< end
             string = String(string[range])
         }
         
@@ -290,7 +290,7 @@ public enum JSONValue: CustomStringConvertible, Hashable {
             if index.count == 1 {
                 switch self {
                 case .object(var obj):
-                    if (newValue != nil) {
+                    if newValue != nil {
                         obj.updateValue(newValue!, forKey: key)
                     }
                     else {
@@ -320,15 +320,15 @@ public enum JSONValue: CustomStringConvertible, Hashable {
         switch self {
         case .null:
             return "null"
-        case let .bool(b):
+        case .bool(let b):
             return "\(b)"
-        case let .string(s):
+        case .string(let s):
             return "\(s)"
-        case let .number(n):
+        case .number(let n):
             return "\(n)"
-        case let .object(o):
+        case .object(let o):
             return "JSON(\(o))"
-        case let .array(a):
+        case .array(let a):
             return "JSON(\(a))"
         }
     }
