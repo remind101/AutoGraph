@@ -49,15 +49,19 @@ open class ResponseHandler {
                         
                         switch isRequestIncludingNetworkResponse {
                         case true:
-                            var result: [String : JSONValue] = ["json" : objectJson, "value" : objectJson]
-                            if let httpResponse = response {
-                                let http = try? JSONValue(dict: [
-                                    "urlString" : httpResponse.url?.absoluteString ?? "",
-                                    "statusCode" : httpResponse.statusCode,
-                                    "headerFields" : httpResponse.allHeaderFields
+                            let httpResponseJson = response.flatMap {
+                                try? JSONValue(dict: [
+                                    "urlString" : $0.url?.absoluteString ?? "",
+                                    "statusCode" : $0.statusCode,
+                                    "headerFields" : $0.allHeaderFields
                                 ])
-                                result["httpResponse"] = http
-                            }
+                            } ?? .null
+                            
+                            let result: [String : JSONValue] = [
+                                "json" : objectJson,
+                                "value" : objectJson,
+                                "httpResponse" : httpResponseJson
+                            ]
                             
                             return .object(result)
                         case false:
