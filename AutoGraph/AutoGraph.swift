@@ -81,8 +81,8 @@ open class AutoGraph {
         self.dispatcher.send(sendable: sendable)
     }
     
-    open func send<R: Request>(includingJSONResponse request: R, completion: @escaping (_ result: ResultIncludingJSON<R.SerializedObject>) -> ()) {
-        let requestIncludingJSON = RequestIncludingJSON(request: request)
+    open func send<R: Request>(includingNetworkResponse request: R, completion: @escaping (_ result: ResultIncludingJSON<R.SerializedObject>) -> ()) {
+        let requestIncludingJSON = RequestIncludingNetworkResponse(request: request)
         self.send(requestIncludingJSON, completion: completion)
     }
     
