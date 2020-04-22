@@ -43,9 +43,9 @@ private protocol IsRequestIncludingNetworking {}
 extension RequestIncludingNetworkResponse: IsRequestIncludingNetworking {}
 
 public struct HTTPResponse: Decodable {
-    let urlString: String
-    let statusCode: Int
-    let headerFields: [String : String]
+    public let urlString: String
+    public let statusCode: Int
+    public let headerFields: [String : String]
 }
 
 public struct DataIncludingNetworkResponse<T: Decodable>: Decodable {
