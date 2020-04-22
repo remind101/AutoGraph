@@ -40,16 +40,32 @@ open class ResponseHandler {
     private func map<SerializedObject: Decodable>(json: JSONValue, response: HTTPURLResponse?, objectBinding: ObjectBinding<SerializedObject>) {
             do {
                 switch objectBinding {
-                case .object(let keyPath, let isRequestIncludingJSON, let completion):
+                case .object(let keyPath, let isRequestIncludingNetworkResponse, let completion):
                     let decoder = JSONDecoder()
                     let decodingJSON: JSONValue = try {
                         guard let objectJson = json[keyPath] else {
                             throw ObjectKeyPathError(keyPath: keyPath)
                         }
                         
-                        switch isRequestIncludingJSON {
-                        case true:  return .object(["json" : objectJson, "value" : objectJson])
-                        case false: return objectJson
+                        switch isRequestIncludingNetworkResponse {
+                        case true:
+                            let httpResponseJson = response.flatMap {
+                                try? JSONValue(dict: [
+                                    "urlString" : $0.url?.absoluteString ?? "",
+                                    "statusCode" : $0.statusCode,
+                                    "headerFields" : $0.allHeaderFields
+                                ])
+                            } ?? .null
+                            
+                            let result: [String : JSONValue] = [
+                                "json" : objectJson,
+                                "value" : objectJson,
+                                "httpResponse" : httpResponseJson
+                            ]
+                            
+                            return .object(result)
+                        case false:
+                            return objectJson
                         }
                     }()
                     let object = try decoder.decode(SerializedObject.self, from: decodingJSON.encode())

@@ -3,7 +3,7 @@ import Foundation
 import JSONValueRX
 
 public typealias AutoGraphResult<Value> = Swift.Result<Value, Error>
-public typealias ResultIncludingJSON<Value: Decodable> = AutoGraphResult<DataIncludingJSON<Value>>
+public typealias ResultIncludingNetworkResponse<Value: Decodable> = AutoGraphResult<DataIncludingNetworkResponse<Value>>
 
 extension DataResponse {
     func extractValue() throws -> Any {

@@ -30,52 +30,59 @@ public protocol Request {
 
 /// A weird enum that collects info for a request.
 public enum ObjectBinding<SerializedObject: Decodable> {
-    case object(keyPath: String, isRequestIncludingJSON: Bool, completion: RequestCompletion<SerializedObject>)
+    case object(keyPath: String, isRequestIncludingNetworkResponse: Bool, completion: RequestCompletion<SerializedObject>)
 }
 
 extension Request {
     func generateBinding(completion: @escaping RequestCompletion<SerializedObject>) -> ObjectBinding<SerializedObject> {
-        return ObjectBinding<SerializedObject>.object(keyPath: self.rootKeyPath, isRequestIncludingJSON: self is IsRequestIncludingJSON, completion: completion)
+        return ObjectBinding<SerializedObject>.object(keyPath: self.rootKeyPath, isRequestIncludingNetworkResponse: self is IsRequestIncludingNetworking, completion: completion)
     }
 }
 
-private protocol IsRequestIncludingJSON {}
-extension RequestIncludingJSON: IsRequestIncludingJSON {}
+private protocol IsRequestIncludingNetworking {}
+extension RequestIncludingNetworkResponse: IsRequestIncludingNetworking {}
 
-public struct DataIncludingJSON<T: Decodable>: Decodable {
-    public let value: T
-    public let json: JSONValue
+public struct HTTPResponse: Decodable {
+    public let urlString: String
+    public let statusCode: Int
+    public let headerFields: [String : String]
 }
 
-public struct RequestIncludingJSON<R: Request>: Request {
-    public typealias SerializedObject = DataIncludingJSON<R.SerializedObject>
+public struct DataIncludingNetworkResponse<T: Decodable>: Decodable {
+    public let value: T
+    public let json: JSONValue
+    public let httpResponse: HTTPResponse?
+}
+
+public struct RequestIncludingNetworkResponse<R: Request>: Request {
+    public typealias SerializedObject = DataIncludingNetworkResponse<R.SerializedObject>
     public typealias QueryDocument = R.QueryDocument
     public typealias Variables = R.Variables
     
     public let request: R
     
     public var queryDocument: R.QueryDocument {
-        return request.queryDocument
+        return self.request.queryDocument
     }
     
     public var variables: R.Variables? {
-        return request.variables
+        return self.request.variables
     }
     
     public var rootKeyPath: String {
-        return request.rootKeyPath
+        return self.request.rootKeyPath
     }
     
     public func willSend() throws {
-        try request.willSend()
+        try self.request.willSend()
     }
     
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws {
-        try request.didFinishRequest(response: response, json: json)
+        try self.request.didFinishRequest(response: response, json: json)
     }
     
-    public func didFinish(result: Result<DataIncludingJSON<R.SerializedObject>, Error>) throws {
-        try request.didFinish(result: {
+    public func didFinish(result: Result<DataIncludingNetworkResponse<R.SerializedObject>, Error>) throws {
+        try self.request.didFinish(result: {
             switch result {
             case .success(let data):
                 return .success(data.value)
