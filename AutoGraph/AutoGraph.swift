@@ -39,16 +39,19 @@ open class AutoGraph {
     }
     
     public let client: Client
+    public let webSocket: WebSocketClient
     public let dispatcher: Dispatcher
     public var lifeCycle: GlobalLifeCycle?
     
     public static let localHost = "http://localhost:8080/graphql"
     
     public required init(
-        client: Client = AlamofireClient(baseUrl: localHost,
-                                         session: Alamofire.Session(interceptor: AuthHandler())))
+        client: Client = AlamofireClient(baseUrl: AutoGraph.localHost,
+                                         session: Alamofire.Session(interceptor: AuthHandler())),
+        webSocket: WebSocketClient = WebSocketClient(baseUrl: AutoGraph.localHost))
     {
         self.client = client
+        self.webSocket = webSocket
         self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
         self.client.authHandler?.delegate = self
     }
@@ -57,11 +60,13 @@ open class AutoGraph {
         let client = AlamofireClient(baseUrl: AutoGraph.localHost,
                                      session: Alamofire.Session(interceptor: AuthHandler()))
         let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        self.init(client: client, dispatcher: dispatcher)
+        let webSocket = WebSocketClient(baseUrl: AutoGraph.localHost)
+        self.init(client: client, webSocket: webSocket, dispatcher: dispatcher)
     }
     
-    public init(client: Client, dispatcher: Dispatcher) {
+    public init(client: Client, webSocket: WebSocketClient, dispatcher: Dispatcher) {
         self.client = client
+        self.webSocket = webSocket
         self.dispatcher = dispatcher
         self.client.authHandler?.delegate = self
     }
@@ -84,6 +89,10 @@ open class AutoGraph {
     open func send<R: Request>(includingNetworkResponse request: R, completion: @escaping (_ result: ResultIncludingNetworkResponse<R.SerializedObject>) -> ()) {
         let requestIncludingJSON = RequestIncludingNetworkResponse(request: request)
         self.send(requestIncludingJSON, completion: completion)
+    }
+    
+    open func subscribe<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
+        self.webSocket.send(request, completion: completion)
     }
     
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
