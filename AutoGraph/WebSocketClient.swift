@@ -25,7 +25,7 @@ open class WebSocketClient {
         self.httpHeaders = httpHeaders
     }
     
-    open func send<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
+    open func subscribe<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
         do {
             let query = try request.queryDocument.graphQLString()
             var parameters: [String : Any] = ["query" : query]

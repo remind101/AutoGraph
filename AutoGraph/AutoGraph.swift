@@ -92,7 +92,7 @@ open class AutoGraph {
     }
     
     open func subscribe<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
-        self.webSocketClient.send(request, completion: completion)
+        self.webSocketClient.subscribe(request, completion: completion)
     }
     
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
