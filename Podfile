@@ -10,7 +10,7 @@ end
 
 target 'AutoGraphQL' do
   pod 'Alamofire', '~> 5.0.5'
-  pod 'Starscream'
+  pod 'Starscream', '~> 4.0.0'
   jsonvalue
     
   target 'AutoGraphTests' do
