@@ -31,7 +31,8 @@ Pod::Spec.new do |s|
 
   s.dependency 'Alamofire', '~> 5.0.5'
   s.dependency 'JSONValueRX', '~> 7.0.0'
-
+  s.dependency 'Starscream', '~> 4.0.0'
+  
   s.source_files = 'AutoGraph/**/*.swift', 'QueryBuilder/**/*.swift'
   s.resource_bundles = {
   }
