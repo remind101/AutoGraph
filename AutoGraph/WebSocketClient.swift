@@ -1,12 +1,23 @@
 import Foundation
 import Starscream
 
+public typealias WebSocketCompletionBlock = (Result<WebSocketClient.Events, Error>) -> Void
+
 open class WebSocketClient {
+    public typealias SerializedObject = Decodable
+
+    public enum Events {
+        case connected([String: String])
+        case disconnected(String, UInt16)
+        case data(SerializedObject)
+        case pong(Data?)
+        case ping(Data?)
+        case error(Error?)
+    }
+    
     public let baseUrl: String
     public var httpHeaders: [String : String]
-    public var webSocket: WebSocket?
-    public var lifeCycle: GlobalLifeCycle?
-    private var webSocketListener: WebSocketListener?
+    public internal(set) var openWebSockets = [StarScream]()
     
     public init(baseUrl: String,
                 httpHeaders: [String : String] = [:]) {
@@ -14,7 +25,7 @@ open class WebSocketClient {
         self.httpHeaders = httpHeaders
     }
     
-    open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
+    open func send<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
         do {
             let query = try request.queryDocument.graphQLString()
             var parameters: [String : Any] = ["query" : query]
@@ -27,10 +38,44 @@ open class WebSocketClient {
             }
             
             let request = try URLRequest(url: url, method: .post)
+            let starScream = StarScream(request: request) { (eventReceiver) in
+                DispatchQueue.main.async {
+                    switch eventReceiver.event {
+                    case .connected(let headers):
+                        completion(.success(.connected(headers)))
+                    case let .disconnected(reason, code):
+                        completion(.success(.disconnected(reason, code)))
+                    case .binary(let data):
+                        do {
+                            let decoder = JSONDecoder()
+                            let object = try decoder.decode(R.SerializedObject.self, from: data)
+                            completion(.success(.data(object)))
+                        }
+                        catch let error {
+                            completion(.failure(error))
+                        }
+                    case let .ping(data):
+                        completion(.success(.ping(data)))
+                    case let .pong(data):
+                        completion(.success(.pong(data)))
+                    case let .error(error):
+                        if let error = error {
+                            completion(.failure(error))
+                        }
+                        
+                        self.remove(starScream: eventReceiver.starScream)
+                    case .cancelled:
+                        self.remove(starScream: eventReceiver.starScream)
+                    case .text,
+                         .viabilityChanged,
+                         .reconnectSuggested:
+                        break
+                    }
+                }
+            }
             
-            self.webSocket = WebSocket(request: request)
-            self.handleWebSocketListener(with: completion)
-            self.webSocket?.delegate = self.webSocketListener
+            self.openWebSockets.append(starScream)
+            starScream.connect()
         }
         catch let error {
             completion(.failure(error))
@@ -41,79 +86,41 @@ open class WebSocketClient {
         self.httpHeaders["Authorization"] = "Bearer \(token)"
     }
     
-    public func disconnect() {
-        self.webSocket?.disconnect()
-        self.webSocket = nil
-        self.webSocketListener = nil
+    public func cancelAll() {
+        self.openWebSockets.removeAll()
     }
     
-    private func handleWebSocketListener<SerializedObject: Decodable>(with completion: @escaping RequestCompletion<SerializedObject>) {
-        self.webSocketListener = WebSocketListener { (action) in
-            switch action {
-            case .connected:
-                break
-            case let .data(data):
-                do {
-                    let decoder = JSONDecoder()
-                    let object = try decoder.decode(SerializedObject.self, from: data)
-                    completion(.success(object))
-                }
-                catch let error {
-                    completion(.failure(error))
-                }
-            case .cancelled:
-                self.disconnect()
-            case let .error(error):
-                if let error = error {
-                    completion(.failure(error))
-                }
-            case .disconnected:
-                self.disconnect()
-            }
-        }
+    private func remove(starScream: StarScream) {
+        self.openWebSockets.removeAll(where: { $0 === starScream })
     }
 }
 
-class WebSocketListener {
-    enum Action {
-        case connected([String: String])
-        case disconnected(String, UInt16)
-        case data(Data)
-        case error(Error?)
-        case cancelled
+public class StarScream {
+    typealias EventReceiver = (starScream: StarScream, event: WebSocketEvent)
+    
+    let webSocket: WebSocket
+    let eventReceiver: (EventReceiver) -> Void
+    
+    init(request: URLRequest, eventReceiver: @escaping ((EventReceiver) -> Void)) {
+        self.webSocket = WebSocket(request: request)
+        self.eventReceiver = eventReceiver
     }
     
-    let actionHandler: (Action) -> Void
+    deinit {
+        self.webSocket.disconnect()
+    }
     
-    init(actionHandler: @escaping (Action) -> Void) {
-        self.actionHandler = actionHandler
+    func connect() {
+        self.webSocket.connect()
+    }
+    
+    func disconnect() {
+        self.webSocket.disconnect()
     }
 }
 
-extension WebSocketListener: WebSocketDelegate {
+extension StarScream: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
-        switch event {
-        case .connected(let headers):
-            self.actionHandler(.connected(headers))
-        case let .disconnected(reason, code):
-            self.actionHandler(.disconnected(reason, code))
-        case .binary(let data):
-            self.actionHandler(.data(data))
-
-        case .cancelled:
-            self.actionHandler(.cancelled)
-        case let .error(error):
-            self.actionHandler(.error(error))
-//            if let error = error {
-//                self.completion?(.failure(error))
-//            }
-//            self.disconnect()
-        case .ping,
-             .text,
-             .pong,
-             .viabilityChanged,
-             .reconnectSuggested:
-            break
-        }
+        self.eventReceiver((self, event))
     }
 }
