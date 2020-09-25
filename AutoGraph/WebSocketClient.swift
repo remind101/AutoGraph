@@ -103,7 +103,7 @@ open class WebSocketClient {
     
     private func createRequest<R: Request>(_ request: R) throws -> URLRequest? {
         let query = try request.queryDocument.graphQLString()
-        var parameters: [String : Any] = ["query" : query]
+        var parameters: [String : Any] = ["subscription" : query]
         if let variables = try request.variables?.graphQLVariablesDictionary() {
             parameters["variables"] = variables
         }
