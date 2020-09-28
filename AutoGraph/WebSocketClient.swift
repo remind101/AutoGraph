@@ -2,163 +2,170 @@ import Foundation
 import Starscream
 import Alamofire
 
-public typealias WebSocketCompletionBlock = (Result<WebSocketClient.Events, Error>) -> Void
+public typealias SerializedObject = Decodable
+public typealias WebSocketCompletionBlock = (Result<SerializedObject, Error>) -> Void
 
 public protocol WebSocketClientDelegate {
     func didReceive(event: WebSocketEvent)
 }
 
-open class WebSocketClient {
-    public typealias SerializedObject = Decodable
+public typealias GraphQLMap = [String: Any]
 
-    public enum Events {
-        case connected([String: String])
-        case disconnected(String, UInt16)
-        case data(SerializedObject)
-        case error(Error?)
+open class WebSocketClient {
+    let queue: DispatchQueue
+    let webSocket: WebSocket
+    public var delegate: WebSocketClientDelegate?
+    private var subscribers = [String: WebSocketCompletionBlock]()
+    private var subscriberType = [String: Decodable.Type]()
+    private var subscriptions : [String: String] = [:]
+
+    public init?(baseUrl: String,
+                 queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .background),
+                 httpHeaders: [String: String] = [:]) {
+        self.queue = queue
+        do  {
+            guard let request = try WebSocketClient.createRequest(baseUrl: baseUrl, header: httpHeaders) else {
+                return nil
+            }
+            
+            self.webSocket = WebSocket(request: request)
+            self.webSocket.connect()
+        }
+        catch {
+            return nil
+        }
     }
     
-    public let baseUrl: String
-    public var httpHeaders: [String : String]
-    public internal(set) var openWebSockets = [StarScream]()
-    public var delegate: WebSocketClientDelegate?
-    
-    public init(baseUrl: String,
-                delegate: WebSocketClientDelegate? = nil,
-                httpHeaders: [String : String] = [:]) {
-        self.baseUrl = baseUrl
-        self.delegate = delegate
-        self.httpHeaders = httpHeaders
+    public func disconnect() {
+        self.webSocket.disconnect()
+        self.subscriptions.removeAll()
+        self.subscribers.removeAll()
     }
     
     open func subscribe<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
+        
         do {
-            guard let starScream = try self.createStarScream(request: request, completion: completion) else {
+            guard let body = try self.requestBody(request) else {
                 return
             }
             
-            self.openWebSockets.append(starScream)
-            starScream.connect()
+            guard let message = OperationMessage(payload: body, id: request.rootKeyPath).rawMessage else {
+                return
+            }
+            
+            self.queue.async {
+                self.subscriberType[request.rootKeyPath] = R.SerializedObject.self
+                self.subscribers[request.rootKeyPath] = completion
+                self.subscriptions[request.rootKeyPath] = message
+                self.webSocket.write(string: message, completion: nil)
+            }
         }
         catch let error {
             completion(.failure(error))
         }
     }
     
-    public func setAuthToken(_ token: String) {
-        self.httpHeaders["Authorization"] = "Bearer \(token)"
-    }
-    
-    public func cancelAll() {
-        self.openWebSockets.removeAll()
-    }
-    
-    private func remove(starScream: StarScream) {
-        self.openWebSockets.removeAll(where: { $0 === starScream })
-    }
-
-    private func createStarScream<R: Request>(request: R, completion: @escaping WebSocketCompletionBlock) throws -> StarScream? {
-        guard let urlRequest = try self.createRequest(request) else {
-            return nil
-        }
-        
-        let dispatchQueue = DispatchQueue(label: request.rootKeyPath, qos: .background)
-        return StarScream(request: urlRequest, dispatchQueue: dispatchQueue) { [weak self] (eventReceiver) in
-            self?.delegate?.didReceive(event: eventReceiver.event)
-            
-            switch eventReceiver.event {
-            case .connected(let headers):
-                completion(.success(.connected(headers)))
-            case let .disconnected(reason, code):
-                completion(.success(.disconnected(reason, code)))
-            case .binary(let data):
-                do {
-                    let decoder = JSONDecoder()
-                    let object = try decoder.decode(R.SerializedObject.self, from: data)
-                    completion(.success(.data(object)))
-                }
-                catch let error {
-                    completion(.failure(error))
-                }
-            case let .error(error):
-                if let error = error {
-                    completion(.failure(error))
-                }
-                
-                self?.remove(starScream: eventReceiver.starScream)
-            case .cancelled:
-                self?.remove(starScream: eventReceiver.starScream)
-            case let .reconnectSuggested(shouldReconnect):
-                if shouldReconnect {
-                    eventReceiver.starScream.reconnect()
-                }
-            case .text,
-                 .ping,
-                 .pong,
-                 .viabilityChanged:
-                break
-            }
-        }
-    }
-    
-    private func createRequest<R: Request>(_ request: R) throws -> URLRequest? {
+    private func requestBody<R: Request>(_ request: R) throws -> GraphQLMap? {
         let query = try request.queryDocument.graphQLString()
-        var parameters: [String : Any] = ["subscription" : query]
+        var body: GraphQLMap = ["query" : query]
         if let variables = try request.variables?.graphQLVariablesDictionary() {
-            parameters["variables"] = variables
+            body["variables"] = variables
         }
         
-        guard let url = URL(string: self.baseUrl) else {
+        return body
+    }
+    
+    private func unsubscribe(key: String) {
+        self.subscribers.removeValue(forKey: key)
+        self.subscriptions.removeValue(forKey: key)
+        self.subscriberType.removeValue(forKey: key)
+    }
+}
+
+// MARK: - Class Method
+
+extension WebSocketClient {
+    class func createRequest(baseUrl: String, header: [String: String]) throws -> URLRequest? {
+        guard let url = URL(string: baseUrl) else {
             return nil
         }
         
-        let request = try URLRequest(url: url, method: .post, headers: HTTPHeaders(self.httpHeaders))
-        
-        return try URLEncoding.default.encode(request, with: parameters)
+        return try URLRequest(url: url, method: .post, headers: HTTPHeaders(header))
     }
 }
 
-public class StarScream {
-    typealias EventReceiver = (starScream: StarScream, event: WebSocketEvent)
-    
-    var webSocket: WebSocket?
-    let request: URLRequest
-    let eventReceiver: (EventReceiver) -> Void
-    
-    init(request: URLRequest,
-         dispatchQueue: DispatchQueue,
-         eventReceiver: @escaping ((EventReceiver) -> Void)) {
-        self.request = request
-        self.webSocket = WebSocket(request: request)
-        self.webSocket?.callbackQueue = dispatchQueue
-        self.eventReceiver = eventReceiver
-    }
-    
-    deinit {
-        self.webSocket?.forceDisconnect()
-        self.webSocket = nil
-    }
-    
-    func connect() {
-        self.webSocket?.connect()
-    }
-    
-    func disconnect() {
-        self.webSocket?.disconnect()
-    }
-    
-    func forceDisconnect() {
-        self.webSocket?.forceDisconnect()
-    }
-    
-    func reconnect() {
-        self.webSocket = WebSocket(request: self.request)
-        self.webSocket?.connect()
-    }
-}
-
-extension StarScream: WebSocketDelegate {
+extension WebSocketClient: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
-        self.eventReceiver((self, event))
+        self.delegate?.didReceive(event: event)
+        switch event {
+        case .disconnected:
+            self.disconnect()
+        case .binary(let data):
+            self.process(data: data)
+        case .error,
+             .cancelled,
+             .connected,
+             .text,
+             .ping,
+             .pong,
+             .reconnectSuggested,
+             .viabilityChanged:
+            break
+        }
+    }
+    
+    private func process(data: Data) {
+        do {
+            guard let json =  try JSONSerialization.jsonObject(with: data, options: []) as? GraphQLMap,
+                let id = json["id"] as? String,
+                let payload = json["payload"] as? GraphQLMap else {
+                return
+            }
+            
+            print(id)
+            print(payload)
+           
+        }
+        catch  { }
+    }
+}
+
+final class OperationMessage {
+    enum Types : String {
+        case connectionInit = "connection_init"            // Client -> Server
+        case connectionTerminate = "connection_terminate"  // Client -> Server
+        case start = "start"                               // Client -> Server
+        case stop = "stop"                                 // Client -> Server
+        
+        case connectionAck = "connection_ack"              // Server -> Client
+        case connectionError = "connection_error"          // Server -> Client
+        case connectionKeepAlive = "ka"                    // Server -> Client
+        case data = "data"                                 // Server -> Client
+        case error = "error"                               // Server -> Client
+        case complete = "complete"                         // Server -> Client
+    }
+    
+    var message: GraphQLMap = [:]
+    
+    var rawMessage: String? {
+        guard let serialized = try? JSONSerialization.data(withJSONObject: self.message, options: .fragmentsAllowed) else {
+            return nil
+        }
+        
+        return String(data: serialized, encoding: .utf8)
+    }
+    
+    init(payload: GraphQLMap?,
+         id: String? = nil,
+         type: Types = .start) {
+        if let payload = payload {
+            self.message["payload"] = payload
+        }
+        
+        if let id = id  {
+            self.message["id"] = id
+        }
+        
+        self.message["type"] = type.rawValue
     }
 }

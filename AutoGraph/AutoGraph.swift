@@ -39,16 +39,15 @@ open class AutoGraph {
     }
     
     public let client: Client
-    public let webSocketClient: WebSocketClient
+    public let webSocketClient: WebSocketClient?
     public let dispatcher: Dispatcher
     public var lifeCycle: GlobalLifeCycle?
     
     public static let localHost = "http://localhost:8080/graphql"
     
-    public required init(
-        client: Client = AlamofireClient(baseUrl: AutoGraph.localHost,
+    public required init(client: Client = AlamofireClient(baseUrl: AutoGraph.localHost,
                                          session: Alamofire.Session(interceptor: AuthHandler())),
-        webSocketClient: WebSocketClient = WebSocketClient(baseUrl: AutoGraph.localHost))
+                         webSocketClient: WebSocketClient? = nil)
     {
         self.client = client
         self.webSocketClient = webSocketClient
@@ -64,7 +63,7 @@ open class AutoGraph {
         self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
     }
     
-    public init(client: Client, webSocketClient: WebSocketClient, dispatcher: Dispatcher) {
+    public init(client: Client, webSocketClient: WebSocketClient?, dispatcher: Dispatcher) {
         self.client = client
         self.webSocketClient = webSocketClient
         self.dispatcher = dispatcher
@@ -92,7 +91,7 @@ open class AutoGraph {
     }
     
     open func subscribe<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
-        self.webSocketClient.subscribe(request, completion: completion)
+        self.webSocketClient?.subscribe(request, completion: completion)
     }
     
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
