@@ -29,6 +29,7 @@ open class WebSocketClient {
             }
             
             self.webSocket = WebSocket(request: request)
+            self.webSocket.delegate = self
             self.webSocket.connect()
         }
         catch {
@@ -98,12 +99,12 @@ extension WebSocketClient: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
         self.delegate?.didReceive(event: event)
         switch event {
-        case .disconnected:
+        case .disconnected,
+             .cancelled:
             self.disconnect()
         case .binary(let data):
             self.process(data: data)
         case .error,
-             .cancelled,
              .connected,
              .text,
              .ping,
