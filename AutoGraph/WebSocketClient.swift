@@ -13,7 +13,7 @@ public typealias GraphQLMap = [String: Any]
 
 open class WebSocketClient {
     let queue: DispatchQueue
-    let webSocket: WebSocket
+    public var webSocket: WebSocket?
     public var delegate: WebSocketClientDelegate?
     private var subscribers = [String: WebSocketCompletionBlock]()
     private var subscriberType = [String: Decodable.Type]()
@@ -29,8 +29,8 @@ open class WebSocketClient {
             }
             
             self.webSocket = WebSocket(request: request)
-            self.webSocket.delegate = self
-            self.webSocket.connect()
+            self.webSocket?.delegate = self
+            self.webSocket?.connect()
         }
         catch {
             return nil
@@ -38,7 +38,7 @@ open class WebSocketClient {
     }
     
     public func disconnect() {
-        self.webSocket.disconnect()
+        self.webSocket?.disconnect()
         self.subscriptions.removeAll()
         self.subscribers.removeAll()
     }
@@ -58,7 +58,7 @@ open class WebSocketClient {
                 self.subscriberType[request.rootKeyPath] = R.SerializedObject.self
                 self.subscribers[request.rootKeyPath] = completion
                 self.subscriptions[request.rootKeyPath] = message
-                self.webSocket.write(string: message, completion: nil)
+                self.webSocket?.write(string: message, completion: nil)
             }
         }
         catch let error {
