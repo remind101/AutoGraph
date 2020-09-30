@@ -21,11 +21,20 @@ open class WebSocketClient {
     
     public enum WebSocketError: Error {
         case createRequestFailed(String)
+        case webSocketNotConnected(String)
+        case subscriptionRequestBodyFailed(String)
+        case messagePayloadFailed(GraphQLMap)
         
         public var localizedDescription: String {
             switch self {
             case let .createRequestFailed(url):
                 return "URLRequest for url: \(url) creation failed for websocket"
+            case let .webSocketNotConnected(subscription):
+                return "WebSocket is not open to make subscription: \(subscription)"
+            case let .subscriptionRequestBodyFailed(operationName):
+                return "Subscription request body failed to serialize for query: \(operationName)"
+            case let .messagePayloadFailed(playload):
+                return "Subscription message payload failed to serialize message string: \(playload)"
             }
         }
     }
@@ -86,12 +95,18 @@ open class WebSocketClient {
     
     public func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping WebSocketCompletionBlock) {
         do {
-            guard let body = try self.requestBody(request, operationName: operationName), self.state == .connected
-                else {
-                    return
+            guard let body = try self.requestBody(request, operationName: operationName) else {
+                completion(.failure(WebSocketError.subscriptionRequestBodyFailed(operationName)))
+                return
             }
             
             guard let message = OperationMessage(payload: body, id: operationName).rawMessage else {
+                completion(.failure(WebSocketError.messagePayloadFailed(body)))
+                return
+            }
+            
+            guard self.state == .connected else {
+                completion(.failure(WebSocketError.webSocketNotConnected(message)))
                 return
             }
             
