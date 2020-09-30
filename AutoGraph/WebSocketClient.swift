@@ -40,16 +40,14 @@ open class WebSocketClient {
     }
     
     let queue: DispatchQueue
-    public let webSocket: WebSocket
+    public var webSocket: WebSocket
     public var delegate: WebSocketClientDelegate?
     public var state: State = .disconnected
-    public var request: URLRequest {
-        self.webSocket.request
-    }
     
     private var subscribers = [String: WebSocketCompletionBlock]()
     private var subscriptions : [String: String] = [:]
     private var attemptReconnectCount = kAttemptReconnectCount
+    private var reconnectCompletionBlock: ((Bool) -> Void)?
     
     public init?(baseUrl: String,
                  queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .background)) throws {
@@ -75,6 +73,12 @@ open class WebSocketClient {
         
     }
     
+    // If need to reconnect to WebSocket cause a subscription failed for some reason.
+    public func reconnect(completion: ((Bool) -> Void)?) {
+        self.reconnectCompletionBlock = completion
+        self.reconnectWebSocket()
+    }
+    
     public func disconnect() {
         guard self.state != .disconnected else {
             return
@@ -86,10 +90,6 @@ open class WebSocketClient {
             }
             
             self.webSocket.disconnect()
-            self.subscriptions.removeAll()
-            self.subscribers.removeAll()
-            self.state = .disconnected
-            self.attemptReconnectCount = kAttemptReconnectCount
         }
     }
     
@@ -171,9 +171,7 @@ extension WebSocketClient: WebSocketDelegate {
         switch event {
         case .disconnected,
              .cancelled:
-            self.subscriptions.removeAll()
-            self.subscribers.removeAll()
-            self.state = .disconnected
+            self.reset()
         case .binary(let data):
             self.process(data: data, handler: self.handlePayload)
         case let .text(text):
@@ -189,6 +187,7 @@ extension WebSocketClient: WebSocketDelegate {
             }
             
             self.state = .connected
+            self.sendReconnectCompletionBlock(isSuccessful: true)
         case let .reconnectSuggested(shouldReconnect):
             if shouldReconnect {
                 self.reconnectWebSocket()
@@ -259,9 +258,25 @@ extension WebSocketClient: WebSocketDelegate {
         }
         
         self.attemptReconnectCount -= 1
-        self.state = .disconnected
         self.webSocket.disconnect()
         self.webSocket.connect()
+    }
+    
+    func sendReconnectCompletionBlock(isSuccessful: Bool) {
+        guard let completion = self.reconnectCompletionBlock else {
+            return
+        }
+        
+        completion(isSuccessful)
+        self.reconnectCompletionBlock = nil
+    }
+    
+    func reset() {
+        self.subscriptions.removeAll()
+        self.subscribers.removeAll()
+        self.state = .disconnected
+        self.attemptReconnectCount = kAttemptReconnectCount
+        self.sendReconnectCompletionBlock(isSuccessful: false)
     }
 }
 

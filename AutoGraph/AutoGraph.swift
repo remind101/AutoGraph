@@ -111,6 +111,14 @@ open class AutoGraph {
         self.webSocketClient?.unsubscribe(operationName: operationName)
     }
     
+    open func reconnectWebSocket(completion: ((Bool) -> Void)?) {
+        self.webSocketClient?.reconnect(completion: completion)
+    }
+    
+    open func disconnectWebSocket() {
+        self.webSocketClient?.disconnect()
+    }
+    
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
         
         do {
