@@ -39,14 +39,14 @@ open class AutoGraph {
     }
     
     public let client: Client
-    public let webSocketClient: WebSocketClient?
+    public var webSocketClient: WebSocketClient?
     public let dispatcher: Dispatcher
     public var lifeCycle: GlobalLifeCycle?
     
     public static let localHost = "http://localhost:8080/graphql"
     
     public required init(client: Client = AlamofireClient(baseUrl: AutoGraph.localHost,
-                                         session: Alamofire.Session(interceptor: AuthHandler())),
+                                                          session: Alamofire.Session(interceptor: AuthHandler())),
                          webSocketClient: WebSocketClient? = nil)
     {
         self.client = client
@@ -55,11 +55,11 @@ open class AutoGraph {
         self.client.authHandler?.delegate = self
     }
     
-    internal convenience init() {
+    internal convenience init() throws {
         let client = AlamofireClient(baseUrl: AutoGraph.localHost,
                                      session: Alamofire.Session(interceptor: AuthHandler()))
         let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        let webSocketClient = WebSocketClient(baseUrl: AutoGraph.localHost)
+        let webSocketClient = try! WebSocketClient(baseUrl: AutoGraph.localHost)  // TODO: refactor the initializers
         self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
     }
     
@@ -90,8 +90,25 @@ open class AutoGraph {
         self.send(requestIncludingJSON, completion: completion)
     }
     
-    open func subscribe<R: Request>(_ request: R, completion: @escaping WebSocketCompletionBlock) {
-        self.webSocketClient?.subscribe(request, completion: completion)
+    open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) {
+        self.webSocketClient?.subscribe(request, operationName: operationName, completion: { (result) in
+            switch result {
+            case let .success(data):
+                do {
+                    let serializedObject = try JSONDecoder().decode(R.SerializedObject.self, from: data)
+                    completion(.success(serializedObject))
+                }
+                catch let error {
+                    completion(.failure(error))
+                }
+            case let .failure(error):
+                completion(.failure(error))
+            }
+        })
+    }
+    
+    open func unsubscribe(_ operationName: String) {
+        self.webSocketClient?.unsubscribe(operationName: operationName)
     }
     
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
@@ -122,8 +139,8 @@ open class AutoGraph {
             case let autoGraphError as AutoGraphError = error,
             case let .network(error: _, statusCode: code, response: _, underlying: _) = autoGraphError,
             code == Unauthorized401StatusCode
-        else {
-            return
+            else {
+                return
         }
         
         throw error
@@ -141,6 +158,7 @@ open class AutoGraph {
     open func reset() {
         self.cancelAll()
         self.dispatcher.paused = false
+        self.webSocketClient?.disconnect()
     }
 }
 
