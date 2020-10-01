@@ -159,8 +159,8 @@ open class AutoGraph {
             case let autoGraphError as AutoGraphError = error,
             case let .network(error: _, statusCode: code, response: _, underlying: _) = autoGraphError,
             code == Unauthorized401StatusCode
-            else {
-                return
+        else {
+            return
         }
         
         throw error
