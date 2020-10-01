@@ -7,9 +7,9 @@ public class SubscriptionSerializer {
                 return SubscriptionPayload()
             }
             
-            let id = json[OperationMessage.Key.id.rawValue] as? String
-            let type = OperationMessage.Types(rawValue: json[OperationMessage.Key.type.rawValue] as? String ?? "")
-            guard let payload = json[OperationMessage.Key.payload.rawValue] as? GraphQLMap else {
+            let id = json[GraphQLWSProtocol.Key.id.rawValue] as? String
+            let type = GraphQLWSProtocol.Types(rawValue: json[GraphQLWSProtocol.Key.type.rawValue] as? String ?? "")
+            guard let payload = json[GraphQLWSProtocol.Key.payload.rawValue] as? GraphQLMap else {
                 return SubscriptionPayload()
             }
             
@@ -38,12 +38,12 @@ public class SubscriptionSerializer {
 public struct SubscriptionPayload {
     let id: String?
     let data: Data?
-    let type: OperationMessage.Types?
+    let type: GraphQLWSProtocol.Types?
     let error: Error?
     
     public init(
         id: String? = nil,
-        type: OperationMessage.Types? = nil,
+        type: GraphQLWSProtocol.Types? = nil,
         data: Data? = nil,
         error: Error? = nil
     )

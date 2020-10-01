@@ -3,12 +3,12 @@ import Foundation
 public struct SubscriptionRequest<R: Request> {
     let operationName: String
     let request: R
-    let uuid: String
+    let id: String
     
-    init(request: R, operationName: String) {
+    init(request: R, operationName: String) throws {
         self.operationName = operationName
         self.request = request
-        self.uuid = SubscriptionRequest.generateRequestId(request: request,
+        self.id = try SubscriptionRequest.generateRequestId(request: request,
                                                           operationName: operationName)
     }
     
@@ -24,30 +24,28 @@ public struct SubscriptionRequest<R: Request> {
             body["variables"] = variables
         }
         
-        guard let message = OperationMessage(payload: body, id: self.uuid).rawMessage else {
+        guard let message = GraphQLWSProtocol(payload: body, id: self.id).rawMessage else {
             throw WebSocketError.messagePayloadFailed(body)
         }
 
         return message
     }
     
-    static func generateRequestId<R: Request>(request: R, operationName: String) -> String {
+    static func generateRequestId<R: Request>(request: R, operationName: String) throws -> String {
         let start = "\(operationName):{"
-        guard let id = try? request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
+        let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
             guard let value = arg1.value as? String, let key = arg1.key as? String else {
                 return
             }
             
             result += "\(key) : \(value),"
-        }) else {
-            return start
-        }
+        }) ?? operationName
         
         return id + "}"
     }
 }
 
-public final class OperationMessage {
+public struct GraphQLWSProtocol {
     public enum Types : String {
         case connectionInit = "connection_init"            // Client -> Server
         case connectionTerminate = "connection_terminate"  // Client -> Server

@@ -71,7 +71,7 @@ open class WebSocketClient {
         }
         
         self.queue.async {
-            if let message = OperationMessage(type: .connectionTerminate).rawMessage {
+            if let message = GraphQLWSProtocol(type: .connectionTerminate).rawMessage {
                 self.write(message)
             }
             
@@ -88,7 +88,7 @@ open class WebSocketClient {
                 }
                 else {
                     guard self.attemptReconnectCount > 0 else {
-                        responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(request.uuid)))
+                        responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(request.id)))
                         return
                     }
                     
@@ -102,11 +102,11 @@ open class WebSocketClient {
     }
     
     public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) {
-        if let message = OperationMessage(id: request.uuid, type: .stop).rawMessage {
+        if let message = GraphQLWSProtocol(id: request.id, type: .stop).rawMessage {
             self.write(message)
         }
-        self.subscribers.removeValue(forKey: request.uuid)
-        self.subscriptions.removeValue(forKey: request.uuid)
+        self.subscribers.removeValue(forKey: request.id)
+        self.subscriptions.removeValue(forKey: request.id)
     }
     
     func write(_ message: String) {
@@ -125,8 +125,8 @@ open class WebSocketClient {
             }
             
             self.queue.async {
-                self.subscribers[request.uuid] = responseHandler
-                self.subscriptions[request.uuid] = subscriptionMessage
+                self.subscribers[request.id] = responseHandler
+                self.subscriptions[request.id] = subscriptionMessage
                 self.write(subscriptionMessage)
             }
         }
@@ -192,7 +192,7 @@ extension WebSocketClient: WebSocketDelegate {
 
 extension WebSocketClient {
     func connectionInitiated() {
-        if let message = OperationMessage(type: .connectionInit).rawMessage {
+        if let message = GraphQLWSProtocol(type: .connectionInit).rawMessage {
             self.write(message)
         }
     }

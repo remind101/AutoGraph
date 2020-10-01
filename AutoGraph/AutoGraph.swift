@@ -103,27 +103,32 @@ open class AutoGraph {
             return
         }
         
-        let request = SubscriptionRequest(request: request, operationName: operationName)
-        let responseHandler = SubscriptionResponseHandler { (result) in
-            switch result {
-            case let .success(data):
-                do {
-                    let serializedObject = try JSONDecoder().decode(R.SerializedObject.self, from: data)
-                    completion(.success(serializedObject))
-                }
-                catch let error {
+        do {
+            let request = try SubscriptionRequest(request: request, operationName: operationName)
+            let responseHandler = SubscriptionResponseHandler { (result) in
+                switch result {
+                case let .success(data):
+                    do {
+                        let serializedObject = try JSONDecoder().decode(R.SerializedObject.self, from: data)
+                        completion(.success(serializedObject))
+                    }
+                    catch let error {
+                        completion(.failure(error))
+                    }
+                case let .failure(error):
                     completion(.failure(error))
                 }
-            case let .failure(error):
-                completion(.failure(error))
             }
+            
+            webSocketClient.subscribe(request: request, responseHandler: responseHandler)
         }
-        
-        webSocketClient.subscribe(request: request, responseHandler: responseHandler)
+        catch let error {
+            completion(.failure(error))
+        }
     }
     
-    open func unsubscribe<R: Request>(request: R, operationName: String) {
-        let request = SubscriptionRequest(request: request, operationName: operationName)
+    open func unsubscribe<R: Request>(request: R, operationName: String) throws {
+        let request = try SubscriptionRequest(request: request, operationName: operationName)
         self.webSocketClient?.unsubscribe(request: request)
     }
     
