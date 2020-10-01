@@ -107,8 +107,8 @@ open class AutoGraph {
         })
     }
     
-    open func unsubscribe(_ operationName: String) {
-        self.webSocketClient?.unsubscribe(operationName: operationName)
+    open func unsubscribe<R: Request>(request: R, operationName: String) {
+        self.webSocketClient?.unsubscribe(request: request, operationName: operationName)
     }
     
     open func reconnectWebSocket(completion: ((Bool) -> Void)?) {
