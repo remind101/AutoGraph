@@ -40,6 +40,7 @@ public indirect enum AutoGraphError: LocalizedError {
     case network(error: Error, statusCode: Int, response: HTTPURLResponse?, underlying: AutoGraphError?)
     case mapping(error: Error, response: HTTPURLResponse?)
     case invalidResponse(response: HTTPURLResponse?)
+    case subscribeWithMissingWebSocketClient
     
     public init?(graphQLResponseJSON: JSONValue, response: HTTPURLResponse?, networkErrorParser: NetworkErrorParser?) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
@@ -82,6 +83,9 @@ public indirect enum AutoGraphError: LocalizedError {
         
         case .invalidResponse:
             return "Invalid Response"
+        
+        case .subscribeWithMissingWebSocketClient:
+            return "Attempting to subscribe to a subscription but AutoGraph was not initialized with a WebSocketClient. Please initialize with a WebSocketClient."
         }
     }
 }

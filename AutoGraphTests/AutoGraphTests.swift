@@ -36,14 +36,14 @@ class AutoGraphTests: XCTestCase {
         public var sessionConfiguration: URLSessionConfiguration = URLSessionConfiguration.default
         public var authTokens: AuthTokens = ("", "")
         public var authHandler: AuthHandler? = AuthHandler(accessToken: nil, refreshToken: nil)
-        public var baseUrl: String = ""
+        public var url: URL = URL(string: "localhost")!
 
         var cancelCalled = false
         func cancelAll() {
             cancelCalled = true
         }
         
-        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) { }
+        func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) { }
     }
     
     class MockWebSocketClient: WebSocketClient {
@@ -59,7 +59,7 @@ class AutoGraphTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        let client = AlamofireClient(baseUrl: AutoGraph.localHost,
+        let client = try! AlamofireClient(url: AutoGraph.localHost,
                                      session: Session(configuration: MockURLProtocol.sessionConfiguration(), interceptor: AuthHandler()))
         self.subject = AutoGraph(client: client)
     }
@@ -266,7 +266,7 @@ class AutoGraphTests: XCTestCase {
     
     func testCancelAllCancelsDispatcherAndClient() {
         let mockClient = MockClient()
-        let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
+        let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
         let mockWebClient = try? MockWebSocketClient(baseUrl: "blah")
         self.subject = AutoGraph(client: mockClient, webSocketClient: mockWebClient, dispatcher: mockDispatcher)
         
@@ -291,7 +291,7 @@ class AutoGraphTests: XCTestCase {
     
     func testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll() {
         let mockClient = MockClient()
-        let mockDispatcher = MockDispatcher(url: "blah", requestSender: mockClient, responseHandler: ResponseHandler())
+        let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
         let mockWebClient = try? MockWebSocketClient(baseUrl: "blah")
         self.subject = AutoGraph(client: mockClient, webSocketClient: mockWebClient, dispatcher: mockDispatcher)
         

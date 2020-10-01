@@ -8,7 +8,7 @@ public protocol Cancellable {
 public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
 
 public protocol Client: RequestSender, Cancellable {
-    var baseUrl: String { get }
+    var url: URL { get }
     var authHandler: AuthHandler? { get }
     var sessionConfiguration: URLSessionConfiguration { get }
 }
@@ -21,8 +21,8 @@ open class GlobalLifeCycle {
 }
 
 open class AutoGraph {
-    public var baseUrl: String {
-        return self.client.baseUrl
+    public var url: URL {
+        return self.client.url
     }
     
     public var authHandler: AuthHandler? {
@@ -45,22 +45,15 @@ open class AutoGraph {
     
     public static let localHost = "http://localhost:8080/graphql"
     
-    public required init(client: Client = AlamofireClient(baseUrl: AutoGraph.localHost,
-                                                          session: Alamofire.Session(interceptor: AuthHandler())),
-                         webSocketClient: WebSocketClient? = nil)
+    public required init(
+        client: Client,
+        webSocketClient: WebSocketClient? = nil
+    )
     {
         self.client = client
         self.webSocketClient = webSocketClient
-        self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.dispatcher = Dispatcher(requestSender: client, responseHandler: ResponseHandler())
         self.client.authHandler?.delegate = self
-    }
-    
-    internal convenience init() throws {
-        let client = AlamofireClient(baseUrl: AutoGraph.localHost,
-                                     session: Alamofire.Session(interceptor: AuthHandler()))
-        let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        let webSocketClient = try! WebSocketClient(baseUrl: AutoGraph.localHost)  // TODO: refactor the initializers
-        self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
     }
     
     public init(client: Client, webSocketClient: WebSocketClient?, dispatcher: Dispatcher) {
@@ -70,8 +63,22 @@ open class AutoGraph {
         self.client.authHandler?.delegate = self
     }
     
+    // For Testing.
+    internal convenience init() throws {
+        guard let url = URL(string: AutoGraph.localHost) else {
+            struct URLMissingError: Error {
+                let urlString: String
+            }
+            throw URLMissingError(urlString: AutoGraph.localHost)
+        }
+        let client = AlamofireClient(url: url,
+                                     session: Alamofire.Session(interceptor: AuthHandler()))
+        let dispatcher = Dispatcher(requestSender: client, responseHandler: ResponseHandler())
+        let webSocketClient = try WebSocketClient(baseUrl: AutoGraph.localHost)
+        self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
+    }
+    
     open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
-        
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in
                 self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
@@ -91,7 +98,12 @@ open class AutoGraph {
     }
     
     open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) {
-        self.webSocketClient?.subscribe(request, operationName: operationName, completion: { (result) in
+        guard let webSocketClient = self.webSocketClient else {
+            completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
+            return
+        }
+        
+        webSocketClient.subscribe(request, operationName: operationName, completion: { (result) in
             switch result {
             case let .success(data):
                 do {
