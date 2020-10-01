@@ -74,7 +74,7 @@ open class AutoGraph {
         let client = AlamofireClient(url: url,
                                      session: Alamofire.Session(interceptor: AuthHandler()))
         let dispatcher = Dispatcher(requestSender: client, responseHandler: ResponseHandler())
-        let webSocketClient = try WebSocketClient(baseUrl: AutoGraph.localHost)
+        let webSocketClient = try WebSocketClient(url: URL(string: AutoGraph.localHost)!)
         self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
     }
     
