@@ -6,7 +6,6 @@ public typealias WebSocketConnected = (Result<Bool, Error>) -> Void
 
 public protocol WebSocketClientDelegate {
     func didReceive(event: WebSocketEvent)
-    func webSocketDidConnect(headers: [String : String])
 }
 
 public typealias GraphQLMap = [String: Any]
