@@ -110,13 +110,19 @@ open class AutoGraph {
                 case let .success(data):
                     do {
                         let serializedObject = try JSONDecoder().decode(R.SerializedObject.self, from: data)
-                        completion(.success(serializedObject))
+                        DispatchQueue.main.async {
+                            completion(.success(serializedObject))
+                        }
                     }
                     catch let error {
-                        completion(.failure(error))
+                        DispatchQueue.main.async {
+                            completion(.failure(error))
+                        }
                     }
                 case let .failure(error):
-                    completion(.failure(error))
+                    DispatchQueue.main.async {
+                        completion(.failure(error))
+                    }
                 }
             }
             
