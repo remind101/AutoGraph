@@ -103,7 +103,8 @@ open class AutoGraph {
             return
         }
         
-        webSocketClient.subscribe(request, operationName: operationName, completion: { (result) in
+        let request = SubscriptionRequest(request: request, operationName: operationName)
+        let responseHandler = SubscriptionResponseHandler { (result) in
             switch result {
             case let .success(data):
                 do {
@@ -116,15 +117,14 @@ open class AutoGraph {
             case let .failure(error):
                 completion(.failure(error))
             }
-        })
+        }
+        
+        webSocketClient.subscribe(request: request, responseHandler: responseHandler)
     }
     
     open func unsubscribe<R: Request>(request: R, operationName: String) {
-        self.webSocketClient?.unsubscribe(request: request, operationName: operationName)
-    }
-    
-    open func connectWebSocket(completion: WebSocketConnected?) {
-        self.webSocketClient?.connect(completion: completion)
+        let request = SubscriptionRequest(request: request, operationName: operationName)
+        self.webSocketClient?.unsubscribe(request: request)
     }
     
     open func disconnectWebSocket() {

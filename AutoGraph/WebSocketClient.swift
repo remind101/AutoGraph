@@ -2,8 +2,6 @@ import Foundation
 import Starscream
 import Alamofire
 
-public typealias SerializedObject = Decodable
-public typealias WebSocketCompletionBlock = (Result<Data, Error>) -> Void
 public typealias WebSocketConnected = (Result<Bool, Error>) -> Void
 
 public protocol WebSocketClientDelegate {
@@ -20,32 +18,13 @@ open class WebSocketClient {
         case disconnected
     }
     
-    public enum WebSocketError: Error {
-        case createRequestFailed(String)
-        case webSocketNotConnected(String)
-        case subscriptionRequestBodyFailed(String)
-        case messagePayloadFailed(GraphQLMap)
-        
-        public var localizedDescription: String {
-            switch self {
-            case let .createRequestFailed(url):
-                return "URLRequest for url: \(url) creation failed for websocket"
-            case let .webSocketNotConnected(subscription):
-                return "WebSocket is not open to make subscription: \(subscription)"
-            case let .subscriptionRequestBodyFailed(operationName):
-                return "Subscription request body failed to serialize for query: \(operationName)"
-            case let .messagePayloadFailed(playload):
-                return "Subscription message payload failed to serialize message string: \(playload)"
-            }
-        }
-    }
-    
     let queue: DispatchQueue
     public var webSocket: WebSocket
     public var delegate: WebSocketClientDelegate?
     public var state: State = .disconnected
     
-    private var subscribers = [String: WebSocketCompletionBlock]()
+    private var subscriptionSerializer = SubscriptionSerializer()
+    private var subscribers = [String: SubscriptionResponseHandler]()
     private var subscriptions : [String: String] = [:]
     private var attemptReconnectCount = kAttemptReconnectCount
     private var connectionCompletionBlock: WebSocketConnected?
@@ -101,77 +80,38 @@ open class WebSocketClient {
         }
     }
     
-    public func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping WebSocketCompletionBlock) {
+    public func subscribe<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
         do {
-            guard let body = try self.requestBody(request, operationName: operationName) else {
-                completion(.failure(WebSocketError.subscriptionRequestBodyFailed(operationName)))
-                return
-            }
-            
-            let id = try self.generateRequestId(request, operationName: operationName)
-            guard let message = OperationMessage(payload: body, id: id).rawMessage else {
-                completion(.failure(WebSocketError.messagePayloadFailed(body)))
+            guard let subscriptionMessage = try request.subscriptionMessage() else {
                 return
             }
             
             guard self.state == .connected else {
-                completion(.failure(WebSocketError.webSocketNotConnected(message)))
+                responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(subscriptionMessage)))
                 return
             }
             
             self.queue.async {
-                self.subscribers[id] = completion
-                self.subscriptions[id] = message
-                self.write(message)
+                self.subscribers[request.uuid] = responseHandler
+                self.subscriptions[request.uuid] = subscriptionMessage
+                self.write(subscriptionMessage)
             }
         }
         catch let error {
-            completion(.failure(error))
+            responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
         }
     }
     
-    public func unsubscribe<R: Request>(request: R, operationName: String) {
-        guard let id = try? self.generateRequestId(request, operationName: operationName) else {
-            return
-        }
-        
-        if let message = OperationMessage(id: id, type: .stop).rawMessage {
+    public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) {
+        if let message = OperationMessage(id: request.uuid, type: .stop).rawMessage {
             self.write(message)
         }
-        self.subscribers.removeValue(forKey: id)
-        self.subscriptions.removeValue(forKey: id)
-    }
-    
-    func requestBody<R: Request>(_ request: R, operationName: String) throws -> GraphQLMap? {
-        let query = try request.queryDocument.graphQLString()
-        
-        var body: GraphQLMap = [
-            "operationName": operationName,
-            "query": query
-        ]
-        
-        if let variables = try request.variables?.graphQLVariablesDictionary() {
-            body["variables"] = variables
-        }
-        
-        return body
+        self.subscribers.removeValue(forKey: request.uuid)
+        self.subscriptions.removeValue(forKey: request.uuid)
     }
     
     func write(_ message: String) {
         self.webSocket.write(string: message, completion: nil)
-    }
-    
-    func generateRequestId<R: Request>(_ request: R, operationName: String) throws -> String {
-        let start = "\(operationName):{"
-        let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
-            guard let value = arg1.value as? String, let key = arg1.key as? String else {
-                return
-            }
-            
-            result += "\(key) : \(value),"
-        }) ?? operationName
-        
-        return id + "}"
     }
 }
 
@@ -192,6 +132,7 @@ extension WebSocketClient {
     }
 }
 
+// MARK: - WebSocketDelegate
 extension WebSocketClient: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
         self.delegate?.didReceive(event: event)
@@ -199,9 +140,11 @@ extension WebSocketClient: WebSocketDelegate {
         case .disconnected:
             self.reset()
         case .binary(let data):
-            self.process(data: data, handler: self.handlePayload)
+            let subscription = self.subscriptionSerializer.serialize(data: data)
+            self.didReceive(subscription: subscription)
         case let .text(text):
-            self.parse(text: text, handler: self.handlePayload)
+            let subscription = self.subscriptionSerializer.serialize(text: text)
+            self.didReceive(subscription: subscription)
         case .connected:
             self.connectionInitiated()
             if self.state == .connected {
@@ -227,55 +170,11 @@ extension WebSocketClient: WebSocketDelegate {
             break
         }
     }
-    
-    func process(data: Data, handler: @escaping (MessagePayload) -> Void) {
-        do {
-            guard let json = try JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? GraphQLMap else {
-                handler(MessagePayload())
-                return
-            }
-            
-            let id = json[OperationMessage.Key.id.rawValue] as? String
-            let type = OperationMessage.Types(rawValue: json[OperationMessage.Key.type.rawValue] as? String ?? "")
-            guard let payload = json[OperationMessage.Key.payload.rawValue] as? GraphQLMap else {
-                handler(MessagePayload())
-                return
-            }
-            
-            guard let objectJson = payload["data"] else {
-                throw ResponseHandler.ObjectKeyPathError(keyPath: "data")
-            }
-            
-            let payloadData = try JSONSerialization.data(withJSONObject: objectJson, options:.fragmentsAllowed)
-            handler(MessagePayload(id: id, type: type, payload: payloadData))
-        }
-        catch let error {
-            handler(MessagePayload(error: error))
-        }
-    }
-    
-    func parse(text: String, handler: @escaping (MessagePayload) -> Void) {
-        guard let data = text.data(using: .utf8) else {
-            handler(MessagePayload())
-            return
-        }
-        
-        self.process(data: data, handler: handler)
-    }
-    
-    func handlePayload(_ payload: MessagePayload) {
-        guard let id = payload.id, let completion = self.subscribers[id] else {
-            return
-        }
-        
-        if let error = payload.error {
-            completion(.failure(error))
-        }
-        else if let data = payload.payload, payload.type == .data  {
-            completion(.success(data))
-        }
-    }
-    
+}
+
+// MARK: - Connection Helper Methods
+
+extension WebSocketClient {
     func connectionInitiated() {
         if let message = OperationMessage(type: .connectionInit).rawMessage {
             self.write(message)
@@ -314,10 +213,18 @@ extension WebSocketClient: WebSocketDelegate {
         self.attemptReconnectCount = kAttemptReconnectCount
         self.sendConnectionCompletionBlock(isSuccessful: false)
     }
+    
+    func didReceive(subscription: SubscriptionPayload) {
+        guard let id = subscription.id else {
+            return
+        }
+        
+        self.subscribers[id]?.didFinish(subscription: subscription)
+    }
 }
 
-final class OperationMessage {
-    enum Types : String {
+public final class OperationMessage {
+    public enum Types : String {
         case connectionInit = "connection_init"            // Client -> Server
         case connectionTerminate = "connection_terminate"  // Client -> Server
         case start = "start"                               // Client -> Server
