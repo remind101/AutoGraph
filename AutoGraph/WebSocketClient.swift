@@ -21,14 +21,14 @@ open class WebSocketClient {
     }
     
     public enum WebSocketError: Error {
-        case createRequestFailed(String)
+        case requestCreationFailed(URL)
         case webSocketNotConnected(String)
         case subscriptionRequestBodyFailed(String)
         case messagePayloadFailed(GraphQLMap)
         
         public var localizedDescription: String {
             switch self {
-            case let .createRequestFailed(url):
+            case let .requestCreationFailed(url):
                 return "URLRequest for url: \(url) creation failed for websocket"
             case let .webSocketNotConnected(subscription):
                 return "WebSocket is not open to make subscription: \(subscription)"
@@ -50,11 +50,11 @@ open class WebSocketClient {
     private var attemptReconnectCount = kAttemptReconnectCount
     private var connectionCompletionBlock: WebSocketConnected?
     
-    public init?(baseUrl: String,
-                 queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .background)) throws {
+    public init(url: URL,
+                queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .default)) throws {
         self.queue = queue
-        guard let request = try WebSocketClient.createRequest(baseUrl: baseUrl) else {
-            throw WebSocketError.createRequestFailed(baseUrl)
+        guard let request = try WebSocketClient.subscriptionRequest(url: url) else {
+            throw WebSocketError.requestCreationFailed(url)
         }
         
         self.webSocket = WebSocket(request: request)
@@ -178,15 +178,10 @@ open class WebSocketClient {
 // MARK: - Class Method
 
 extension WebSocketClient {
-    class func createRequest(baseUrl: String) throws -> URLRequest? {
-        let subscriptionUrl = baseUrl.replacingOccurrences(of: "https", with: "wss") + "/subscriptions"
-        guard let url = URL(string: subscriptionUrl) else {
-            return nil
-        }
-        
+    class func subscriptionRequest(url: URL) throws -> URLRequest? {
         var defaultHeders = [String: String]()
         defaultHeders["Sec-WebSocket-Protocol"] = "graphql-ws"
-        defaultHeders["Origin"] = baseUrl
+        defaultHeders["Origin"] = url.absoluteString
         
         return try URLRequest(url: url, method: .get, headers: HTTPHeaders(defaultHeders))
     }

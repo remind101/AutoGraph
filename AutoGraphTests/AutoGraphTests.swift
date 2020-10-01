@@ -267,7 +267,7 @@ class AutoGraphTests: XCTestCase {
     func testCancelAllCancelsDispatcherAndClient() {
         let mockClient = MockClient()
         let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
-        let mockWebClient = try? MockWebSocketClient(baseUrl: "blah")
+        let mockWebClient = try? MockWebSocketClient(url: URL(string: "localhost")!)
         self.subject = AutoGraph(client: mockClient, webSocketClient: mockWebClient, dispatcher: mockDispatcher)
         
         self.subject.cancelAll()
@@ -292,7 +292,7 @@ class AutoGraphTests: XCTestCase {
     func testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll() {
         let mockClient = MockClient()
         let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
-        let mockWebClient = try? MockWebSocketClient(baseUrl: "blah")
+        let mockWebClient = try? MockWebSocketClient(url: URL(string: "localhost")!)
         self.subject = AutoGraph(client: mockClient, webSocketClient: mockWebClient, dispatcher: mockDispatcher)
         
         self.subject.authHandlerBeganReauthentication(AuthHandler(accessToken: nil, refreshToken: nil))
