@@ -81,6 +81,34 @@ open class WebSocketClient {
     }
     
     public func subscribe<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
+        self.connect { (result) in
+            switch result {
+            case let .success(isConnected):
+                if isConnected {
+                    self.sendSubscription(request: request, responseHandler: responseHandler)
+                }
+                else {
+                    self.reconnectWebSocket()
+                }
+            case let .failure(error):
+                responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
+            }
+        }
+    }
+    
+    public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) {
+        if let message = OperationMessage(id: request.uuid, type: .stop).rawMessage {
+            self.write(message)
+        }
+        self.subscribers.removeValue(forKey: request.uuid)
+        self.subscriptions.removeValue(forKey: request.uuid)
+    }
+    
+    func write(_ message: String) {
+        self.webSocket.write(string: message, completion: nil)
+    }
+    
+    func sendSubscription<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
         do {
             guard let subscriptionMessage = try request.subscriptionMessage() else {
                 return
@@ -100,18 +128,6 @@ open class WebSocketClient {
         catch let error {
             responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
         }
-    }
-    
-    public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) {
-        if let message = OperationMessage(id: request.uuid, type: .stop).rawMessage {
-            self.write(message)
-        }
-        self.subscribers.removeValue(forKey: request.uuid)
-        self.subscriptions.removeValue(forKey: request.uuid)
-    }
-    
-    func write(_ message: String) {
-        self.webSocket.write(string: message, completion: nil)
     }
 }
 
