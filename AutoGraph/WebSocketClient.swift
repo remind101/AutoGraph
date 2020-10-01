@@ -87,7 +87,13 @@ open class WebSocketClient {
                     self.sendSubscription(request: request, responseHandler: responseHandler)
                 }
                 else {
-                    self.reconnectWebSocket()
+                    guard self.attemptReconnectCount > 0 else {
+                        responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(request.uuid)))
+                        return
+                    }
+                    
+                    self.attemptReconnectCount -= 1
+                    self.subscribe(request: request, responseHandler: responseHandler)
                 }
             case let .failure(error):
                 responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
@@ -230,69 +236,5 @@ extension WebSocketClient {
         }
         
         self.subscribers[id]?.didFinish(subscription: subscription)
-    }
-}
-
-public final class OperationMessage {
-    public enum Types : String {
-        case connectionInit = "connection_init"            // Client -> Server
-        case connectionTerminate = "connection_terminate"  // Client -> Server
-        case start = "start"                               // Client -> Server
-        case stop = "stop"                                 // Client -> Server
-        
-        case connectionAck = "connection_ack"              // Server -> Client
-        case connectionError = "connection_error"          // Server -> Client
-        case connectionKeepAlive = "ka"                    // Server -> Client
-        case data = "data"                                 // Server -> Client
-        case error = "error"                               // Server -> Client
-        case complete = "complete"                         // Server -> Client
-    }
-    
-    enum Key: String {
-        case id
-        case type
-        case payload
-    }
-    
-    var message: GraphQLMap = [:]
-    var serialized: String?
-    
-    var rawMessage: String? {
-        guard let serialized = try? JSONSerialization.data(withJSONObject: self.message, options: .fragmentsAllowed) else {
-            return nil
-        }
-        
-        return String(data: serialized, encoding: .utf8)
-    }
-    
-    init(payload: GraphQLMap? = nil,
-         id: String? = nil,
-         type: Types = .start) {
-        if let payload = payload {
-            self.message[Key.payload.rawValue] = payload
-        }
-        
-        if let id = id  {
-            self.message[Key.id.rawValue] = id
-        }
-        
-        self.message[Key.type.rawValue] = type.rawValue
-    }
-}
-
-struct MessagePayload {
-    let id: String?
-    let payload: Data?
-    let type: OperationMessage.Types?
-    let error: Error?
-    
-    init(id: String? = nil,
-         type: OperationMessage.Types? = nil,
-         payload: Data? = nil,
-         error: Error? = nil) {
-        self.id = id
-        self.type = type
-        self.payload = payload
-        self.error = error
     }
 }
