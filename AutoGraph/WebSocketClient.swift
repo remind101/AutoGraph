@@ -9,7 +9,6 @@ public protocol WebSocketClientDelegate {
     func didReceive(error: Error)
 }
 
-public typealias GraphQLMap = [String: Any]
 private let kAttemptReconnectCount = 3
 
 open class WebSocketClient {
