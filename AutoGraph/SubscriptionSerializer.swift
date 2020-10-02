@@ -50,20 +50,3 @@ public struct SubscriptionResponsePayload: Decodable {
         }()
     }
 }
-
-public struct SubscriptionResponseError: Error, Decodable {
-    enum CodingKeys: String, CodingKey {
-        case message
-    }
-    
-    let message: String
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.message = try container.decode(String.self, forKey: .message)
-    }
-    
-    public var localizedDescription: String {
-        return message
-    }
-}
