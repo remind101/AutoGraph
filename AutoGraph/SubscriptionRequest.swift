@@ -52,16 +52,13 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
     }
     
     static func generateSubscriptionID<R: Request>(request: R, operationName: String) throws -> SubscriptionID {
-        let start = "\(operationName):{"
-        let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
-            guard let value = arg1.value as? String, let key = arg1.key as? String else {
-                return
-            }
-            
-            result += "\(key) : \(value),"
-        }) ?? operationName
-        
-        return id + "}"
+        guard let variablesString = try request.variables?.graphQLVariablesDictionary().reduce(into: "", { (result, arg1) in
+            result += "\(String(describing: arg1.key)):\(String(describing: arg1.value)),"
+        })
+        else {
+            return operationName
+        }
+        return "\(operationName):{\(variablesString)}"
     }
 }
 

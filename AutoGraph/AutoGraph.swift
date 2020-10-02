@@ -97,6 +97,7 @@ open class AutoGraph {
         self.send(requestIncludingJSON, completion: completion)
     }
     
+    // TODO: Make it so you don't have to pass in operationName
     /// Subscribe to a subscription. Returns a handler to the Subscription which can be used to unsubscribe. A `nil` return value implies
     /// immediate failure, in which case, please check the error received in the completion block.
     ///

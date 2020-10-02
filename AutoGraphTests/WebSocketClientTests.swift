@@ -65,7 +65,7 @@ class WebSocketClientTests: XCTestCase {
         let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
-        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber }))
+        XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
         
         try! self.subject.unsubscribe(subscriber: subscriber)
         
@@ -148,7 +148,7 @@ class WebSocketClientTests: XCTestCase {
         let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
-        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber }))
+        XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
 
         let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
         var subscriptionNotCalled = true
@@ -159,7 +159,7 @@ class WebSocketClientTests: XCTestCase {
         waitFor(delay: kDelay)
         XCTAssertTrue(subscriptionNotCalled)
         XCTAssertEqual(self.subject.subscriptions.count, 1)
-        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber2 }))
+        XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber2 }))
     }
     
     func testThreeReconnectAttemptsAndDelayTimeIncreaseEachAttempt() {
@@ -214,6 +214,13 @@ class WebSocketClientTests: XCTestCase {
         waitFor(delay: Double(seconds + 1))
         
         XCTAssertTrue(self.webSocket.isConnected)
+    }
+    
+    func testGenerateSubscriptionID() throws {
+        var id = try SubscriptionRequest<FilmSubscriptionRequest>.generateSubscriptionID(request: FilmSubscriptionRequest(), operationName: "film")
+        XCTAssertEqual(id, "film")
+        id = try SubscriptionRequest<FilmSubscriptionRequestWithVariables>.generateSubscriptionID(request: FilmSubscriptionRequestWithVariables(), operationName: "film")
+        XCTAssertEqual(id, "film:{id:ZmlsbXM6MQ==,}")
     }
     
     func waitFor(delay: TimeInterval) {
@@ -317,7 +324,7 @@ class MockWebSocket: Starscream.WebSocket {
     func createResponseString() -> String {
         let json: [String: Any] = [
             "type": "data",
-            "id": "film}",
+            "id": "film",
             "payload": [
                 "data": [
                     "id": "ZmlsbXM6MQ==",
