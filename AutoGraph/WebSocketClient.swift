@@ -4,7 +4,7 @@ import Alamofire
 
 public typealias WebSocketConnected = (Result<Bool, Error>) -> Void
 
-public protocol WebSocketClientDelegate {
+public protocol WebSocketClientDelegate: class {
     func didReceive(event: WebSocketEvent)
     func didReceive(error: Error)
 }
@@ -18,11 +18,11 @@ open class WebSocketClient {
     }
     
     let queue: DispatchQueue
-    public var webSocket: WebSocket
-    public var delegate: WebSocketClientDelegate?
-    public var state: State = .disconnected
+    public let webSocket: WebSocket
+    public weak var delegate: WebSocketClientDelegate?
+    public private(set) var state: State = .disconnected
     
-    private var subscriptionSerializer = SubscriptionSerializer()
+    private let subscriptionSerializer = SubscriptionSerializer()
     private var subscribers = [String: SubscriptionResponseHandler]()
     private var subscriptions : [String: String] = [:]
     private var attemptReconnectCount = kAttemptReconnectCount
@@ -146,9 +146,7 @@ extension WebSocketClient {
 // MARK: - WebSocketDelegate
 extension WebSocketClient: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
-        DispatchQueue.main.async {
-            self.delegate?.didReceive(event: event)
-        }
+        self.delegate?.didReceive(event: event)
         
         do {
             switch event {
@@ -186,9 +184,7 @@ extension WebSocketClient: WebSocketDelegate {
             }
         }
         catch let error {
-            DispatchQueue.main.async {
-                self.delegate?.didReceive(error: error)
-            }
+            self.delegate?.didReceive(error: error)
         }
     }
 }

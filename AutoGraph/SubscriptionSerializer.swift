@@ -5,7 +5,7 @@ enum SubscriptionSerializationError: Error {
     case unableToConvertTextToData
 }
 
-public class SubscriptionSerializer {
+public final class SubscriptionSerializer {
     func serialize(data: Data) throws -> SubscriptionResponsePayload {
         return try JSONDecoder().decode(SubscriptionResponsePayload.self, from: data)
     }
