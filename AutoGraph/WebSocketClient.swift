@@ -6,6 +6,7 @@ public typealias WebSocketConnected = (Result<Bool, Error>) -> Void
 
 public protocol WebSocketClientDelegate {
     func didReceive(event: WebSocketEvent)
+    func didReceive(error: Error)
 }
 
 public typealias GraphQLMap = [String: Any]
@@ -88,7 +89,7 @@ open class WebSocketClient {
                 }
                 else {
                     guard self.attemptReconnectCount > 0 else {
-                        responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(request.id)))
+                        responseHandler.didFinish(error: WebSocketError.webSocketNotConnected(request.id))
                         return
                     }
                     
@@ -96,7 +97,7 @@ open class WebSocketClient {
                     self.subscribe(request: request, responseHandler: responseHandler)
                 }
             case let .failure(error):
-                responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
+                responseHandler.didFinish(error: error)
             }
         }
     }
@@ -120,7 +121,7 @@ open class WebSocketClient {
             }
             
             guard self.state == .connected else {
-                responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(subscriptionMessage)))
+                responseHandler.didFinish(error: WebSocketError.webSocketNotConnected(subscriptionMessage))
                 return
             }
             
@@ -131,7 +132,7 @@ open class WebSocketClient {
             }
         }
         catch let error {
-            responseHandler.didFinish(subscription: SubscriptionPayload(error: error))
+            responseHandler.didFinish(error: error)
         }
     }
 }
@@ -151,39 +152,49 @@ extension WebSocketClient {
 // MARK: - WebSocketDelegate
 extension WebSocketClient: WebSocketDelegate {
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
-        self.delegate?.didReceive(event: event)
-        switch event {
-        case .disconnected:
-            self.reset()
-        case .binary(let data):
-            let subscription = self.subscriptionSerializer.serialize(data: data)
-            self.didReceive(subscription: subscription)
-        case let .text(text):
-            let subscription = self.subscriptionSerializer.serialize(text: text)
-            self.didReceive(subscription: subscription)
-        case .connected:
-            self.connectionInitiated()
-            if self.state == .connected {
-                self.queue.async {
-                    self.subscriptions.forEach { (_, value) in
-                        self.write(value)
+        DispatchQueue.main.async {
+            self.delegate?.didReceive(event: event)
+        }
+        
+        do {
+            switch event {
+            case .disconnected:
+                self.reset()
+            case .binary(let data):
+                let subscription = try self.subscriptionSerializer.serialize(data: data)
+                self.didReceive(subscription: subscription)
+            case let .text(text):
+                let subscription = try self.subscriptionSerializer.serialize(text: text)
+                self.didReceive(subscription: subscription)
+            case .connected:
+                self.connectionInitiated()
+                if self.state == .connected {
+                    self.queue.async {
+                        self.subscriptions.forEach { (_, value) in
+                            self.write(value)
+                        }
                     }
                 }
+                
+                self.state = .connected
+                self.sendConnectionCompletionBlock(isSuccessful: true)
+            case let .reconnectSuggested(shouldReconnect):
+                if shouldReconnect {
+                    self.reconnectWebSocket()
+                }
+            case let .error(error):
+                self.sendConnectionCompletionBlock(isSuccessful: false, error: error)
+            case .cancelled,
+                 .ping,
+                 .pong,
+                 .viabilityChanged:
+                break
             }
-            
-            self.state = .connected
-            self.sendConnectionCompletionBlock(isSuccessful: true)
-        case let .reconnectSuggested(shouldReconnect):
-            if shouldReconnect {
-                self.reconnectWebSocket()
+        }
+        catch let error {
+            DispatchQueue.main.async {
+                self.delegate?.didReceive(error: error)
             }
-        case let .error(error):
-            self.sendConnectionCompletionBlock(isSuccessful: false, error: error)
-        case .cancelled,
-             .ping,
-             .pong,
-             .viabilityChanged:
-            break
         }
     }
 }
@@ -230,7 +241,7 @@ extension WebSocketClient {
         self.sendConnectionCompletionBlock(isSuccessful: false)
     }
     
-    func didReceive(subscription: SubscriptionPayload) {
+    func didReceive(subscription: SubscriptionResponsePayload) {
         guard let id = subscription.id else {
             return
         }

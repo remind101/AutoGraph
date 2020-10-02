@@ -60,12 +60,6 @@ public struct GraphQLWSProtocol {
         case complete = "complete"                         // Server -> Client
     }
     
-    enum Key: String {
-        case id
-        case type
-        case payload
-    }
-    
     var message: GraphQLMap = [:]
     var serialized: String?
     
