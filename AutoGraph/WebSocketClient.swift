@@ -56,7 +56,7 @@ open class WebSocketClient {
     public weak var delegate: WebSocketClientDelegate?
     public private(set) var state: State = .disconnected
     
-    private let subscriptionSerializer = SubscriptionResponseSerializer()
+    public let subscriptionSerializer = SubscriptionResponseSerializer()
     private var queuedSubscriptions = [Subscriber : WebSocketConnected]()
     private var subscriptions = [SubscriptionID: SubscriptionSet]()
     private var attemptReconnectCount = kAttemptReconnectCount
