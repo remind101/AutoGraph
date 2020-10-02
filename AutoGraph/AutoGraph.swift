@@ -108,26 +108,13 @@ open class AutoGraph {
         }
         
         do {
-            // TODO: all this serializing should get pushed down in to the response pipeline and done on a background queue.
             let request = try SubscriptionRequest(request: request, operationName: operationName)
             let responseHandler = SubscriptionResponseHandler { (result) in
                 switch result {
-                case let .success(data):
-                    do {
-                        let serializedObject = try JSONDecoder().decode(R.SerializedObject.self, from: data)
-                        DispatchQueue.main.async {
-                            completion(.success(serializedObject))
-                        }
-                    }
-                    catch let error {
-                        DispatchQueue.main.async {
-                            completion(.failure(error))
-                        }
-                    }
-                case let .failure(error):
-                    DispatchQueue.main.async {
-                        completion(.failure(error))
-                    }
+                case .success(let data):
+                    self.webSocketClient?.subscriptionSerializer.serializeFinalObject(data: data, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
                 }
             }
             

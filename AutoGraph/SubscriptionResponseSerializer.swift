@@ -6,6 +6,8 @@ enum SubscriptionResponseSerializerError: Error {
 }
 
 public final class SubscriptionResponseSerializer {
+    private let queue = DispatchQueue(label: "org.autograph.subscription_response_handler", qos: .default)
+    
     func serialize(data: Data) throws -> SubscriptionResponse {
         return try JSONDecoder().decode(SubscriptionResponse.self, from: data)
     }
@@ -16,6 +18,22 @@ public final class SubscriptionResponseSerializer {
         }
         
         return try self.serialize(data: data)
+    }
+    
+    func serializeFinalObject<SerializedObject: Decodable>(data: Data, completion: @escaping (Result<SerializedObject, Error>) -> Void) {
+        self.queue.async {
+            do {
+                let serializedObject = try JSONDecoder().decode(SerializedObject.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(serializedObject))
+                }
+            }
+            catch let error {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }
     }
 }
 

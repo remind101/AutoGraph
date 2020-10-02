@@ -11,7 +11,8 @@ public struct SubscriptionResponseHandler {
     
     public func didReceive(subscriptionResponse: SubscriptionResponse) {
         if let error = subscriptionResponse.error {
-            self.completion(.failure(error))
+            // TODO: why wouldn't we just end up in the other error handler?
+            didReceive(error: error)
         }
         else if let data = subscriptionResponse.payload, subscriptionResponse.type == "data" {
             self.completion(.success(data))
