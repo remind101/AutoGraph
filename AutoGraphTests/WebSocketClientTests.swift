@@ -121,6 +121,7 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testWebSocketClientDelegateDidReceiveEventGetsCalled() {
+        self.subject.ignoreConnection = true
         let connectionEvent = WebSocketEvent.connected([:])
         self.subject.didReceive(event: connectionEvent, client: self.webSocket)
         
@@ -246,6 +247,7 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     var subscriptionPayload: String?
     var reconnectCalled = false
     var reconnectTime: DispatchTimeInterval?
+    var ignoreConnection = false
     
     init(url: URL, webSocket: MockWebSocket) throws {
         try super.init(url: url)
@@ -273,8 +275,10 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     }
     
     override func didConnect() throws {
-        self.reconnectCalled = false
-        try super.didConnect()
+        if !self.ignoreConnection {
+            self.reconnectCalled = false
+            try super.didConnect()
+        }
     }
 }
 

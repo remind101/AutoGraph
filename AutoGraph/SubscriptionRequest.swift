@@ -16,7 +16,6 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
                                                                              operationName: operationName)
     }
     
-    // TODO: could possible input start or stop here depending on need.
     public func serializedSubscriptionPayload() throws -> String {
         let query = try self.request.queryDocument.graphQLString()
         

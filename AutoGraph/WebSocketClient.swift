@@ -160,7 +160,6 @@ open class WebSocketClient {
         self.queuedSubscriptions.removeValue(forKey: subscriber)
         self.subscriptions.removeValue(forKey: subscriber.subscriptionID)
         
-        // TODO: we need to stop on a specific ID.
         let stopPayload = try GraphQLWSProtocol.stop.serializedSubscriptionPayload(id: subscriber.subscriptionID)
         self.write(stopPayload)
     }
@@ -169,7 +168,6 @@ open class WebSocketClient {
         self.webSocket.write(string: message, completion: nil)
     }
     
-    // TODO: we should definitely not send until we've established a connection. test this well.
     func sendSubscription(request: SubscriptionRequestSerializable) throws {
         let subscriptionPayload = try request.serializedSubscriptionPayload()
         guard self.state == .connected else {
@@ -198,7 +196,6 @@ open class WebSocketClient {
         return delayInSeconds
     }
     
-    // TODO: needs a good test
     /// Takes all subscriptions and puts them back on the queue, used for reconnection.
     func requeueAllSubscribers() {
         for (_, subscriptionSet) in self.subscriptions {
