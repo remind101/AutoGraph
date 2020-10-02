@@ -83,6 +83,10 @@ open class WebSocketClient {
         }
     }
     
+    public func setValue(_ value: String?, forHTTPHeaderField field: String) {
+        self.webSocket.request.setValue(value, forHTTPHeaderField: field)
+    }
+    
     private var fullDisconnect = false
     public func disconnect() {
         self.fullDisconnect = true

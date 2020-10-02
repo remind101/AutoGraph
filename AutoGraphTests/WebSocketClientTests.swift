@@ -54,9 +54,19 @@ class WebSocketClientTests: XCTestCase {
                 return
             }
             
-            film = try! JSONDecoder().decode(Film.self, from: data)
+            let completion: (Result<Film, Error>) -> Void = { result in
+                guard case let .success(serializedObject) = result else {
+                    XCTFail()
+                    return
+                }
+                
+                film = serializedObject
+            }
+            
+            self.subject.subscriptionSerializer.serializeFinalObject(data: data, completion: completion)
         }))
         
+        waitFor(delay: kDelay)
         XCTAssertNotNil(film)
         XCTAssertEqual(film?.remoteId, "ZmlsbXM6MQ==")
     }
@@ -100,6 +110,7 @@ class WebSocketClientTests: XCTestCase {
         self.subject.requeueAllSubscribers()
         
         XCTAssertTrue(self.subject.queuedSubscriptions.count == 2)
+        XCTAssertEqual(self.subject.subscriptions.count, 0)
     }
     
     func testDisconnectEventReconnects() {
