@@ -73,12 +73,24 @@ class WebSocketClientTests: XCTestCase {
 }
 
 class MockWebSocketClient: AutoGraphQL.WebSocketClient {
+    var subscriptionPayload: String?
+    
     init(url: URL, webSocket: MockWebSocket) throws {
         try super.init(url: url)
         let request = try AutoGraphQL.WebSocketClient.connectionRequest(url: url)
         self.webSocket = webSocket
         self.webSocket.request = request
         self.webSocket.delegate = self
+    }
+    
+    override func sendSubscription(request: SubscriptionRequestSerializable) throws {
+        self.subscriptionPayload = try! request.serializedSubscriptionPayload()
+        
+        guard self.state == .connected else {
+            throw WebSocketError.webSocketNotConnected(subscriptionPayload: self.subscriptionPayload!)
+        }
+        
+        self.write(self.subscriptionPayload!)
     }
 }
 
@@ -108,7 +120,7 @@ class MockWebSocket: Starscream.WebSocket {
     func createResponseString() -> String {
         let json: [String: Any] = [
             "type": "data",
-            "id": "film",
+            "id": "film}",
             "payload": [
                 "data": [
                     "id": "ZmlsbXM6MQ==",

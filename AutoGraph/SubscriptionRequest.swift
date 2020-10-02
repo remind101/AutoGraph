@@ -54,15 +54,13 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
     
     static func generateSubscriptionID<R: Request>(request: R, operationName: String) throws -> SubscriptionID {
         let start = "\(operationName):{"
-        guard let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
+        let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
             guard let value = arg1.value as? String, let key = arg1.key as? String else {
                 return
             }
             
             result += "\(key) : \(value),"
-        }) else {
-            return operationName
-        }
+        }) ?? operationName
         
         return id + "}"
     }
@@ -81,10 +79,14 @@ public enum GraphQLWSProtocol: String {
     case error = "error"                               // Server -> Client
     case complete = "complete"                         // Server -> Client
     
-    public func serializedSubscriptionPayload() throws -> String {
-        let payload: [String : Any] = [
+    public func serializedSubscriptionPayload(id: String? = nil) throws -> String {
+        var payload: [String : Any] = [
             "type": self.rawValue
         ]
+        
+        if let id = id {
+            payload["id"] = id
+        }
         let serialized: Data = try {
             do {
                return try JSONSerialization.data(withJSONObject: payload, options: .fragmentsAllowed)

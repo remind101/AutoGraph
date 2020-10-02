@@ -144,7 +144,6 @@ open class WebSocketClient {
         }
     }
     
-    // TODO: this is bs placeholder for now, should change to unsubscribeAll.
     public func unsubscribeAll<R: Request>(request: SubscriptionRequest<R>) throws {
         let id = request.subscriptionID
         self.queuedSubscriptions = self.queuedSubscriptions.filter { (key, _) -> Bool in
@@ -158,7 +157,7 @@ open class WebSocketClient {
         self.subscriptions.removeValue(forKey: subscriber.subscriptionID)
         
         // TODO: we need to stop on a specific ID.
-        let stopPayload = try GraphQLWSProtocol.stop.serializedSubscriptionPayload()
+        let stopPayload = try GraphQLWSProtocol.stop.serializedSubscriptionPayload(id: subscriber.subscriptionID)
         self.write(stopPayload)
     }
     
