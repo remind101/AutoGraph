@@ -150,9 +150,7 @@ open class WebSocketClient {
             return key.subscriptionID == id
         }
         
-        for (key, _) in self.queuedSubscriptions {
-            try self.unsubscribe(subscriber: key)
-        }
+       
     }
     
     public func unsubscribe(subscriber: Subscriber) throws {

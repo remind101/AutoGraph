@@ -87,15 +87,18 @@ class WebSocketClientTests: XCTestCase {
     
     func testSubscriptionsGetRequeued() {
         let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
-        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
-        XCTAssertFalse(self.subject.queuedSubscriptions.contains(where: {$0.key == subscriber}))
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        XCTAssertTrue(self.subject.queuedSubscriptions.count == 0)
         self.subject.requeueAllSubscribers()
         
-        XCTAssertTrue(self.subject.queuedSubscriptions.contains(where: {$0.key == subscriber}))
+        XCTAssertTrue(self.subject.queuedSubscriptions.count == 2)
     }
     
-    func testSubscriptionDidReconnect() {
+    func testDisconnectEventReconnects() {
         let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
@@ -131,11 +134,81 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testWebSocketClientDelegatDidRecieveError() {
-        struct TestError: Error {}
-    
         self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
         
         XCTAssertNotNil(self.webSocketDelegate.error)
+    }
+    
+    func testSubscribeQueuesAndSendsSubscriptionAfterConnectionFinishes() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber }))
+
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        var subscriptionNotCalled = true
+        let subscriber2 = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in
+            subscriptionNotCalled = false
+        }))
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(subscriptionNotCalled)
+        XCTAssertEqual(self.subject.subscriptions.count, 1)
+        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber2 }))
+    }
+    
+    func testThreeReconnectAttemptsAndDelayTimeIncreaseEachAttempt() {
+        self.webSocket.enableReconnectLoop = true
+        self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
+        let delayTime1 = self.subject.reconnectTime
+        guard case let .seconds(seconds) = delayTime1 else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertTrue(self.subject.reconnectCalled)
+        XCTAssertEqual(self.subject.attemptReconnectCount, 2)
+        XCTAssertEqual(seconds, 10)
+        
+        waitFor(delay: Double(seconds + 1))
+        
+        let delayTime2 = self.subject.reconnectTime
+        guard case let .seconds(seconds2) = delayTime2 else {
+            XCTFail()
+            return
+        }
+
+        XCTAssertTrue(self.subject.reconnectCalled)
+        XCTAssertEqual(self.subject.attemptReconnectCount, 1)
+        XCTAssertEqual(seconds2, 20)
+
+        waitFor(delay: Double(seconds2 + 1))
+        
+        let delayTime3 = self.subject.reconnectTime
+        guard case let .seconds(seconds3) = delayTime3 else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertTrue(self.subject.reconnectCalled)
+        XCTAssertEqual(self.subject.attemptReconnectCount, 0)
+        XCTAssertEqual(seconds3, 30)
+    }
+    
+    func testConnectionOccursOnReconnectAttemptTwo() {
+        self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
+        let delayTime1 = self.subject.reconnectTime
+        guard case let .seconds(seconds) = delayTime1 else {
+            XCTFail()
+            return
+        }
+        
+        XCTAssertTrue(self.subject.reconnectCalled)
+        XCTAssertEqual(self.subject.attemptReconnectCount, 2)
+   
+        waitFor(delay: Double(seconds + 1))
+        
+        XCTAssertTrue(self.webSocket.isConnected)
     }
     
     func waitFor(delay: TimeInterval) {
@@ -168,6 +241,7 @@ class MockWebSocketClientDelegate: WebSocketClientDelegate {
 class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     var subscriptionPayload: String?
     var reconnectCalled = false
+    var reconnectTime: DispatchTimeInterval?
     
     init(url: URL, webSocket: MockWebSocket) throws {
         try super.init(url: url)
@@ -189,17 +263,33 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     
     override func reconnect() -> DispatchTimeInterval? {
         self.reconnectCalled = true
-        return super.reconnect()
+        self.reconnectTime = super.reconnect()
+        
+        return reconnectTime
+    }
+    
+    override func didConnect() throws {
+        self.reconnectCalled = false
+        try super.didConnect()
     }
 }
+
+struct TestError: Error {}
 
 class MockWebSocket: Starscream.WebSocket {
     var subscriptionRequest: String?
     var isConnected = false
+    var enableReconnectLoop = false
     
     override func connect() {
-        self.didReceive(event: WebSocketEvent.connected([:]))
-        self.isConnected = true
+        if enableReconnectLoop {
+            self.isConnected = false
+            self.didReceive(event: WebSocketEvent.error(TestError()))
+        }
+        else {
+             self.isConnected = true
+             self.didReceive(event: WebSocketEvent.connected([:]))
+        }
     }
     
     override func disconnect(closeCode: UInt16 = CloseCode.normal.rawValue) {
@@ -245,7 +335,7 @@ extension WebSocketEvent: Equatable {
         case let (.text(lhsText), .text(rhsText)):
             return lhsText == rhsText
         default:
-            return true
+            return false
         }
     }
 }
