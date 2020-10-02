@@ -83,7 +83,13 @@ open class WebSocketClient {
         }
     }
     
+    private var fullDisconnect = false
     public func disconnect() {
+        self.fullDisconnect = true
+        self.disconnectAndPossiblyReconnect()
+    }
+    
+    public func disconnectAndPossiblyReconnect() {
         guard self.state != .disconnected else {
             return
         }
@@ -97,6 +103,7 @@ open class WebSocketClient {
         self.webSocket.disconnect()
     }
     
+    /// Subscribe to a Subscription, will automatically connect a websocket if it is not connected or disconnected.
     public func subscribe<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) -> Subscriber {
         // If we already have a subscription for that key then just add the subscriber to the set for that key with a callback.
         // Otherwise if connected send subscription and add to subscriber set.
@@ -138,8 +145,11 @@ open class WebSocketClient {
     }
     
     // TODO: this is bs placeholder for now, should change to unsubscribeAll.
-    public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) throws {
-        // TODO:
+    public func unsubscribeAll<R: Request>(request: SubscriptionRequest<R>) throws {
+        let id = request.subscriptionID
+        self.queuedSubscriptions = self.queuedSubscriptions.filter { (key, _) -> Bool in
+            return key.subscriptionID == id
+        }
     }
     
     public func unsubscribe(subscriber: Subscriber) throws {
@@ -168,7 +178,7 @@ open class WebSocketClient {
     private var reconnecting = false
     /// Attempts to reconnect and re-subscribe with multiplied backoff up to 30 seconds. Returns the delay.
     func reconnect() -> DispatchTimeInterval? {
-        guard !reconnecting else { return nil }
+        guard !self.reconnecting, !self.fullDisconnect else { return nil }
         if self.attemptReconnectCount > 0 {
             self.attemptReconnectCount -= 1
         }
@@ -179,7 +189,7 @@ open class WebSocketClient {
             guard let self = self else { return }
             // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
             self.requeueAllSubscribers()
-            self.disconnect()
+            self.disconnectAndPossiblyReconnect()
             self.webSocket.connect()
         }
         return delayInSeconds
@@ -247,7 +257,10 @@ extension WebSocketClient: WebSocketDelegate {
         do {
             switch event {
             case .disconnected, .cancelled:
-                _ = self.reconnect()
+                if !self.fullDisconnect {
+                    _ = self.reconnect()
+                }
+                self.fullDisconnect = false
             case .binary(let data):
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
