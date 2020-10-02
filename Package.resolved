@@ -18,6 +18,15 @@
           "revision": "68d0150068fae0502dda6f599c7063e2705b6795",
           "version": "7.0.0"
         }
+      },
+      {
+        "package": "Starscream",
+        "repositoryURL": "https://github.com/daltoniam/Starscream.git",
+        "state": {
+          "branch": null,
+          "revision": "df8d82047f6654d8e4b655d1b1525c64e1059d21",
+          "version": "4.0.4"
+        }
       }
     ]
   },
