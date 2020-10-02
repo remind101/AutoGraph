@@ -8,7 +8,7 @@ public protocol Cancellable {
 public typealias AuthTokens = (accessToken: String?, refreshToken: String?)
 
 public protocol Client: RequestSender, Cancellable {
-    var baseUrl: String { get }
+    var url: URL { get }
     var authHandler: AuthHandler? { get }
     var sessionConfiguration: URLSessionConfiguration { get }
 }
@@ -21,8 +21,8 @@ open class GlobalLifeCycle {
 }
 
 open class AutoGraph {
-    public var baseUrl: String {
-        return self.client.baseUrl
+    public var url: URL {
+        return self.client.url
     }
     
     public var authHandler: AuthHandler? {
@@ -39,35 +39,46 @@ open class AutoGraph {
     }
     
     public let client: Client
+    public var webSocketClient: WebSocketClient?
     public let dispatcher: Dispatcher
     public var lifeCycle: GlobalLifeCycle?
     
     public static let localHost = "http://localhost:8080/graphql"
     
     public required init(
-        client: Client = AlamofireClient(baseUrl: localHost,
-                                         session: Alamofire.Session(interceptor: AuthHandler())))
+        client: Client,
+        webSocketClient: WebSocketClient? = nil
+    )
     {
         self.client = client
-        self.dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
+        self.webSocketClient = webSocketClient
+        self.dispatcher = Dispatcher(requestSender: client, responseHandler: ResponseHandler())
         self.client.authHandler?.delegate = self
     }
     
-    internal convenience init() {
-        let client = AlamofireClient(baseUrl: AutoGraph.localHost,
-                                     session: Alamofire.Session(interceptor: AuthHandler()))
-        let dispatcher = Dispatcher(url: client.baseUrl, requestSender: client, responseHandler: ResponseHandler())
-        self.init(client: client, dispatcher: dispatcher)
-    }
-    
-    public init(client: Client, dispatcher: Dispatcher) {
+    public init(client: Client, webSocketClient: WebSocketClient?, dispatcher: Dispatcher) {
         self.client = client
+        self.webSocketClient = webSocketClient
         self.dispatcher = dispatcher
         self.client.authHandler?.delegate = self
     }
     
+    // For Testing.
+    internal convenience init() throws {
+        guard let url = URL(string: AutoGraph.localHost) else {
+            struct URLMissingError: Error {
+                let urlString: String
+            }
+            throw URLMissingError(urlString: AutoGraph.localHost)
+        }
+        let client = AlamofireClient(url: url,
+                                     session: Alamofire.Session(interceptor: AuthHandler()))
+        let dispatcher = Dispatcher(requestSender: client, responseHandler: ResponseHandler())
+        let webSocketClient = try WebSocketClient(url: URL(string: AutoGraph.localHost)!)
+        self.init(client: client, webSocketClient: webSocketClient, dispatcher: dispatcher)
+    }
+    
     open func send<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) {
-        
         let objectBindingPromise = { sendable in
             return request.generateBinding { [weak self] result in
                 self?.complete(result: result, sendable: sendable, requestDidFinish: request.didFinish, completion: completion)
@@ -84,6 +95,49 @@ open class AutoGraph {
     open func send<R: Request>(includingNetworkResponse request: R, completion: @escaping (_ result: ResultIncludingNetworkResponse<R.SerializedObject>) -> ()) {
         let requestIncludingJSON = RequestIncludingNetworkResponse(request: request)
         self.send(requestIncludingJSON, completion: completion)
+    }
+    
+    // TODO: Make it so you don't have to pass in operationName
+    /// Subscribe to a subscription. Returns a handler to the Subscription which can be used to unsubscribe. A `nil` return value implies
+    /// immediate failure, in which case, please check the error received in the completion block.
+    ///
+    /// It will form a websocket connection if one doesn't exist already.
+    open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
+        guard let webSocketClient = self.webSocketClient else {
+            completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
+            return nil
+        }
+        
+        do {
+            let request = try SubscriptionRequest(request: request, operationName: operationName)
+            let responseHandler = SubscriptionResponseHandler { (result) in
+                switch result {
+                case .success(let data):
+                    self.webSocketClient?.subscriptionSerializer.serializeFinalObject(data: data, completion: completion)
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+            
+            return webSocketClient.subscribe(request: request, responseHandler: responseHandler)
+        }
+        catch let error {
+            completion(.failure(error))
+            return nil
+        }
+    }
+    
+    open func unsubscribeAll<R: Request>(request: R, operationName: String) throws {
+        let request = try SubscriptionRequest(request: request, operationName: operationName)
+        try self.webSocketClient?.unsubscribeAll(request: request)
+    }
+    
+    open func unsubscribe(subscriber: Subscriber) throws {
+        try self.webSocketClient?.unsubscribe(subscriber: subscriber)
+    }
+    
+    open func disconnectAndRetryWebSocket() {
+        self.webSocketClient?.disconnect()
     }
     
     private func complete<SerializedObject>(result: AutoGraphResult<SerializedObject>, sendable: Sendable, requestDidFinish: (AutoGraphResult<SerializedObject>) throws -> (), completion: @escaping RequestCompletion<SerializedObject>) {
@@ -133,6 +187,7 @@ open class AutoGraph {
     open func reset() {
         self.cancelAll()
         self.dispatcher.paused = false
+        self.webSocketClient?.disconnect()
     }
 }
 

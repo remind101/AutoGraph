@@ -1,20 +1,24 @@
 PODS:
   - Alamofire (5.0.5)
   - JSONValueRX (7.0.0)
+  - Starscream (4.0.4)
 
 DEPENDENCIES:
   - Alamofire (~> 5.0.5)
   - JSONValueRX (~> 7.0)
+  - Starscream (~> 4.0.0)
 
 SPEC REPOS:
   trunk:
     - Alamofire
     - JSONValueRX
+    - Starscream
 
 SPEC CHECKSUMS:
   Alamofire: df2f8f826963b08b9a870791ad48e07a10090b2e
   JSONValueRX: ba7d7e7a2e4359d135e0b5bc3ad36a3acc67f030
+  Starscream: 5178aed56b316f13fa3bc55694e583d35dd414d9
 
-PODFILE CHECKSUM: 7df77d5f4b4424e16f004aa8ccf0f9eb14c9920f
+PODFILE CHECKSUM: 56bf2a26f25daa00721a4c99819ec770a2043dda
 
-COCOAPODS: 1.9.0
+COCOAPODS: 1.9.3

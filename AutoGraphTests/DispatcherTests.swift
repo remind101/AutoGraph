@@ -11,10 +11,10 @@ class DispatcherTests: XCTestCase {
         
         var expectation: Bool = false
         
-        var testSendRequest: ((_ url: String, _ parameters: [String : Any], _ completion: @escaping (AFDataResponse<Any>) -> ()) -> Bool)?
+        var testSendRequest: ((_ parameters: [String : Any], _ completion: @escaping (AFDataResponse<Any>) -> ()) -> Bool)?
         
-        func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
-            self.expectation = testSendRequest?(url, parameters, completion) ?? false
+        func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
+            self.expectation = testSendRequest?(parameters, completion) ?? false
         }
     }
     
@@ -28,7 +28,7 @@ class DispatcherTests: XCTestCase {
         super.setUp()
         
         self.mockRequestSender = MockRequestSender()
-        self.subject = Dispatcher(url: "localhost", requestSender: self.mockRequestSender, responseHandler: ResponseHandler(queue: MockQueue(), callbackQueue: MockQueue()))
+        self.subject = Dispatcher(requestSender: self.mockRequestSender, responseHandler: ResponseHandler(queue: MockQueue(), callbackQueue: MockQueue()))
     }
     
     override func tearDown() {
@@ -41,8 +41,8 @@ class DispatcherTests: XCTestCase {
         let request = FilmRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
-        self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
+        self.mockRequestSender.testSendRequest = { params, completion in
+            return (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -75,8 +75,8 @@ class DispatcherTests: XCTestCase {
         let request = FilmRequest()
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
-        self.mockRequestSender.testSendRequest = { url, params, completion in
-            return (url == "localhost") && (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
+        self.mockRequestSender.testSendRequest = { params, completion in
+            return (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
         }
         
         self.subject.paused = true

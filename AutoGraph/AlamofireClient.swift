@@ -9,7 +9,7 @@ struct AutoGraphAlamofireClientError: LocalizedError {
 
 open class AlamofireClient: Client {
     public let session: Session
-    public let baseUrl: String
+    public let url: URL
     public var httpHeaders: [String : String]
     public var authHandler: AuthHandler? {
         self.session.interceptor as? AuthHandler
@@ -27,18 +27,28 @@ open class AlamofireClient: Client {
                 refreshToken: self.authHandler?.refreshToken)
     }
 
-    public required init(baseUrl: String,
-                         httpHeaders: [String : String] = [:],
-                         session: Session) {
-        
-        self.baseUrl = baseUrl
+    public required init(
+        url: URL,
+        httpHeaders: [String : String] = [:],
+        session: Session)
+    {
+        self.url = url
         self.httpHeaders = httpHeaders
         self.session = session
     }
     
-    public func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
+    public convenience init(
+        url: String,
+        httpHeaders: [String : String] = [:],
+        session: Session)
+        throws
+    {
+        self.init(url: try url.asURL(), httpHeaders: httpHeaders, session: session)
+    }
+    
+    public func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
         self.session.request(
-            url,
+            self.url,
             method: .post,
             parameters: parameters,
             encoding: JSONEncoding.default,

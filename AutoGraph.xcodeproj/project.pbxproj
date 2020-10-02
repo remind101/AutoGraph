@@ -8,6 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
+		AA1DD5AA251CCC840058E2AD /* WebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1DD5A9251CCC840058E2AD /* WebSocketClient.swift */; };
+		AA8C284B25276BD50049A8B6 /* WebSocketClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C284A25276BD50049A8B6 /* WebSocketClientTests.swift */; };
+		AA8C284D25278A680049A8B6 /* FilmSubscriptionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8C284C25278A680049A8B6 /* FilmSubscriptionRequest.swift */; };
+		AA9907972526604500A312FA /* SubscriptionResponseHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */; };
+		AA9907992526621700A312FA /* SubscriptionResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */; };
+		AA99079B252664D700A312FA /* SubscriptionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA99079A252664D700A312FA /* SubscriptionRequest.swift */; };
+		AA99079D252665CA00A312FA /* WebSocketError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA99079C252665CA00A312FA /* WebSocketError.swift */; };
 		AE6477EE218208FB00E3337B /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */; };
 		C40623CEEE2E00482D3E3112 /* Pods_QueryBuilder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D794E2AF02FFB7F0582B81C /* Pods_QueryBuilder.framework */; };
 		CA5E0E59F12BE2DB5FF4B6E3 /* Pods_AutoGraphQL_AutoGraphTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 812D4B5E9878FB8F03EAE423 /* Pods_AutoGraphQL_AutoGraphTests.framework */; };
@@ -82,6 +89,13 @@
 		963F35AAE93DAC9E902B118F /* Pods-AutoGraph-AutoGraphTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraph-AutoGraphTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraph-AutoGraphTests/Pods-AutoGraph-AutoGraphTests.release.xcconfig"; sourceTree = "<group>"; };
 		9C37033F6759994DDEF49C94 /* Pods-AutoGraphQL.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL/Pods-AutoGraphQL.debug.xcconfig"; sourceTree = "<group>"; };
 		A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
+		AA1DD5A9251CCC840058E2AD /* WebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketClient.swift; sourceTree = "<group>"; };
+		AA8C284A25276BD50049A8B6 /* WebSocketClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketClientTests.swift; sourceTree = "<group>"; };
+		AA8C284C25278A680049A8B6 /* FilmSubscriptionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilmSubscriptionRequest.swift; sourceTree = "<group>"; };
+		AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionResponseHandler.swift; sourceTree = "<group>"; };
+		AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionResponseSerializer.swift; sourceTree = "<group>"; };
+		AA99079A252664D700A312FA /* SubscriptionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRequest.swift; sourceTree = "<group>"; };
+		AA99079C252665CA00A312FA /* WebSocketError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketError.swift; sourceTree = "<group>"; };
 		AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
 		B24FAB69B04F19E707A8E68E /* Pods-QueryBuilder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-QueryBuilder.release.xcconfig"; path = "Pods/Target Support Files/Pods-QueryBuilder/Pods-QueryBuilder.release.xcconfig"; sourceTree = "<group>"; };
 		C4096020F8513918A429DE40 /* Pods_AutoGraph_AutoGraphTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AutoGraph_AutoGraphTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -222,6 +236,7 @@
 				CDA62BFC1DB16998004BA66D /* AutoGraph.h */,
 				CDA62BFD1DB16998004BA66D /* Info.plist */,
 				CD3BFF3E1E22D3E5008CE41A /* AlamofireClient.swift */,
+				AA1DD5A9251CCC840058E2AD /* WebSocketClient.swift */,
 				CD3BFF2D1E205D74008CE41A /* AuthHandler.swift */,
 				CDE3C71C1E00C28300AB4EB1 /* AutoGraph.swift */,
 				CD3BFF2B1E2021D3008CE41A /* Dispatcher.swift */,
@@ -229,6 +244,10 @@
 				CDFFEBC61E6788C100685110 /* Request.swift */,
 				CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
+				AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */,
+				AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */,
+				AA99079A252664D700A312FA /* SubscriptionRequest.swift */,
+				AA99079C252665CA00A312FA /* WebSocketError.swift */,
 			);
 			name = AutoGraphQL;
 			path = AutoGraph;
@@ -240,6 +259,7 @@
 				CDB829E520F9870000BAC7BD /* Data */,
 				CDB829EB20F9870000BAC7BD /* Requests */,
 				CDC393CE1E23235800BA6D5E /* AlamofireClientTests.swift */,
+				AA8C284A25276BD50049A8B6 /* WebSocketClientTests.swift */,
 				CDC393D01E232BD600BA6D5E /* AuthHandlerTests.swift */,
 				CDB829DB20F9864700BAC7BD /* AutoGraphTests.swift */,
 				CDC393D21E232D2400BA6D5E /* DispatcherTests.swift */,
@@ -288,6 +308,7 @@
 			isa = PBXGroup;
 			children = (
 				CDB829EE20F9870000BAC7BD /* FilmRequest.swift */,
+				AA8C284C25278A680049A8B6 /* FilmSubscriptionRequest.swift */,
 				AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */,
 			);
 			path = Requests;
@@ -454,7 +475,6 @@
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -552,11 +572,13 @@
 				"${PODS_ROOT}/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
+				"${BUILT_PRODUCTS_DIR}/Starscream/Starscream.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Starscream.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -590,11 +612,13 @@
 				"${PODS_ROOT}/Target Support Files/Pods-AutoGraphQL-QueryBuilderTests/Pods-AutoGraphQL-QueryBuilderTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/JSONValueRX/JSONValueRX.framework",
+				"${BUILT_PRODUCTS_DIR}/Starscream/Starscream.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/JSONValueRX.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Starscream.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -640,9 +664,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA9907992526621700A312FA /* SubscriptionResponseSerializer.swift in Sources */,
 				CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */,
 				CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */,
 				CD3BFF2E1E205D74008CE41A /* AuthHandler.swift in Sources */,
+				AA9907972526604500A312FA /* SubscriptionResponseHandler.swift in Sources */,
+				AA99079D252665CA00A312FA /* WebSocketError.swift in Sources */,
 				CD3BFF241E1DE6EE008CE41A /* QueryDSL.swift in Sources */,
 				CD3BFF2C1E2021D3008CE41A /* Dispatcher.swift in Sources */,
 				CDBEBEAC1E1CB5E80029909A /* Utilities.swift in Sources */,
@@ -650,6 +677,8 @@
 				CDFFEBC71E6788C100685110 /* Request.swift in Sources */,
 				CDBEBEAA1E1CB1400029909A /* Errors.swift in Sources */,
 				CDE3C71D1E00C28300AB4EB1 /* AutoGraph.swift in Sources */,
+				AA99079B252664D700A312FA /* SubscriptionRequest.swift in Sources */,
+				AA1DD5AA251CCC840058E2AD /* WebSocketClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,10 +688,12 @@
 			files = (
 				CDC393CF1E23235800BA6D5E /* AlamofireClientTests.swift in Sources */,
 				CD5244531E70EC6B0040771D /* ErrorTests.swift in Sources */,
+				AA8C284D25278A680049A8B6 /* FilmSubscriptionRequest.swift in Sources */,
 				CDE3C7231E00C4A700AB4EB1 /* Stub.swift in Sources */,
 				AE6477EE218208FB00E3337B /* AllFilmsRequest.swift in Sources */,
 				CDB829F620F9870100BAC7BD /* FilmRequest.swift in Sources */,
 				CDC393D11E232BD600BA6D5E /* AuthHandlerTests.swift in Sources */,
+				AA8C284B25276BD50049A8B6 /* WebSocketClientTests.swift in Sources */,
 				CDC393D31E232D2400BA6D5E /* DispatcherTests.swift in Sources */,
 				CDB829EF20F9870100BAC7BD /* Film.swift in Sources */,
 				CD3BFF321E22D1EC008CE41A /* ResponseHandlerTests.swift in Sources */,

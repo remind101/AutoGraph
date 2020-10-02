@@ -18,7 +18,7 @@ class AlamofireClientTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        self.subject = AlamofireClient(baseUrl: "localhost", session: Session(interceptor: AuthHandler()))
+        self.subject = try! AlamofireClient(url: "localhost", session: Session(interceptor: AuthHandler()))
     }
     
     override func tearDown() {
@@ -100,7 +100,7 @@ class AlamofireClientTests: XCTestCase {
             override func request(_ convertible: URLConvertible, method: HTTPMethod = .get, parameters: Parameters? = nil, encoding: ParameterEncoding = URLEncoding.default, headers: HTTPHeaders? = nil, interceptor: RequestInterceptor? = nil) -> DataRequest {
                 
                 success =
-                    (convertible as! String == "url")
+                    (convertible as! URL == URL(string: "localhost")!)
                     && (method == .post)
                     && (parameters! as! [String : String] == ["cool" : "param"])
                     && (encoding is JSONEncoding)
@@ -120,9 +120,9 @@ class AlamofireClientTests: XCTestCase {
         }
         
         let session = MockSession(startRequestsImmediately: false, interceptor: AuthHandler())
-        self.subject = AlamofireClient(baseUrl: "localhost", session: session)
+        self.subject = try! AlamofireClient(url: "localhost", session: session)
         self.subject.httpHeaders["dumb"] = "header"
-        self.subject.sendRequest(url: "url", parameters: ["cool" : "param"], completion: { _ in })
+        self.subject.sendRequest(parameters: ["cool" : "param"], completion: { _ in })
         
         XCTAssertTrue(session.success)
     }

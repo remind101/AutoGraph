@@ -1,9 +1,9 @@
-FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire" "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX"
+FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire" "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX" "${PODS_CONFIGURATION_BUILD_DIR}/Starscream"
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
-HEADER_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX/JSONValueRX.framework/Headers"
+HEADER_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX/JSONValueRX.framework/Headers" "${PODS_CONFIGURATION_BUILD_DIR}/Starscream/Starscream.framework/Headers"
 LD_RUNPATH_SEARCH_PATHS = $(inherited) '@executable_path/Frameworks' '@loader_path/Frameworks' '@executable_path/../../Frameworks'
-OTHER_CFLAGS = $(inherited) -isystem "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.framework/Headers" -isystem "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX/JSONValueRX.framework/Headers" -iframework "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire" -iframework "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX"
-OTHER_LDFLAGS = $(inherited) -framework "Alamofire" -framework "CFNetwork" -framework "JSONValueRX"
+OTHER_CFLAGS = $(inherited) -isystem "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire/Alamofire.framework/Headers" -isystem "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX/JSONValueRX.framework/Headers" -isystem "${PODS_CONFIGURATION_BUILD_DIR}/Starscream/Starscream.framework/Headers" -iframework "${PODS_CONFIGURATION_BUILD_DIR}/Alamofire" -iframework "${PODS_CONFIGURATION_BUILD_DIR}/JSONValueRX" -iframework "${PODS_CONFIGURATION_BUILD_DIR}/Starscream"
+OTHER_LDFLAGS = $(inherited) -framework "Alamofire" -framework "CFNetwork" -framework "JSONValueRX" -framework "Starscream"
 OTHER_SWIFT_FLAGS = $(inherited) -D COCOAPODS
 PODS_BUILD_DIR = ${BUILD_DIR}
 PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)

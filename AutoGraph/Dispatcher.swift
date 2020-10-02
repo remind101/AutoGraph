@@ -2,7 +2,7 @@ import Alamofire
 import Foundation
 
 public protocol RequestSender {
-    func sendRequest(url: String, parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ())
+    func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ())
 }
 
 public final class Sendable {
@@ -44,8 +44,6 @@ public final class Sendable {
 }
 
 open class Dispatcher {
-        
-    public let url: String
     public let responseHandler: ResponseHandler
     public let requestSender: RequestSender
     
@@ -62,8 +60,7 @@ open class Dispatcher {
         }
     }
     
-    public required init(url: String, requestSender: RequestSender, responseHandler: ResponseHandler) {
-        self.url = url
+    public required init(requestSender: RequestSender, responseHandler: ResponseHandler) {
         self.requestSender = requestSender
         self.responseHandler = responseHandler
     }
@@ -81,7 +78,7 @@ open class Dispatcher {
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
                 parameters["variables"] = variables
             }
-            self.requestSender.sendRequest(url: self.url, parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
+            self.requestSender.sendRequest(parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
         }
         catch let e {
             sendable.dispatcherEarlyFailure(sendable)(e)
