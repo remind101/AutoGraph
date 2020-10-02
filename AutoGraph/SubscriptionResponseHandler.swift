@@ -9,16 +9,16 @@ public struct SubscriptionResponseHandler {
         self.completion = completion
     }
     
-    public func didFinish(subscription: SubscriptionResponsePayload) {
-        if let error = subscription.error {
+    public func didReceive(subscriptionResponsePayload: SubscriptionResponsePayload) {
+        if let error = subscriptionResponsePayload.error {
             self.completion(.failure(error))
         }
-        else if let data = subscription.payload, subscription.type == "data" {
+        else if let data = subscriptionResponsePayload.payload, subscriptionResponsePayload.type == "data" {
             self.completion(.success(data))
         }
     }
     
-    public func didFinish(error: Error) {
+    public func didReceive(error: Error) {
         self.completion(.failure(error))
     }
 }

@@ -1,9 +1,13 @@
 import Foundation
 
-public struct SubscriptionRequest<R: Request> {
+public protocol SubscriptionRequestSerializable {
+    func serializedSubscriptionPayload() throws -> String
+}
+
+public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
     let operationName: String
     let request: R
-    let id: String
+    let id: SubscriptionKey
     
     init(request: R, operationName: String) throws {
         self.operationName = operationName
@@ -12,6 +16,7 @@ public struct SubscriptionRequest<R: Request> {
                                                             operationName: operationName)
     }
     
+    // TODO: could possible input start or stop here depending on need.
     public func serializedSubscriptionPayload() throws -> String {
         let query = try self.request.queryDocument.graphQLString()
         
@@ -47,7 +52,7 @@ public struct SubscriptionRequest<R: Request> {
         return serializedString
     }
     
-    static func generateRequestId<R: Request>(request: R, operationName: String) throws -> String {
+    static func generateRequestId<R: Request>(request: R, operationName: String) throws -> SubscriptionKey {
         let start = "\(operationName):{"
         let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
             guard let value = arg1.value as? String, let key = arg1.key as? String else {

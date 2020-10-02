@@ -42,6 +42,8 @@ public indirect enum AutoGraphError: LocalizedError {
     case invalidResponse(response: HTTPURLResponse?)
     case subscribeWithMissingWebSocketClient
     
+    // TODO: make a subscriptions friendly version.
+    
     public init?(graphQLResponseJSON: JSONValue, response: HTTPURLResponse?, networkErrorParser: NetworkErrorParser?) {
         guard let errorsJSON = graphQLResponseJSON["errors"] else {
             return nil
