@@ -1,15 +1,12 @@
 import Foundation
 
 public enum WebSocketError: Error {
-    case requestCreationFailed(URL)
     case webSocketNotConnected(String)
     case subscriptionRequestBodyFailed(String)
     case subscriptionPayloadFailedSerialization([String : Any], underlyingError: Error?)
     
     public var localizedDescription: String {
         switch self {
-        case let .requestCreationFailed(url):
-            return "URLRequest for url: \(url) creation failed for websocket"
         case let .webSocketNotConnected(subscription):
             return "WebSocket is not open to make subscription: \(subscription)"
         case let .subscriptionRequestBodyFailed(operationName):
