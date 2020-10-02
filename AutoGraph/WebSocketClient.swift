@@ -97,7 +97,6 @@ open class WebSocketClient {
         self.webSocket.disconnect()
     }
     
-    // TODO: SubscriptionResponseHandler is not instantiated anywhere, should it just be a completion block or a pipeline?
     public func subscribe<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) -> Subscriber {
         // If we already have a subscription for that key then just add the subscriber to the set for that key with a callback.
         // Otherwise if connected send subscription and add to subscriber set.
