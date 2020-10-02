@@ -66,7 +66,7 @@ public indirect enum AutoGraphError: LocalizedError {
             self = .network(error: networkError, statusCode: networkError.statusCode, response: nil, underlying: graphQLError)
         }
         else {
-            self = .graphQL(errors: errorsArray.compactMap { GraphQLError(json: $0) }, response: response)
+            self = graphQLError
         }
     }
     
