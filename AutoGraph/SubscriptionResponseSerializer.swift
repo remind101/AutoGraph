@@ -41,7 +41,7 @@ public struct SubscriptionResponse: Decodable {
         self.id  = try container.decode(String.self, forKey: .id)
         self.type = try container.decode(String.self, forKey: .type)
         let payloadContainer = try container.nestedContainer(keyedBy: PayloadCodingKeys.self, forKey: .payload)
-        self.payload = try payloadContainer.decodeIfPresent(Data.self, forKey: .data)
+        self.payload = try payloadContainer.decodeIfPresent(JSONValue.self, forKey: .data)?.encode()
         
         let payloadJSON = try container.decode(JSONValue.self, forKey: .payload)
         
