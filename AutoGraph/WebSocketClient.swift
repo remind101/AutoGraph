@@ -17,7 +17,6 @@ open class WebSocketClient {
         case disconnected
     }
     
-    let queue: DispatchQueue
     public let webSocket: WebSocket
     public weak var delegate: WebSocketClientDelegate?
     public private(set) var state: State = .disconnected
@@ -28,9 +27,7 @@ open class WebSocketClient {
     private var attemptReconnectCount = kAttemptReconnectCount
     private var connectionCompletionBlock: WebSocketConnected?
     
-    public init(url: URL,
-                queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .default)) throws {
-        self.queue = queue
+    public init(url: URL) throws {
         let request = try WebSocketClient.connectionRequest(url: url)
         self.webSocket = WebSocket(request: request)
         self.webSocket.delegate = self
@@ -52,33 +49,21 @@ open class WebSocketClient {
         }
     }
     
-    public func connect(completion: WebSocketConnected?) {
-        guard self.state != .connected else {
-            completion?(.success(true))
-            return
-        }
-        
-        self.connectionCompletionBlock = completion
-        self.webSocket.connect()
-    }
-    
     public func disconnect() {
         guard self.state != .disconnected else {
             return
         }
         
-        self.queue.async {
-            // TODO: Possible return something to the user if this fails?
-            if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
-                self.write(payload)
-            }
-            
-            self.webSocket.disconnect()
+        // TODO: Possible return something to the user if this fails?
+        if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
+            self.write(payload)
         }
+        
+        self.webSocket.disconnect()
     }
     
     public func subscribe<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
-        self.connect { (result) in
+        self.connectionCompletionBlock = { (result) in
             switch result {
             case let .success(isConnected):
                 if isConnected {
@@ -97,6 +82,13 @@ open class WebSocketClient {
                 responseHandler.didFinish(error: error)
             }
         }
+        
+        guard self.state != .connected else {
+            self.connectionCompletionBlock?(.success(true))
+            return
+        }
+        
+        self.webSocket.connect()
     }
     
     public func unsubscribe<R: Request>(request: SubscriptionRequest<R>) throws {
@@ -119,11 +111,9 @@ open class WebSocketClient {
                 return
             }
             
-            self.queue.async {
-                self.subscribers[request.id] = responseHandler
-                self.subscriptions[request.id] = subscriptionMessage
-                self.write(subscriptionMessage)
-            }
+            self.subscribers[request.id] = responseHandler
+            self.subscriptions[request.id] = subscriptionMessage
+            self.write(subscriptionMessage)
         }
         catch let error {
             responseHandler.didFinish(error: error)
@@ -151,6 +141,7 @@ extension WebSocketClient: WebSocketDelegate {
         do {
             switch event {
             case .disconnected:
+                // TODO: this is wrong, we may want to reconnect. and then call connectionCompletionBlock if available.
                 self.reset()
             case .binary(let data):
                 let subscription = try self.subscriptionSerializer.serialize(data: data)
@@ -160,11 +151,10 @@ extension WebSocketClient: WebSocketDelegate {
                 self.didReceive(subscription: subscription)
             case .connected:
                 try self.connectionInitiated()
+                // TOOD: what is this trying to do?
                 if self.state == .connected {
-                    self.queue.async {
-                        self.subscriptions.forEach { (_, value) in
-                            self.write(value)
-                        }
+                    self.subscriptions.forEach { (_, value) in
+                        self.write(value)
                     }
                 }
                 
