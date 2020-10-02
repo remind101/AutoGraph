@@ -1,25 +1,25 @@
 import Foundation
 import JSONValueRX
 
-enum SubscriptionSerializationError: Error {
-    case unableToConvertTextToData
+enum SubscriptionResponseSerializerError: Error {
+    case failedToConvertTextToData
 }
 
-public final class SubscriptionSerializer {
-    func serialize(data: Data) throws -> SubscriptionResponsePayload {
-        return try JSONDecoder().decode(SubscriptionResponsePayload.self, from: data)
+public final class SubscriptionResponseSerializer {
+    func serialize(data: Data) throws -> SubscriptionResponse {
+        return try JSONDecoder().decode(SubscriptionResponse.self, from: data)
     }
     
-    func serialize(text: String) throws -> SubscriptionResponsePayload {
+    func serialize(text: String) throws -> SubscriptionResponse {
         guard let data = text.data(using: .utf8) else {
-            throw SubscriptionSerializationError.unableToConvertTextToData
+            throw SubscriptionResponseSerializerError.failedToConvertTextToData
         }
         
         return try self.serialize(data: data)
     }
 }
 
-public struct SubscriptionResponsePayload: Decodable {
+public struct SubscriptionResponse: Decodable {
     enum CodingKeys: String, CodingKey {
         case id
         case payload

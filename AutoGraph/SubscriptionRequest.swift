@@ -1,17 +1,22 @@
 import Foundation
 
-public struct SubscriptionRequest<R: Request> {
+public protocol SubscriptionRequestSerializable {
+    func serializedSubscriptionPayload() throws -> String
+}
+
+public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
     let operationName: String
     let request: R
-    let id: String
+    let subscriptionID: SubscriptionID
     
     init(request: R, operationName: String) throws {
         self.operationName = operationName
         self.request = request
-        self.id = try SubscriptionRequest.generateRequestId(request: request,
-                                                            operationName: operationName)
+        self.subscriptionID = try SubscriptionRequest.generateSubscriptionID(request: request,
+                                                                             operationName: operationName)
     }
     
+    // TODO: could possible input start or stop here depending on need.
     public func serializedSubscriptionPayload() throws -> String {
         let query = try self.request.queryDocument.graphQLString()
         
@@ -26,7 +31,7 @@ public struct SubscriptionRequest<R: Request> {
         
         let payload: [String : Any] = [
             "payload": body,
-            "id": self.id,
+            "id": self.subscriptionID,
             "type": GraphQLWSProtocol.start.rawValue
         ]
         
@@ -47,7 +52,7 @@ public struct SubscriptionRequest<R: Request> {
         return serializedString
     }
     
-    static func generateRequestId<R: Request>(request: R, operationName: String) throws -> String {
+    static func generateSubscriptionID<R: Request>(request: R, operationName: String) throws -> SubscriptionID {
         let start = "\(operationName):{"
         let id = try request.variables?.graphQLVariablesDictionary().reduce(into: start, { (result, arg1) in
             guard let value = arg1.value as? String, let key = arg1.key as? String else {

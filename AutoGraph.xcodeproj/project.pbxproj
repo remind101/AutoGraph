@@ -10,7 +10,7 @@
 		226A965FC6C546E974032F43 /* Pods_AutoGraphQL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F3237D0649FF4BABCB8F606 /* Pods_AutoGraphQL.framework */; };
 		AA1DD5AA251CCC840058E2AD /* WebSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1DD5A9251CCC840058E2AD /* WebSocketClient.swift */; };
 		AA9907972526604500A312FA /* SubscriptionResponseHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */; };
-		AA9907992526621700A312FA /* SubscriptionSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9907982526621700A312FA /* SubscriptionSerializer.swift */; };
+		AA9907992526621700A312FA /* SubscriptionResponseSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */; };
 		AA99079B252664D700A312FA /* SubscriptionRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA99079A252664D700A312FA /* SubscriptionRequest.swift */; };
 		AA99079D252665CA00A312FA /* WebSocketError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA99079C252665CA00A312FA /* WebSocketError.swift */; };
 		AE6477EE218208FB00E3337B /* AllFilmsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */; };
@@ -89,7 +89,7 @@
 		A456FD3370B738F56D2706EA /* Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AutoGraphQL-AutoGraphTests/Pods-AutoGraphQL-AutoGraphTests.debug.xcconfig"; sourceTree = "<group>"; };
 		AA1DD5A9251CCC840058E2AD /* WebSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketClient.swift; sourceTree = "<group>"; };
 		AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionResponseHandler.swift; sourceTree = "<group>"; };
-		AA9907982526621700A312FA /* SubscriptionSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionSerializer.swift; sourceTree = "<group>"; };
+		AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionResponseSerializer.swift; sourceTree = "<group>"; };
 		AA99079A252664D700A312FA /* SubscriptionRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionRequest.swift; sourceTree = "<group>"; };
 		AA99079C252665CA00A312FA /* WebSocketError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketError.swift; sourceTree = "<group>"; };
 		AE6477ED218208FB00E3337B /* AllFilmsRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllFilmsRequest.swift; sourceTree = "<group>"; };
@@ -241,7 +241,7 @@
 				CD3BFF2F1E22D0D8008CE41A /* ResponseHandler.swift */,
 				CDBEBEAB1E1CB5E80029909A /* Utilities.swift */,
 				AA9907962526604500A312FA /* SubscriptionResponseHandler.swift */,
-				AA9907982526621700A312FA /* SubscriptionSerializer.swift */,
+				AA9907982526621700A312FA /* SubscriptionResponseSerializer.swift */,
 				AA99079A252664D700A312FA /* SubscriptionRequest.swift */,
 				AA99079C252665CA00A312FA /* WebSocketError.swift */,
 			);
@@ -658,7 +658,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA9907992526621700A312FA /* SubscriptionSerializer.swift in Sources */,
+				AA9907992526621700A312FA /* SubscriptionResponseSerializer.swift in Sources */,
 				CD3BFF251E1DE6F6008CE41A /* FoundationExtensions.swift in Sources */,
 				CD3BFF3F1E22D3E5008CE41A /* AlamofireClient.swift in Sources */,
 				CD3BFF2E1E205D74008CE41A /* AuthHandler.swift in Sources */,

@@ -97,13 +97,16 @@ open class AutoGraph {
         self.send(requestIncludingJSON, completion: completion)
     }
     
-    open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) {
+    /// Subscribe to a subscription. Returns a handler to the Subscription which can be used to unsubscribe. A `nil` return value implies
+    /// immediate failure, in which case, please check the error received in the completion block.
+    open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
         guard let webSocketClient = self.webSocketClient else {
             completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
-            return
+            return nil
         }
         
         do {
+            // TODO: all this serializing should get pushed down in to the response pipeline and done on a background queue.
             let request = try SubscriptionRequest(request: request, operationName: operationName)
             let responseHandler = SubscriptionResponseHandler { (result) in
                 switch result {
@@ -126,13 +129,15 @@ open class AutoGraph {
                 }
             }
             
-            webSocketClient.subscribe(request: request, responseHandler: responseHandler)
+            return webSocketClient.subscribe(request: request, responseHandler: responseHandler)
         }
         catch let error {
             completion(.failure(error))
+            return nil
         }
     }
     
+    // TODO: we should pass in a key. We could also have `unsubscribeAll(request:)`. request should always be a SubscriptionRequest automatically.
     open func unsubscribe<R: Request>(request: R, operationName: String) throws {
         let request = try SubscriptionRequest(request: request, operationName: operationName)
         try self.webSocketClient?.unsubscribe(request: request)
