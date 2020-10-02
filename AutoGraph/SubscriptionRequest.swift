@@ -9,13 +9,13 @@ public struct SubscriptionRequest<R: Request> {
         self.operationName = operationName
         self.request = request
         self.id = try SubscriptionRequest.generateRequestId(request: request,
-                                                          operationName: operationName)
+                                                            operationName: operationName)
     }
     
-    public func subscriptionMessage() throws -> String? {
+    public func subscriptionMessage() throws -> String {
         let query = try self.request.queryDocument.graphQLString()
         
-        var body: GraphQLMap = [
+        var body: [String : Any] = [
             "operationName": operationName,
             "query": query
         ]
@@ -24,11 +24,27 @@ public struct SubscriptionRequest<R: Request> {
             body["variables"] = variables
         }
         
-        guard let message = GraphQLWSProtocol(payload: body, id: self.id).rawMessage else {
-            throw WebSocketError.messagePayloadFailed(body)
+        let payload: [String : Any] = [
+            "payload": body,
+            "id": self.id,
+            "type": GraphQLWSProtocol.Types.start.rawValue
+        ]
+        
+        let serialized: Data = try {
+            do {
+               return try JSONSerialization.data(withJSONObject: payload, options: .fragmentsAllowed)
+            }
+            catch let e {
+                throw WebSocketError.subscriptionPayloadFailedSerialization(payload, underlyingError: e)
+            }
+        }()
+        
+        // TODO: Do we need to convert this to a string?
+        guard let serializedString = String(data: serialized, encoding: .utf8) else {
+            throw WebSocketError.subscriptionPayloadFailedSerialization(payload, underlyingError: nil)
         }
-
-        return message
+        
+        return serializedString
     }
     
     static func generateRequestId<R: Request>(request: R, operationName: String) throws -> String {
@@ -46,7 +62,7 @@ public struct SubscriptionRequest<R: Request> {
 }
 
 public struct GraphQLWSProtocol {
-    public enum Types : String {
+    public enum Types: String {
         case connectionInit = "connection_init"            // Client -> Server
         case connectionTerminate = "connection_terminate"  // Client -> Server
         case start = "start"                               // Client -> Server
@@ -66,11 +82,10 @@ public struct GraphQLWSProtocol {
         case payload
     }
     
-    var message: GraphQLMap = [:]
-    var serialized: String?
+    var payload: GraphQLMap = [:]
     
     var rawMessage: String? {
-        guard let serialized = try? JSONSerialization.data(withJSONObject: self.message, options: .fragmentsAllowed) else {
+        guard let serialized = try? JSONSerialization.data(withJSONObject: self.payload, options: .fragmentsAllowed) else {
             return nil
         }
         
@@ -79,15 +94,16 @@ public struct GraphQLWSProtocol {
     
     init(payload: GraphQLMap? = nil,
          id: String? = nil,
-         type: Types = .start) {
+         type: Types = .start)
+    {
         if let payload = payload {
-            self.message[Key.payload.rawValue] = payload
+            self.payload[Key.payload.rawValue] = payload
         }
         
         if let id = id  {
-            self.message[Key.id.rawValue] = id
+            self.payload[Key.id.rawValue] = id
         }
         
-        self.message[Key.type.rawValue] = type.rawValue
+        self.payload[Key.type.rawValue] = type.rawValue
     }
 }

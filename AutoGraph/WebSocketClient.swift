@@ -115,9 +115,7 @@ open class WebSocketClient {
     
     func sendSubscription<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
         do {
-            guard let subscriptionMessage = try request.subscriptionMessage() else {
-                return
-            }
+            let subscriptionMessage = try request.subscriptionMessage()
             
             guard self.state == .connected else {
                 responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(subscriptionMessage)))
