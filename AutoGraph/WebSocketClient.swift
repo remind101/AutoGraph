@@ -31,7 +31,7 @@ open class WebSocketClient {
     public init(url: URL,
                 queue: DispatchQueue = DispatchQueue(label:  "com.autograph.WebSocketClient", qos: .default)) throws {
         self.queue = queue
-        let request = try WebSocketClient.subscriptionRequest(url: url)
+        let request = try WebSocketClient.connectionRequest(url: url)
         self.webSocket = WebSocket(request: request)
         self.webSocket.delegate = self
     }
@@ -134,7 +134,7 @@ open class WebSocketClient {
 // MARK: - Class Method
 
 extension WebSocketClient {
-    class func subscriptionRequest(url: URL) throws -> URLRequest {
+    class func connectionRequest(url: URL) throws -> URLRequest {
         var defaultHeders = [String: String]()
         defaultHeders["Sec-WebSocket-Protocol"] = "graphql-ws"
         defaultHeders["Origin"] = url.absoluteString
