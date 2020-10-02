@@ -150,7 +150,9 @@ open class WebSocketClient {
             return key.subscriptionID == id
         }
         
-       
+        if let subscriber = self.subscriptions.removeValue(forKey: id)?.set.first?.key {
+            try self.unsubscribe(subscriber: subscriber)
+        }
     }
     
     public func unsubscribe(subscriber: Subscriber) throws {

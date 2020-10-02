@@ -75,14 +75,18 @@ class WebSocketClientTests: XCTestCase {
     
     func testUnsubscribeAllRemovesSubscriptions() {
         let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
-        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
-        self.subject.requeueAllSubscribers()
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
-        XCTAssertTrue(self.subject.queuedSubscriptions.contains(where: { $0.key == subscriber }))
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
         try! self.subject.unsubscribeAll(request: request)
 
-        XCTAssertEqual(self.subject.queuedSubscriptions.count, 0)
+        XCTAssertEqual(self.subject.subscriptions.count, 1)
+        
+        try! self.subject.unsubscribeAll(request: request2)
+        
+        XCTAssertEqual(self.subject.subscriptions.count, 0)
     }
     
     func testSubscriptionsGetRequeued() {
