@@ -4,7 +4,7 @@ public enum WebSocketError: Error {
     case requestCreationFailed(URL)
     case webSocketNotConnected(String)
     case subscriptionRequestBodyFailed(String)
-    case messagePayloadFailed(GraphQLMap)
+    case subscriptionPayloadFailedSerialization([String : Any], underlyingError: Error?)
     
     public var localizedDescription: String {
         switch self {
@@ -14,8 +14,8 @@ public enum WebSocketError: Error {
             return "WebSocket is not open to make subscription: \(subscription)"
         case let .subscriptionRequestBodyFailed(operationName):
             return "Subscription request body failed to serialize for query: \(operationName)"
-        case let .messagePayloadFailed(playload):
-            return "Subscription message payload failed to serialize message string: \(playload)"
+        case let .subscriptionPayloadFailedSerialization(payload, underlyingError):
+            return "Subscription message payload failed to serialize message string: \(payload) underlying error: \(String(describing: underlyingError))"
         }
     }
 }
