@@ -52,7 +52,7 @@ open class WebSocketClient {
         }
     }
     
-    public let webSocket: WebSocket
+    public var webSocket: WebSocket
     public weak var delegate: WebSocketClientDelegate?
     public private(set) var state: State = .disconnected
     
@@ -230,7 +230,7 @@ extension WebSocketClient {
         defaultHeders["Sec-WebSocket-Protocol"] = "graphql-ws"
         defaultHeders["Origin"] = url.absoluteString
         
-        return try URLRequest(url: url.appendingPathComponent("subscriptions"), method: .get, headers: HTTPHeaders(defaultHeders))
+        return try URLRequest(url: url, method: .get, headers: HTTPHeaders(defaultHeders))
     }
 }
 
