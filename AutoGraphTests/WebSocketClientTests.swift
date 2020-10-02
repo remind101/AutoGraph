@@ -8,18 +8,21 @@ private let kDelay = 0.5
 class WebSocketClientTests: XCTestCase {
     var subject: MockWebSocketClient!
     var webSocket: MockWebSocket!
+    var webSocketDelegate: MockWebSocketClientDelegate!
     
     override func setUp() {
         super.setUp()
         let url = URL(string: "localhost")!
         self.webSocket = MockWebSocket(request: URLRequest(url: url))
         self.subject = try! MockWebSocketClient(url: url, webSocket: self.webSocket)
+        self.webSocketDelegate = MockWebSocketClientDelegate()
+        self.subject.delegate = self.webSocketDelegate
     }
     
     override func tearDown() {
         self.subject = nil
         self.webSocket = nil
-        
+        self.webSocketDelegate = nil
         super.tearDown()
     }
     
@@ -58,6 +61,83 @@ class WebSocketClientTests: XCTestCase {
         XCTAssertEqual(film?.remoteId, "ZmlsbXM6MQ==")
     }
     
+    func testUnsubscribeRemovesSubscriptions() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        XCTAssertTrue(self.subject.subscriptions["film}"]!.contains(where: {$0.key == subscriber }))
+        
+        try! self.subject.unsubscribe(subscriber: subscriber)
+        
+        XCTAssertEqual(self.subject.subscriptions.count, 0)
+    }
+    
+    
+    func testUnsubscribeAllRemovesSubscriptions() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        self.subject.requeueAllSubscribers()
+
+        XCTAssertTrue(self.subject.queuedSubscriptions.contains(where: { $0.key == subscriber }))
+
+        try! self.subject.unsubscribeAll(request: request)
+
+        XCTAssertEqual(self.subject.queuedSubscriptions.count, 0)
+    }
+    
+    func testSubscriptionsGetRequeued() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        XCTAssertFalse(self.subject.queuedSubscriptions.contains(where: {$0.key == subscriber}))
+        self.subject.requeueAllSubscribers()
+        
+        XCTAssertTrue(self.subject.queuedSubscriptions.contains(where: {$0.key == subscriber}))
+    }
+    
+    func testSubscriptionDidReconnect() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.didReceive(event: WebSocketEvent.disconnected("", 0), client: self.webSocket)
+        XCTAssertTrue(self.subject.reconnectCalled)
+    }
+    
+    
+    func testReconnectIsNotCalledIfFullDisconnect() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.disconnect()
+        
+        XCTAssertFalse(self.subject.reconnectCalled)
+    }
+    
+    func testWebSocketClientDelegateDidReceiveEventGetsCalled() {
+        let connectionEvent = WebSocketEvent.connected([:])
+        self.subject.didReceive(event: connectionEvent, client: self.webSocket)
+        
+        XCTAssertEqual(self.webSocketDelegate.event, connectionEvent)
+        
+        let disconnectEvent = WebSocketEvent.disconnected("stop", 0)
+        self.subject.didReceive(event: disconnectEvent, client: self.webSocket)
+
+        XCTAssertEqual(self.webSocketDelegate.event, disconnectEvent)
+
+        let textEvent = WebSocketEvent.text("hello")
+        self.subject.didReceive(event: textEvent, client: self.webSocket)
+
+        XCTAssertEqual(self.webSocketDelegate.event, textEvent)
+    }
+    
+    func testWebSocketClientDelegatDidRecieveError() {
+        struct TestError: Error {}
+    
+        self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
+        
+        XCTAssertNotNil(self.webSocketDelegate.error)
+    }
+    
     func waitFor(delay: TimeInterval) {
         let expectation = self.expectation(description: "wait")
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
@@ -72,8 +152,22 @@ class WebSocketClientTests: XCTestCase {
     }
 }
 
+class MockWebSocketClientDelegate: WebSocketClientDelegate {
+    var error: Error?
+    var event: WebSocketEvent?
+    
+    func didReceive(error: Error) {
+        self.error = error
+    }
+    
+    func didReceive(event: WebSocketEvent) {
+        self.event = event
+    }
+}
+
 class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     var subscriptionPayload: String?
+    var reconnectCalled = false
     
     init(url: URL, webSocket: MockWebSocket) throws {
         try super.init(url: url)
@@ -91,6 +185,11 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
         }
         
         self.write(self.subscriptionPayload!)
+    }
+    
+    override func reconnect() -> DispatchTimeInterval? {
+        self.reconnectCalled = true
+        return super.reconnect()
     }
 }
 
@@ -133,5 +232,20 @@ class MockWebSocket: Starscream.WebSocket {
         ]
         
         return try! String(data: JSONValue(dict: json).encode(), encoding: .utf8)!
+    }
+}
+
+extension WebSocketEvent: Equatable {
+    public static func ==(lhs: WebSocketEvent, rhs: WebSocketEvent) -> Bool {
+        switch (lhs, rhs) {
+        case let (.connected(lhsHeader), .connected(rhsHeader)):
+            return lhsHeader == rhsHeader
+        case let (.disconnected(lhsReason, lhsCode), .disconnected(rhsReason, rhsCode)):
+            return lhsReason == rhsReason && lhsCode == rhsCode
+        case let (.text(lhsText), .text(rhsText)):
+            return lhsText == rhsText
+        default:
+            return true
+        }
     }
 }

@@ -57,9 +57,9 @@ open class WebSocketClient {
     public private(set) var state: State = .disconnected
     
     public let subscriptionSerializer = SubscriptionResponseSerializer()
-    private var queuedSubscriptions = [Subscriber : WebSocketConnected]()
-    private var subscriptions = [SubscriptionID: SubscriptionSet]()
-    private var attemptReconnectCount = kAttemptReconnectCount
+    internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
+    internal var subscriptions = [SubscriptionID: SubscriptionSet]()
+    internal var attemptReconnectCount = kAttemptReconnectCount
     
     public init(url: URL) throws {
         let request = try WebSocketClient.connectionRequest(url: url)
@@ -148,6 +148,10 @@ open class WebSocketClient {
         let id = request.subscriptionID
         self.queuedSubscriptions = self.queuedSubscriptions.filter { (key, _) -> Bool in
             return key.subscriptionID == id
+        }
+        
+        for (key, _) in self.queuedSubscriptions {
+            try self.unsubscribe(subscriber: key)
         }
     }
     
