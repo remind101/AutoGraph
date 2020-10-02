@@ -2,7 +2,7 @@ import Foundation
 import Starscream
 import Alamofire
 
-public typealias WebSocketConnected = (Result<Bool, Error>) -> Void
+public typealias WebSocketConnected = (Result<Void, Error>) -> Void
 
 public protocol WebSocketClientDelegate: class {
     func didReceive(event: WebSocketEvent)
@@ -106,7 +106,7 @@ open class WebSocketClient {
         let connectionCompletionBlock: WebSocketConnected = self.connectionCompletionBlock(subscriber: subscriber, responseHandler: responseHandler)
         
         guard self.state != .connected else {
-            connectionCompletionBlock(.success(true))
+            connectionCompletionBlock(.success(()))
             return subscriber
         }
         
@@ -209,7 +209,7 @@ open class WebSocketClient {
         let queuedSubscriptions = self.queuedSubscriptions
         self.queuedSubscriptions.removeAll()
         queuedSubscriptions.forEach { (_, connected: WebSocketConnected) in
-            connected(.success(true))
+            connected(.success(()))
         }
     }
     
