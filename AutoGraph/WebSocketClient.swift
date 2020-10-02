@@ -71,8 +71,9 @@ open class WebSocketClient {
         }
         
         self.queue.async {
-            if let message = GraphQLWSProtocol(type: .connectionTerminate).rawMessage {
-                self.write(message)
+            // TODO: Possible return something to the user if this fails?
+            if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
+                self.write(payload)
             }
             
             self.webSocket.disconnect()
@@ -115,7 +116,7 @@ open class WebSocketClient {
     
     func sendSubscription<R: Request>(request: SubscriptionRequest<R>, responseHandler: SubscriptionResponseHandler) {
         do {
-            let subscriptionMessage = try request.subscriptionMessage()
+            let subscriptionMessage = try request.serializedSubscriptionPayload()
             
             guard self.state == .connected else {
                 responseHandler.didFinish(subscription: SubscriptionPayload(error: WebSocketError.webSocketNotConnected(subscriptionMessage)))
