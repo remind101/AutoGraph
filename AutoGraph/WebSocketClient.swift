@@ -11,17 +11,16 @@ public protocol WebSocketClientDelegate: class {
 
 private let kAttemptReconnectCount = 3
 
-// TODO: we use "id" in other places. but subscriptionKey almost makes more sense, consider consolidating.
 /// The unique key for a subscription request. A combination of OperationName + variables.
-public typealias SubscriptionKey = String
+public typealias SubscriptionID = String
 
 public struct Subscriber: Hashable {
     let uuid = UUID()   // Disambiguates between multiple different subscribers of same subscription.
-    let subscriptionKey: SubscriptionKey
+    let subscriptionID: SubscriptionID
     let serializableRequest: SubscriptionRequestSerializable    // Needed on reconnect.
     
-    init(subscriptionKey: String, serializableRequest: SubscriptionRequestSerializable) {
-        self.subscriptionKey = subscriptionKey
+    init(subscriptionID: String, serializableRequest: SubscriptionRequestSerializable) {
+        self.subscriptionID = subscriptionID
         self.serializableRequest = serializableRequest
     }
     
@@ -57,9 +56,9 @@ open class WebSocketClient {
     public weak var delegate: WebSocketClientDelegate?
     public private(set) var state: State = .disconnected
     
-    private let subscriptionSerializer = SubscriptionSerializer()
+    private let subscriptionSerializer = SubscriptionResponseSerializer()
     private var queuedSubscriptions = [Subscriber : WebSocketConnected]()
-    private var subscribers = [SubscriptionKey: SubscriptionSet]() // TODO: rename to subscriptions.
+    private var subscriptions = [SubscriptionID: SubscriptionSet]()
     private var attemptReconnectCount = kAttemptReconnectCount
     
     public init(url: URL) throws {
@@ -104,7 +103,7 @@ open class WebSocketClient {
         // Otherwise if connected send subscription and add to subscriber set.
         // Otherwise queue it and it will be added after connecting.
         
-        let subscriber = Subscriber(subscriptionKey: request.id, serializableRequest: request)
+        let subscriber = Subscriber(subscriptionID: request.subscriptionID, serializableRequest: request)
         let connectionCompletionBlock: WebSocketConnected = self.connectionCompletionBlock(subscriber: subscriber, responseHandler: responseHandler)
         
         guard self.state != .connected else {
@@ -124,11 +123,11 @@ open class WebSocketClient {
             // If we already have a subscription for that key then just add the subscriber to the set for that key with a callback.
             // Otherwise if connected send subscription and add to subscriber set.
             
-            if let subscriberSet = self.subscribers[subscriber.subscriptionKey] {
-                subscriberSet.set[subscriber] = responseHandler
+            if let subscriptionSet = self.subscriptions[subscriber.subscriptionID] {
+                subscriptionSet.set[subscriber] = responseHandler
             }
             else {
-                self.subscribers[subscriber.subscriptionKey] = SubscriptionSet(set: [subscriber : responseHandler])
+                self.subscriptions[subscriber.subscriptionID] = SubscriptionSet(set: [subscriber : responseHandler])
                 do {
                     try self.sendSubscription(request: subscriber.serializableRequest)
                 }
@@ -147,7 +146,7 @@ open class WebSocketClient {
     public func unsubscribe(subscriber: Subscriber) throws {
         // Write the unsubscribe, and only remove our subscriptions for that subscriber.
         self.queuedSubscriptions.removeValue(forKey: subscriber)
-        self.subscribers.removeValue(forKey: subscriber.subscriptionKey)
+        self.subscriptions.removeValue(forKey: subscriber.subscriptionID)
         
         // TODO: we need to stop on a specific ID.
         let stopPayload = try GraphQLWSProtocol.stop.serializedSubscriptionPayload()
@@ -190,12 +189,12 @@ open class WebSocketClient {
     // TODO: needs a good test
     /// Takes all subscriptions and puts them back on the queue, used for reconnection.
     func requeueAllSubscribers() {
-        for (_, subscriptionSet) in self.subscribers {
+        for (_, subscriptionSet) in self.subscriptions {
             for (subscriber, subscriptionResponseHandler) in subscriptionSet {
                 self.queuedSubscriptions[subscriber] = connectionCompletionBlock(subscriber: subscriber, responseHandler: subscriptionResponseHandler)
             }
         }
-        self.subscribers.removeAll(keepingCapacity: true)
+        self.subscriptions.removeAll(keepingCapacity: true)
     }
     
     // TODO: test
@@ -217,7 +216,7 @@ open class WebSocketClient {
     
     func reset() {
         self.disconnect()
-        self.subscribers.removeAll()
+        self.subscriptions.removeAll()
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
         self.reconnecting = false
@@ -251,11 +250,11 @@ extension WebSocketClient: WebSocketDelegate {
             case .disconnected, .cancelled:
                 _ = self.reconnect()
             case .binary(let data):
-                let subscription = try self.subscriptionSerializer.serialize(data: data)
-                self.didReceive(subscriptionResponsePayload: subscription)
+                let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
+                self.didReceive(subscriptionResponse: subscriptionResponse)
             case let .text(text):
-                let subscription = try self.subscriptionSerializer.serialize(text: text)
-                self.didReceive(subscriptionResponsePayload: subscription)
+                let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
+                self.didReceive(subscriptionResponse: subscriptionResponse)
             case .connected:
                 try self.didConnect()
             case let .reconnectSuggested(shouldReconnect):
@@ -280,10 +279,10 @@ extension WebSocketClient: WebSocketDelegate {
         }
     }
     
-    func didReceive(subscriptionResponsePayload: SubscriptionResponsePayload) {
-        let id = subscriptionResponsePayload.id
-        self.subscribers[id]?.set.forEach { (_, value: SubscriptionResponseHandler) in
-            value.didReceive(subscriptionResponsePayload: subscriptionResponsePayload)
+    func didReceive(subscriptionResponse: SubscriptionResponse) {
+        let id = subscriptionResponse.id
+        self.subscriptions[id]?.set.forEach { (_, value: SubscriptionResponseHandler) in
+            value.didReceive(subscriptionResponse: subscriptionResponse)
         }
     }
 }
