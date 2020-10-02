@@ -99,6 +99,8 @@ open class AutoGraph {
     
     /// Subscribe to a subscription. Returns a handler to the Subscription which can be used to unsubscribe. A `nil` return value implies
     /// immediate failure, in which case, please check the error received in the completion block.
+    ///
+    /// It will form a websocket connection if one doesn't exist already.
     open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
         guard let webSocketClient = self.webSocketClient else {
             completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
@@ -137,13 +139,16 @@ open class AutoGraph {
         }
     }
     
-    // TODO: we should pass in a key. We could also have `unsubscribeAll(request:)`. request should always be a SubscriptionRequest automatically.
-    open func unsubscribe<R: Request>(request: R, operationName: String) throws {
+    open func unsubscribeAll<R: Request>(request: R, operationName: String) throws {
         let request = try SubscriptionRequest(request: request, operationName: operationName)
-        try self.webSocketClient?.unsubscribe(request: request)
+        try self.webSocketClient?.unsubscribeAll(request: request)
     }
     
-    open func disconnectWebSocket() {
+    open func unsubscribe(subscriber: Subscriber) throws {
+        try self.webSocketClient?.unsubscribe(subscriber: subscriber)
+    }
+    
+    open func disconnectAndRetryWebSocket() {
         self.webSocketClient?.disconnect()
     }
     
