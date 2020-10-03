@@ -14,6 +14,7 @@ class WebSocketClientTests: XCTestCase {
         super.setUp()
         let url = URL(string: "localhost")!
         self.webSocket = MockWebSocket(request: URLRequest(url: url))
+        webSocket.jsonResponse = FilmSubscriptionRequest.jsonResponse   // TODO: This isn't obvious, refactor.
         self.subject = try! MockWebSocketClient(url: url, webSocket: self.webSocket)
         self.webSocketDelegate = MockWebSocketClientDelegate()
         self.subject.delegate = self.webSocketDelegate
@@ -28,7 +29,7 @@ class WebSocketClientTests: XCTestCase {
     
     func testSendSubscriptionResponseHandlerIsCalledOnSuccess() {
         var called = false
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { result in
             
             guard case .success(_) = result else {
@@ -46,7 +47,7 @@ class WebSocketClientTests: XCTestCase {
     
     func testSendSubscriptionCorrectlyDecodesResponse() {
         var film: Film?
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { result in
             
             guard case let .success(data) = result else {
@@ -72,7 +73,7 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testUnsubscribeRemovesSubscriptions() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
@@ -84,10 +85,10 @@ class WebSocketClientTests: XCTestCase {
     
     
     func testUnsubscribeAllRemovesSubscriptions() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(operationName: "film2"))
         _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
         try! self.subject.unsubscribeAll(request: request)
@@ -100,10 +101,10 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testSubscriptionsGetRequeued() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(operationName: "film2"))
         _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.queuedSubscriptions.count == 0)
@@ -114,7 +115,7 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testDisconnectEventReconnects() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         self.subject.didReceive(event: WebSocketEvent.disconnected("", 0), client: self.webSocket)
@@ -123,7 +124,7 @@ class WebSocketClientTests: XCTestCase {
     
     
     func testReconnectIsNotCalledIfFullDisconnect() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         self.subject.disconnect()
@@ -156,12 +157,12 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testSubscribeQueuesAndSendsSubscriptionAfterConnectionFinishes() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
 
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         var subscriptionNotCalled = true
         let subscriber2 = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in
             subscriptionNotCalled = false
@@ -306,6 +307,7 @@ class MockWebSocket: Starscream.WebSocket {
     var subscriptionRequest: String?
     var isConnected = false
     var enableReconnectLoop = false
+    var jsonResponse: [String : Any]!
     
     override func connect() {
         if enableReconnectLoop {
@@ -333,21 +335,7 @@ class MockWebSocket: Starscream.WebSocket {
     }
     
     func createResponseString() -> String {
-        let json: [String: Any] = [
-            "type": "data",
-            "id": "film",
-            "payload": [
-                "data": [
-                    "id": "ZmlsbXM6MQ==",
-                    "title": "A New Hope",
-                    "episodeID": 4,
-                    "director": "George Lucas",
-                    "openingCrawl": "It is a period of civil war.\r\nRebel spaceships, striking\r\nfrom a hidden base, have won\r\ntheir first victory against\r\nthe evil Galactic Empire.\r\n\r\nDuring the battle, Rebel\r\nspies managed to steal secret\r\nplans to the Empire's\r\nultimate weapon, the DEATH\r\nSTAR, an armored space\r\nstation with enough power\r\nto destroy an entire planet.\r\n\r\nPursued by the Empire's\r\nsinister agents, Princess\r\nLeia races home aboard her\r\nstarship, custodian of the\r\nstolen plans that can save her\r\npeople and restore\r\nfreedom to the galaxy...."
-                ]
-            ]
-        ]
-        
-        return try! String(data: JSONValue(dict: json).encode(), encoding: .utf8)!
+        return try! String(data: JSONValue(dict: self.jsonResponse).encode(), encoding: .utf8)!
     }
 }
 

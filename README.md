@@ -14,11 +14,11 @@ The Swiftest way to GraphQL
 
 - [ ] ⚡️ [Code Generation](#code-generation)
 - [x] 🔨 [Query Builder](#query-builder)
+- [x] 📩 [Subscriptions](#subscriptions)
 - [x] ⛑ [Type safe Mapping](#decodable-for-type-safe-models)
 - [x] 🆒 [Type safe JSON](#jsonvalue-for-type-safe-json)
 - [x] 🐙 [Threading](#threading)
 - [x] 🌐 [Network Library](#network-library)
-- [ ] 🥓 [Batched Queries](#batched-queries)
 
 AutoGraph is a Swift client framework for making requests using GraphQL and mapping the responses to strongly typed models. Models may be represented by any `Decodable` type. AutoGraph relies heavily on Swift's type safety to drive it, leading to safer, compile time checked code.
 
@@ -132,6 +132,7 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
 - [x] [Query Document](https://facebook.github.io/graphql/#sec-Language.Query-Document)
 - [x] [Operations](https://facebook.github.io/graphql/#sec-Language.Operations)
 - [x] [Mutations](http://graphql.org/learn/queries/#mutations)
+- [x] [Subscriptions](http://spec.graphql.org/June2018/#sec-Subscription-Operation-Definitions)
 - [x] [Selection Sets](https://facebook.github.io/graphql/#sec-Selection-Sets)
 - [x] [Fields](https://facebook.github.io/graphql/#sec-Language.Fields)
 - [x] [Arguments](https://facebook.github.io/graphql/#sec-Language.Arguments)
@@ -145,6 +146,32 @@ AutoGraphQL.Operation(type: .mutation, name: "MyCoolMutation", fields: [
   - [x] Fragment Definition
 - [x] [Inline Fragments](https://facebook.github.io/graphql/#sec-Inline-Fragments)
 - [x] [Directives](https://facebook.github.io/graphql/#sec-Language.Directives)
+
+## Subscriptions
+
+AutoGraph now supports subscriptions using the `graphql-ws` protocol. This is this same protocol that Apollo GraphQL server uses, meaning subscriptions will work with Apollo server.
+
+```
+let url = URL(string: "wss.mygraphql.com/subscriptions")!
+let webSocketClient = try WebSocketClient(url: url)
+webSocketClient.delegate = self   // Allows the user to inspect errors and events as they arrive.
+
+let client = try AlamofireClient(url: AutoGraph.localHost,
+                                 session: Session(configuration: MockURLProtocol.sessionConfiguration(),
+                                                  interceptor: AuthHandler()))
+let autoGraph = AutoGraph(client: client, webSocketClient: webSocketClient)
+
+let request = FilmSubscriptionRequest()
+let subscriber = self.subject.subscribe(request) { (result) in
+    switch result {
+    case .success(let object): // Handle new object.
+    case .failure(let error):  // Handle error
+    }
+}
+
+// Sometime later...
+try autoGraph.unsubscribe(subscriber: subscriber!)
+```
 
 ## Decodable for type safe Models
 

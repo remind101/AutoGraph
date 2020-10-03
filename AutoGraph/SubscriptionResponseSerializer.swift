@@ -62,9 +62,6 @@ public struct SubscriptionResponse: Decodable {
         self.payload = try payloadContainer.decodeIfPresent(JSONValue.self, forKey: .data)?.encode()
         
         let payloadJSON = try container.decode(JSONValue.self, forKey: .payload)
-        
-        self.error = {
-            return AutoGraphError(graphQLResponseJSON: payloadJSON, response: nil, networkErrorParser: nil)
-        }()
+        self.error = AutoGraphError(graphQLResponseJSON: payloadJSON, response: nil, networkErrorParser: nil)
     }
 }

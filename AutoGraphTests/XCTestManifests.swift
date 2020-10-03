@@ -30,6 +30,7 @@ extension AutoGraphTests {
     // to regenerate.
     static let __allTests__AutoGraphTests = [
         ("testArrayObjectSerialization", testArrayObjectSerialization),
+        ("testArraySubscription", testArraySubscription),
         ("testAuthHandlerBeganReauthenticationPausesDispatcher", testAuthHandlerBeganReauthenticationPausesDispatcher),
         ("testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher", testAuthHandlerReauthenticatedSuccessfullyUnpausesDispatcher),
         ("testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll", testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll),
@@ -40,6 +41,7 @@ extension AutoGraphTests {
         ("testFunctionalLifeCycle", testFunctionalLifeCycle),
         ("testFunctionalSingleFilmRequest", testFunctionalSingleFilmRequest),
         ("testRequestIncludingNetworking", testRequestIncludingNetworking),
+        ("testSubscription", testSubscription),
         ("testTriggeringReauthenticationPausesSystem", testTriggeringReauthenticationPausesSystem),
     ]
 }

@@ -12,6 +12,9 @@ public protocol Request {
     /// The query to be sent to GraphQL.
     var queryDocument: QueryDocument { get }
     
+    /// The Operation Name for the query document.
+    var operationName: String { get }
+    
     /// The variables sent along with the query.
     var variables: Variables? { get }
     
@@ -26,6 +29,12 @@ public protocol Request {
     
     /// Called right before calling the completion handler for the sent request, i.e. at the end of the lifecycle.
     func didFinish(result: AutoGraphResult<SerializedObject>) throws
+}
+
+extension Request where QueryDocument == Operation {
+    var operationName: String {
+        return self.queryDocument.name
+    }
 }
 
 /// A weird enum that collects info for a request.
@@ -63,6 +72,10 @@ public struct RequestIncludingNetworkResponse<R: Request>: Request {
     
     public var queryDocument: R.QueryDocument {
         return self.request.queryDocument
+    }
+    
+    public var operationName: String {
+        return self.request.operationName
     }
     
     public var variables: R.Variables? {

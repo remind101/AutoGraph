@@ -46,21 +46,13 @@ class AutoGraphTests: XCTestCase {
         func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) { }
     }
     
-    class MockWebSocketClient: WebSocketClient {
-        var disconnected = false
-        
-        override func disconnect() {
-            self.disconnected = true
-        }
-    }
-    
     var subject: AutoGraph!
     
     override func setUp() {
         super.setUp()
         
         let client = try! AlamofireClient(url: AutoGraph.localHost,
-                                     session: Session(configuration: MockURLProtocol.sessionConfiguration(), interceptor: AuthHandler()))
+                                          session: Session(configuration: MockURLProtocol.sessionConfiguration(), interceptor: AuthHandler()))
         self.subject = AutoGraph(client: client)
     }
     
@@ -214,6 +206,74 @@ class AutoGraphTests: XCTestCase {
         XCTAssertTrue(lifeCycle.didFinishCalled)
     }
     
+    func testSubscription() throws {
+        let url = URL(string: "localhost")!
+        let webSocket = MockWebSocket(request: URLRequest(url: url))
+        webSocket.jsonResponse = FilmSubscriptionRequest.jsonResponse
+        let webSocketClient = try! MockWebSocketClient(url: url, webSocket: webSocket)
+        let webSocketDelegate = MockWebSocketClientDelegate()
+        webSocketClient.delegate = webSocketDelegate
+        
+        let client = try! AlamofireClient(url: AutoGraph.localHost,
+                                          session: Session(configuration: MockURLProtocol.sessionConfiguration(),
+                                                           interceptor: AuthHandler()))
+        self.subject = AutoGraph(client: client, webSocketClient: webSocketClient)
+        
+        var called = false
+        let request = FilmSubscriptionRequest()
+        let subscriber = self.subject.subscribe(request) { (result) in
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+            
+            called = true
+        }
+        
+        XCTAssertNotNil(subscriber)
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(called)
+        
+        XCTAssertEqual(webSocketClient.subscriptions.count, 1)
+        try self.subject.unsubscribe(subscriber: subscriber!)
+        XCTAssertEqual(webSocketClient.subscriptions.count, 0)
+    }
+    
+    func testArraySubscription() throws {
+        let url = URL(string: "localhost")!
+        let webSocket = MockWebSocket(request: URLRequest(url: url))
+        webSocket.jsonResponse = AllFilmsSubscriptionRequest.jsonResponse
+        let webSocketClient = try! MockWebSocketClient(url: url, webSocket: webSocket)
+        let webSocketDelegate = MockWebSocketClientDelegate()
+        webSocketClient.delegate = webSocketDelegate
+        
+        let client = try! AlamofireClient(url: AutoGraph.localHost,
+                                          session: Session(configuration: MockURLProtocol.sessionConfiguration(),
+                                                           interceptor: AuthHandler()))
+        self.subject = AutoGraph(client: client, webSocketClient: webSocketClient)
+        
+        var called = false
+        let request = AllFilmsSubscriptionRequest()
+        let subscriber = self.subject.subscribe(request) { (result) in
+            guard case .success(_) = result else {
+                XCTFail()
+                return
+            }
+            
+            called = true
+        }
+        
+        XCTAssertNotNil(subscriber)
+        
+        waitFor(delay: kDelay)
+        XCTAssertTrue(called)
+        
+        XCTAssertEqual(webSocketClient.subscriptions.count, 1)
+        try self.subject.unsubscribe(subscriber: subscriber!)
+        XCTAssertEqual(webSocketClient.subscriptions.count, 0)
+    }
+    
     func testArrayObjectSerialization() {
         
         class GlobalLifeCycleMock: GlobalLifeCycle {
@@ -265,6 +325,14 @@ class AutoGraphTests: XCTestCase {
     }
     
     func testCancelAllCancelsDispatcherAndClient() {
+        class MockWebSocketClient: WebSocketClient {
+            var disconnected = false
+            
+            override func disconnect() {
+                self.disconnected = true
+            }
+        }
+        
         let mockClient = MockClient()
         let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
         let mockWebClient = try? MockWebSocketClient(url: URL(string: "localhost")!)
@@ -290,6 +358,14 @@ class AutoGraphTests: XCTestCase {
     }
     
     func testAuthHandlerReauthenticatedUnsuccessfullyCancelsAll() {
+        class MockWebSocketClient: WebSocketClient {
+            var disconnected = false
+            
+            override func disconnect() {
+                self.disconnected = true
+            }
+        }
+        
         let mockClient = MockClient()
         let mockDispatcher = MockDispatcher(requestSender: mockClient, responseHandler: ResponseHandler())
         let mockWebClient = try? MockWebSocketClient(url: URL(string: "localhost")!)

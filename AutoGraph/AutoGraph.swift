@@ -97,19 +97,18 @@ open class AutoGraph {
         self.send(requestIncludingJSON, completion: completion)
     }
     
-    // TODO: Make it so you don't have to pass in operationName
     /// Subscribe to a subscription. Returns a handler to the Subscription which can be used to unsubscribe. A `nil` return value implies
     /// immediate failure, in which case, please check the error received in the completion block.
     ///
     /// It will form a websocket connection if one doesn't exist already.
-    open func subscribe<R: Request>(_ request: R, operationName: String, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
+    open func subscribe<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
         guard let webSocketClient = self.webSocketClient else {
             completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
             return nil
         }
         
         do {
-            let request = try SubscriptionRequest(request: request, operationName: operationName)
+            let request = try SubscriptionRequest(request: request)
             let responseHandler = SubscriptionResponseHandler { (result) in
                 switch result {
                 case .success(let data):
@@ -128,7 +127,7 @@ open class AutoGraph {
     }
     
     open func unsubscribeAll<R: Request>(request: R, operationName: String) throws {
-        let request = try SubscriptionRequest(request: request, operationName: operationName)
+        let request = try SubscriptionRequest(request: request)
         try self.webSocketClient?.unsubscribeAll(request: request)
     }
     
