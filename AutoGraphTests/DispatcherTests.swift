@@ -100,6 +100,7 @@ class DispatcherTests: XCTestCase {
         
         typealias SerializedObject = Film
         let queryDocument = BadQuery()
+        var operationName = "Bad"
         let variables: [AnyHashable : Any]? = nil
         let rootKeyPath: String = ""
     }

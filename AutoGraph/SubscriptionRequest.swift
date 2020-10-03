@@ -9,8 +9,8 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
     let request: R
     let subscriptionID: SubscriptionID
     
-    init(request: R, operationName: String) throws {
-        self.operationName = operationName
+    init(request: R) throws {
+        self.operationName = request.operationName
         self.request = request
         self.subscriptionID = try SubscriptionRequest.generateSubscriptionID(request: request,
                                                                              operationName: operationName)
@@ -20,7 +20,7 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
         let query = try self.request.queryDocument.graphQLString()
         
         var body: [String : Any] = [
-            "operationName": operationName,
+            "operationName": self.operationName,
             "query": query
         ]
         

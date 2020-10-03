@@ -15,6 +15,7 @@ class FilmSubscriptionRequest: Request {
      }
      */
     
+    let operationName: String
     let queryDocument = Operation(type: .subscription,
                                   name: "film",
                                   selectionSet: [
@@ -32,6 +33,10 @@ class FilmSubscriptionRequest: Request {
     let variables: [AnyHashable : Any]? = nil
     
     let rootKeyPath: String = "data.film"
+    
+    init(operationName: String = "film") {
+        self.operationName = operationName
+    }
     
     public func willSend() throws { }
     public func didFinishRequest(response: HTTPURLResponse?, json: JSONValue) throws { }

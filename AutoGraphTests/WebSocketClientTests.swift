@@ -28,7 +28,7 @@ class WebSocketClientTests: XCTestCase {
     
     func testSendSubscriptionResponseHandlerIsCalledOnSuccess() {
         var called = false
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { result in
             
             guard case .success(_) = result else {
@@ -46,7 +46,7 @@ class WebSocketClientTests: XCTestCase {
     
     func testSendSubscriptionCorrectlyDecodesResponse() {
         var film: Film?
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { result in
             
             guard case let .success(data) = result else {
@@ -72,7 +72,7 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testUnsubscribeRemovesSubscriptions() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
@@ -84,10 +84,10 @@ class WebSocketClientTests: XCTestCase {
     
     
     func testUnsubscribeAllRemovesSubscriptions() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(operationName: "film2"))
         _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
 
         try! self.subject.unsubscribeAll(request: request)
@@ -100,10 +100,10 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testSubscriptionsGetRequeued() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film1")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(operationName: "film2"))
         _ = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.queuedSubscriptions.count == 0)
@@ -114,7 +114,7 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testDisconnectEventReconnects() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         self.subject.didReceive(event: WebSocketEvent.disconnected("", 0), client: self.webSocket)
@@ -123,7 +123,7 @@ class WebSocketClientTests: XCTestCase {
     
     
     func testReconnectIsNotCalledIfFullDisconnect() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         self.subject.disconnect()
@@ -156,12 +156,12 @@ class WebSocketClientTests: XCTestCase {
     }
     
     func testSubscribeQueuesAndSendsSubscriptionAfterConnectionFinishes() {
-        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         let subscriber = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
         
         XCTAssertTrue(self.subject.subscriptions["film"]!.contains(where: {$0.key == subscriber }))
 
-        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest(), operationName: "film")
+        let request2 = try! SubscriptionRequest(request: FilmSubscriptionRequest())
         var subscriptionNotCalled = true
         let subscriber2 = self.subject.subscribe(request: request2, responseHandler: SubscriptionResponseHandler(completion: { _ in
             subscriptionNotCalled = false
