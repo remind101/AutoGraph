@@ -297,7 +297,11 @@ extension WebSocketClient: WebSocketDelegate {
     
     func didReceive(subscriptionResponse: SubscriptionResponse) {
         let id = subscriptionResponse.id
-        self.subscriptions[id]?.set.forEach { (_, value: SubscriptionResponseHandler) in
+        guard let subscriptionSet = self.subscriptions[id] else {
+            print("WARNING: Recieved a subscription response for a subscription that AutoGraph is no longer subscribed to. SubscriptionID: \(subscriptionResponse.id)")
+            return
+        }
+        subscriptionSet.forEach { (_, value: SubscriptionResponseHandler) in
             value.didReceive(subscriptionResponse: subscriptionResponse)
         }
     }
