@@ -32,7 +32,7 @@ public protocol Request {
 }
 
 extension Request where QueryDocument == Operation {
-    var operationName: String {
+    public var operationName: String {
         return self.queryDocument.name
     }
 }
