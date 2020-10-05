@@ -126,7 +126,7 @@ open class AutoGraph {
         }
     }
     
-    open func unsubscribeAll<R: Request>(request: R, operationName: String) throws {
+    open func unsubscribeAll<R: Request>(request: R) throws {
         let request = try SubscriptionRequest(request: request)
         try self.webSocketClient?.unsubscribeAll(request: request)
     }
