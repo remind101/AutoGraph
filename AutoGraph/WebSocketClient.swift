@@ -90,14 +90,13 @@ open class WebSocketClient {
     private var fullDisconnect = false
     public func disconnect() {
         self.fullDisconnect = true
-        self.disconnectAndPossiblyReconnect()
+        self.disconnectAndPossiblyReconnect(force: true)
     }
     
-    public func disconnectAndPossiblyReconnect() {
-        guard self.state != .disconnected else {
+    public func disconnectAndPossiblyReconnect(force: Bool = false) {
+        guard self.state != .disconnected, !force else {
             return
         }
-        self.state = .disconnected
         
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
@@ -260,11 +259,14 @@ extension WebSocketClient: WebSocketDelegate {
         
         do {
             switch event {
-            case .disconnected, .cancelled:
+            case .disconnected:
+                self.state = .disconnected
                 if !self.fullDisconnect {
                     _ = self.reconnect()
                 }
                 self.fullDisconnect = false
+            case .cancelled:
+                _ = self.reconnect()
             case .binary(let data):
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
