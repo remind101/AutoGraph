@@ -57,7 +57,7 @@ public struct SubscriptionResponse: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.id  = try container.decode(String.self, forKey: .id)
-        self.type = GraphQLWSProtocol(rawValue: try container.decode(String.self, forKey: .type)) ?? .unknown 
+        self.type = GraphQLWSProtocol(rawValue: try container.decode(String.self, forKey: .type)) ?? .unknownResponse
         let payloadContainer = try container.nestedContainer(keyedBy: PayloadCodingKeys.self, forKey: .payload)
         self.payload = try payloadContainer.decodeIfPresent(JSONValue.self, forKey: .data)?.encode()
         

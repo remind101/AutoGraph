@@ -36,6 +36,7 @@ public struct Subscriber: Hashable {
 open class WebSocketClient {
     public enum State {
         case connected
+        case reconnecting
         case disconnected
     }
     
@@ -50,11 +51,21 @@ open class WebSocketClient {
         func makeIterator() -> Dictionary<Subscriber, SubscriptionResponseHandler>.Iterator {
             return set.makeIterator()
         }
+        
+        func didChangeConnectionState(_ state: State) {
+            self.set.forEach { (_, value: SubscriptionResponseHandler) in
+                value.didChangeConnectionState(state)
+            }
+        }
     }
     
     public var webSocket: WebSocket
     public weak var delegate: WebSocketClientDelegate?
-    public private(set) var state: State = .disconnected
+    public private(set) var state: State = .disconnected {
+        didSet {
+            self.subscriptions.forEach { $0.value.didChangeConnectionState(state) }
+        }
+    }
     
     public let subscriptionSerializer = SubscriptionResponseSerializer()
     internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
@@ -187,6 +198,7 @@ open class WebSocketClient {
             self.attemptReconnectCount -= 1
         }
         self.reconnecting = true
+        self.state = .reconnecting
         
         let delayInSeconds = DispatchTimeInterval.seconds(min(abs(kAttemptReconnectCount - self.attemptReconnectCount) * 10, 30))
         DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) { [weak self] in

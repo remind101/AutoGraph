@@ -101,7 +101,7 @@ open class AutoGraph {
     /// immediate failure, in which case, please check the error received in the completion block.
     ///
     /// It will form a websocket connection if one doesn't exist already.
-    open func subscribe<R: Request>(_ request: R, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
+    open func subscribe<R: Request>(_ request: R, connectionState: @escaping SubscriptionResponseHandler.WebSocketConnectionBlock, completion: @escaping RequestCompletion<R.SerializedObject>) -> Subscriber? {
         guard let webSocketClient = self.webSocketClient else {
             completion(.failure(AutoGraphError.subscribeWithMissingWebSocketClient))
             return nil
@@ -109,7 +109,7 @@ open class AutoGraph {
         
         do {
             let request = try SubscriptionRequest(request: request)
-            let responseHandler = SubscriptionResponseHandler { (result) in
+            let responseHandler = SubscriptionResponseHandler(connectionState: connectionState) { (result) in
                 switch result {
                 case .success(let data):
                     self.webSocketClient?.subscriptionSerializer.serializeFinalObject(data: data, completion: completion)
@@ -117,7 +117,7 @@ open class AutoGraph {
                     completion(.failure(error))
                 }
             }
-            
+           
             return webSocketClient.subscribe(request: request, responseHandler: responseHandler)
         }
         catch let error {
