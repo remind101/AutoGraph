@@ -2,13 +2,10 @@ import Foundation
 
 public struct SubscriptionResponseHandler {
     public typealias WebSocketCompletionBlock = (Result<Data, Error>) -> Void
-    public typealias WebSocketConnectionBlock = (WebSocketClient.State) -> Void
     
     private let completion: WebSocketCompletionBlock
-    private let connectionState: WebSocketConnectionBlock
     
-    init(connectionState: @escaping WebSocketConnectionBlock, completion: @escaping WebSocketCompletionBlock) {
-        self.connectionState = connectionState
+    init(completion: @escaping WebSocketCompletionBlock) {
         self.completion = completion
     }
     
@@ -23,9 +20,5 @@ public struct SubscriptionResponseHandler {
     
     public func didReceive(error: Error) {
         self.completion(.failure(error))
-    }
-    
-    public func didChangeConnectionState(_ state: WebSocketClient.State) {
-        self.connectionState(state)
     }
 }

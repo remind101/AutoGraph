@@ -252,6 +252,7 @@ class WebSocketClientTests: XCTestCase {
 class MockWebSocketClientDelegate: WebSocketClientDelegate {
     var error: Error?
     var event: WebSocketEvent?
+    var state: AutoGraphQL.WebSocketClient.State?
     
     func didReceive(error: Error) {
         self.error = error
@@ -259,6 +260,10 @@ class MockWebSocketClientDelegate: WebSocketClientDelegate {
     
     func didReceive(event: WebSocketEvent) {
         self.event = event
+    }
+    
+    func didChangeConnection(state: AutoGraphQL.WebSocketClient.State) {
+        self.state = state
     }
 }
 

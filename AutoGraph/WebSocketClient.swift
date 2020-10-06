@@ -7,6 +7,7 @@ public typealias WebSocketConnected = (Result<Void, Error>) -> Void
 public protocol WebSocketClientDelegate: class {
     func didReceive(event: WebSocketEvent)
     func didReceive(error: Error)
+    func didChangeConnection(state: WebSocketClient.State)
 }
 
 private let kAttemptReconnectCount = 3
@@ -51,19 +52,13 @@ open class WebSocketClient {
         func makeIterator() -> Dictionary<Subscriber, SubscriptionResponseHandler>.Iterator {
             return set.makeIterator()
         }
-        
-        func didChangeConnectionState(_ state: State) {
-            self.set.forEach { (_, value: SubscriptionResponseHandler) in
-                value.didChangeConnectionState(state)
-            }
-        }
     }
     
     public var webSocket: WebSocket
     public weak var delegate: WebSocketClientDelegate?
     public private(set) var state: State = .disconnected {
         didSet {
-            self.subscriptions.forEach { $0.value.didChangeConnectionState(state) }
+            self.delegate?.didChangeConnection(state: state)
         }
     }
     
