@@ -185,14 +185,13 @@ open class WebSocketClient {
         self.write(subscriptionPayload)
     }
     
-    private var reconnecting = false
     /// Attempts to reconnect and re-subscribe with multiplied backoff up to 30 seconds. Returns the delay.
     func reconnect() -> DispatchTimeInterval? {
-        guard !self.reconnecting, !self.fullDisconnect else { return nil }
+        guard self.state != .reconnecting, !self.fullDisconnect else { return nil }
         if self.attemptReconnectCount > 0 {
             self.attemptReconnectCount -= 1
         }
-        self.reconnecting = true
+        
         self.state = .reconnecting
         
         let delayInSeconds = DispatchTimeInterval.seconds(min(abs(kAttemptReconnectCount - self.attemptReconnectCount) * 10, 30))
@@ -221,7 +220,6 @@ open class WebSocketClient {
     func didConnect() throws {
         self.state = .connected
         self.attemptReconnectCount = kAttemptReconnectCount
-        self.reconnecting = false
         
         let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
         self.write(connectedPayload)
@@ -238,7 +236,7 @@ open class WebSocketClient {
         self.subscriptions.removeAll()
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
-        self.reconnecting = false
+        self.state = .disconnected
     }
 }
 
@@ -260,10 +258,6 @@ extension WebSocketClient: WebSocketDelegate {
     // This is called on the Starscream callback queue, which defaults to Main.
     public func didReceive(event: WebSocketEvent, client: WebSocket) {
         self.delegate?.didReceive(event: event)
-        
-        // If we get any event at all just assume that the previous reconnect attempt either succeeded or failed for simplicity.
-        self.reconnecting = false
-        
         do {
             switch event {
             case .disconnected:
