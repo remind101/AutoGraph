@@ -1,6 +1,7 @@
 import Foundation
 import Starscream
 import Alamofire
+import JSONValueRX
 
 public typealias WebSocketConnected = (Result<Void, Error>) -> Void
 
@@ -272,6 +273,22 @@ extension WebSocketClient: WebSocketDelegate {
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
             case let .text(text):
+                
+                let json = JSONValue.decode(text.data(using: .utf8))
+                let graphProtocol = json["id"]
+                
+                switch type {
+                case .data
+                    serilaize repsone data
+                case .connectionAck:
+                    do something here
+                }
+                
+                
+                
+                
+                
+                
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
             case .connected:
@@ -297,6 +314,20 @@ extension WebSocketClient: WebSocketDelegate {
             self.delegate?.didReceive(error: error)
         }
     }
+    
+    func processWebSocketTextEvent(text: String) throws {
+        guard let data =  text.data(using: .utf8) else {
+            throw SubscriptionResponseSerializerError.failedToConvertTextToData
+        }
+        
+        let json = try JSONValue.decode(data)
+        guard let type = json["type"] as? String else {
+            return
+        }
+        
+        let _ = GraphQLWSProtocol(rawValue: type) ?? .unknownResponse
+    }
+    
     
     func didReceive(subscriptionResponse: SubscriptionResponse) {
         let id = subscriptionResponse.id

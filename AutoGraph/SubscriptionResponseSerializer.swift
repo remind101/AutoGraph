@@ -1,7 +1,7 @@
 import Foundation
 import JSONValueRX
 
-enum SubscriptionResponseSerializerError: Error {
+public enum SubscriptionResponseSerializerError: Error {
     case failedToConvertTextToData
 }
 
@@ -37,7 +37,7 @@ public final class SubscriptionResponseSerializer {
     }
 }
 
-public struct SubscriptionResponse: Decodable {
+public struct SubscriptionResponse: Decodable, DecodedResponse {
     enum CodingKeys: String, CodingKey {
         case id
         case payload
@@ -56,7 +56,7 @@ public struct SubscriptionResponse: Decodable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id  = try container.decode(String.self, forKey: .id)
+        self.id = try container.decode(String.self, forKey: .id)
         self.type = GraphQLWSProtocol(rawValue: try container.decode(String.self, forKey: .type)) ?? .unknownResponse
         let payloadContainer = try container.nestedContainer(keyedBy: PayloadCodingKeys.self, forKey: .payload)
         self.payload = try payloadContainer.decodeIfPresent(JSONValue.self, forKey: .data)?.encode()
@@ -65,3 +65,9 @@ public struct SubscriptionResponse: Decodable {
         self.error = AutoGraphError(graphQLResponseJSON: payloadJSON, response: nil, networkErrorParser: nil)
     }
 }
+
+public struct GraphQLProtocolResponse: Decodable, DecodedResponse {
+    
+}
+
+protocol DecodedResponse {}
