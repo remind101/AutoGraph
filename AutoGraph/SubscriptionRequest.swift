@@ -74,6 +74,7 @@ public enum GraphQLWSProtocol: String {
     case data = "data"                                 // Server -> Client
     case error = "error"                               // Server -> Client
     case complete = "complete"                         // Server -> Client
+    case unknownResponse                               // Server -> Client
     
     public func serializedSubscriptionPayload(id: String? = nil) throws -> String {
         var payload: [String : Any] = [

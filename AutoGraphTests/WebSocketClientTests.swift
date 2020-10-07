@@ -176,7 +176,7 @@ class WebSocketClientTests: XCTestCase {
     
     func testThreeReconnectAttemptsAndDelayTimeIncreaseEachAttempt() {
         self.webSocket.enableReconnectLoop = true
-        self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
+        self.subject.didReceive(event: .disconnected("", 0), client: self.webSocket)
         let delayTime1 = self.subject.reconnectTime
         guard case let .seconds(seconds) = delayTime1 else {
             XCTFail()
@@ -252,6 +252,7 @@ class WebSocketClientTests: XCTestCase {
 class MockWebSocketClientDelegate: WebSocketClientDelegate {
     var error: Error?
     var event: WebSocketEvent?
+    var state: AutoGraphQL.WebSocketClient.State?
     
     func didReceive(error: Error) {
         self.error = error
@@ -259,6 +260,10 @@ class MockWebSocketClientDelegate: WebSocketClientDelegate {
     
     func didReceive(event: WebSocketEvent) {
         self.event = event
+    }
+    
+    func didChangeConnection(state: AutoGraphQL.WebSocketClient.State) {
+        self.state = state
     }
 }
 
@@ -312,7 +317,6 @@ class MockWebSocket: Starscream.WebSocket {
     override func connect() {
         if enableReconnectLoop {
             self.isConnected = false
-            self.didReceive(event: WebSocketEvent.error(TestError()))
         }
         else {
              self.isConnected = true
