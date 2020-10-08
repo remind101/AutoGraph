@@ -13,7 +13,7 @@ public struct SubscriptionResponseHandler {
         if let error = subscriptionResponse.error {
             didReceive(error: error)
         }
-        else if let data = subscriptionResponse.payload, subscriptionResponse.type == .data {
+        else if let data = subscriptionResponse.payload {
             self.completion(.success(data))
         }
     }

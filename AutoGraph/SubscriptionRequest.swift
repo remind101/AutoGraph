@@ -71,8 +71,8 @@ public enum GraphQLWSProtocol: String {
     case connectionAck = "connection_ack"              // Server -> Client
     case connectionError = "connection_error"          // Server -> Client
     case connectionKeepAlive = "ka"                    // Server -> Client
-    case data = "data"                                 // Server -> Client
-    case error = "error"                               // Server -> Client
+    case data = "data"                                 // Server -> Client For Subscription Payload
+    case error = "error"                               // Server -> Client For Subscription Payload
     case complete = "complete"                         // Server -> Client
     case unknownResponse                               // Server -> Client
     

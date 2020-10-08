@@ -1,8 +1,18 @@
 import Foundation
 import JSONValueRX
 
-enum SubscriptionResponseSerializerError: Error {
-    case failedToConvertTextToData
+public enum ResponseSerializerError: Error {
+    case failedToConvertTextToData(String)
+    case webSocketError(String)
+    
+    public var localizedDescription: String {
+        switch self {
+        case let .failedToConvertTextToData(text):
+            return "Failed to convert into data: \(text)"
+        case let .webSocketError(error):
+            return "Received websocket error event: \(error)"
+        }
+    }
 }
 
 public final class SubscriptionResponseSerializer {
@@ -14,7 +24,7 @@ public final class SubscriptionResponseSerializer {
     
     func serialize(text: String) throws -> SubscriptionResponse {
         guard let data = text.data(using: .utf8) else {
-            throw SubscriptionResponseSerializerError.failedToConvertTextToData
+            throw ResponseSerializerError.failedToConvertTextToData(text)
         }
         
         return try self.serialize(data: data)
@@ -56,7 +66,7 @@ public struct SubscriptionResponse: Decodable {
     
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.id  = try container.decode(String.self, forKey: .id)
+        self.id = try container.decode(String.self, forKey: .id)
         self.type = GraphQLWSProtocol(rawValue: try container.decode(String.self, forKey: .type)) ?? .unknownResponse
         let payloadContainer = try container.nestedContainer(keyedBy: PayloadCodingKeys.self, forKey: .payload)
         self.payload = try payloadContainer.decodeIfPresent(JSONValue.self, forKey: .data)?.encode()

@@ -1,6 +1,7 @@
 import Foundation
 import Starscream
 import Alamofire
+import JSONValueRX
 
 public typealias WebSocketConnected = (Result<Void, Error>) -> Void
 
@@ -35,10 +36,16 @@ public struct Subscriber: Hashable {
 }
 
 open class WebSocketClient {
-    public enum State {
-        case connected
+    public enum State: Equatable {
+        case connected(receivedAck: Bool)
         case reconnecting
         case disconnected
+        
+        var isConnected: Bool {
+            guard case .connected = self else { return false }
+            
+            return true
+        }
     }
     
     // Reference type because it's used as a mutable dictionary within a dictionary.
@@ -66,6 +73,7 @@ open class WebSocketClient {
     internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
     internal var subscriptions = [SubscriptionID: SubscriptionSet]()
     internal var attemptReconnectCount = kAttemptReconnectCount
+    internal var connectionAckWorkItem: DispatchWorkItem?
     
     public init(url: URL) throws {
         let request = try WebSocketClient.connectionRequest(url: url)
@@ -103,7 +111,7 @@ open class WebSocketClient {
         guard self.state != .disconnected, !force else {
             return
         }
-        
+                
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
             self.write(payload)
@@ -121,7 +129,7 @@ open class WebSocketClient {
         let subscriber = Subscriber(subscriptionID: request.subscriptionID, serializableRequest: request)
         let connectionCompletionBlock: WebSocketConnected = self.connectionCompletionBlock(subscriber: subscriber, responseHandler: responseHandler)
         
-        guard self.state != .connected else {
+        guard !self.state.isConnected else {
             connectionCompletionBlock(.success(()))
             return subscriber
         }
@@ -179,10 +187,11 @@ open class WebSocketClient {
     
     func sendSubscription(request: SubscriptionRequestSerializable) throws {
         let subscriptionPayload = try request.serializedSubscriptionPayload()
-        guard self.state == .connected else {
+        guard case .connected(receivedAck: true) = self.state else {
             throw WebSocketError.webSocketNotConnected(subscriptionPayload: subscriptionPayload)
         }
         self.write(subscriptionPayload)
+        self.resendSubscriptionIfNoConnectionAck()
     }
     
     /// Attempts to reconnect and re-subscribe with multiplied backoff up to 30 seconds. Returns the delay.
@@ -197,12 +206,17 @@ open class WebSocketClient {
         let delayInSeconds = DispatchTimeInterval.seconds(min(abs(kAttemptReconnectCount - self.attemptReconnectCount) * 10, 30))
         DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) { [weak self] in
             guard let self = self else { return }
-            // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
-            self.requeueAllSubscribers()
-            self.disconnectAndPossiblyReconnect()
-            self.webSocket.connect()
+            self.performReconnect()
         }
         return delayInSeconds
+    }
+    
+    func didConnect() throws {
+        self.state = .connected(receivedAck: false)
+        self.attemptReconnectCount = kAttemptReconnectCount
+        
+        let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
+        self.write(connectedPayload)
     }
     
     /// Takes all subscriptions and puts them back on the queue, used for reconnection.
@@ -215,15 +229,31 @@ open class WebSocketClient {
         self.subscriptions.removeAll(keepingCapacity: true)
     }
     
-    // TODO: test
-    /// Take all connection completion blocks out of the queue and runs them. Removes from queue first to avoid any side affects.
-    func didConnect() throws {
-        self.state = .connected
+    private func reset() {
+        self.disconnect()
+        self.subscriptions.removeAll()
+        self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
+        self.state = .disconnected
+    }
+    
+    private func resendSubscriptionIfNoConnectionAck() {
+        self.connectionAckWorkItem?.cancel()
+        self.connectionAckWorkItem = nil
         
-        let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
-        self.write(connectedPayload)
+        guard case let .connected(receivedAck) = self.state, receivedAck == false else {
+            return
+        }
         
+        let connectionAckWorkItem = DispatchWorkItem { [weak self] in
+            self?.performReconnect()
+        }
+        
+        self.connectionAckWorkItem = connectionAckWorkItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: connectionAckWorkItem)
+    }
+    
+    private func subscribeQueuedSubscriptions() {
         let queuedSubscriptions = self.queuedSubscriptions
         self.queuedSubscriptions.removeAll()
         queuedSubscriptions.forEach { (_, connected: WebSocketConnected) in
@@ -231,12 +261,11 @@ open class WebSocketClient {
         }
     }
     
-    func reset() {
-        self.disconnect()
-        self.subscriptions.removeAll()
-        self.queuedSubscriptions.removeAll()
-        self.attemptReconnectCount = kAttemptReconnectCount
-        self.state = .disconnected
+    private func performReconnect() {
+        // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
+        self.requeueAllSubscribers()
+        self.disconnectAndPossiblyReconnect()
+        self.webSocket.connect()
     }
 }
 
@@ -272,8 +301,7 @@ extension WebSocketClient: WebSocketDelegate {
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
             case let .text(text):
-                let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
-                self.didReceive(subscriptionResponse: subscriptionResponse)
+                try self.processWebSocketTextEvent(text: text)
             case .connected:
                 try self.didConnect()
             case let .reconnectSuggested(shouldReconnect):
@@ -295,6 +323,48 @@ extension WebSocketClient: WebSocketDelegate {
         }
         catch let error {
             self.delegate?.didReceive(error: error)
+        }
+    }
+    
+    func processWebSocketTextEvent(text: String) throws {
+        guard let data = text.data(using: .utf8) else {
+            throw ResponseSerializerError.failedToConvertTextToData(text)
+        }
+        
+        let json = try JSONValue.decode(data)
+        guard case let .string(typeValue) = json["type"] else {
+            return
+        }
+        
+        let graphQLWSProtocol = GraphQLWSProtocol(rawValue: typeValue)
+        switch graphQLWSProtocol {
+        case .connectionAck:
+            self.state = .connected(receivedAck: true)
+            self.connectionAckWorkItem?.cancel()
+            self.connectionAckWorkItem = nil
+            self.subscribeQueuedSubscriptions()
+        case .connectionKeepAlive:
+            self.subscribeQueuedSubscriptions()
+        case .data:
+            let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
+            self.didReceive(subscriptionResponse: subscriptionResponse)
+        case .error:
+             throw ResponseSerializerError.webSocketError(text)
+        case .complete:
+            guard case let .string(id) = json["id"] else {
+                return
+            }
+            
+            self.subscriptions.removeValue(forKey: id)
+            self.queuedSubscriptions = self.queuedSubscriptions.filter { $0.key.subscriptionID == id }
+        case .unknownResponse,
+             .connectionInit,
+             .connectionTerminate,
+             .connectionError,
+             .start,
+             .stop,
+             .none:
+            break
         }
     }
     
