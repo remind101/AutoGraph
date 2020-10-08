@@ -67,6 +67,8 @@ open class WebSocketClient {
     internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
     internal var subscriptions = [SubscriptionID: SubscriptionSet]()
     internal var attemptReconnectCount = kAttemptReconnectCount
+    internal var isConnectionAck = false
+    internal var connectionAckWorkItem: DispatchWorkItem?
     
     public init(url: URL) throws {
         let request = try WebSocketClient.connectionRequest(url: url)
@@ -104,6 +106,8 @@ open class WebSocketClient {
         guard self.state != .disconnected, !force else {
             return
         }
+        
+        self.isConnectionAck = false
         
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
@@ -184,6 +188,7 @@ open class WebSocketClient {
             throw WebSocketError.webSocketNotConnected(subscriptionPayload: subscriptionPayload)
         }
         self.write(subscriptionPayload)
+        self.resendSubscriptionIfNoConnectionAck()
     }
     
     /// Attempts to reconnect and re-subscribe with multiplied backoff up to 30 seconds. Returns the delay.
@@ -224,12 +229,7 @@ open class WebSocketClient {
         
         let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
         self.write(connectedPayload)
-        
-        let queuedSubscriptions = self.queuedSubscriptions
-        self.queuedSubscriptions.removeAll()
-        queuedSubscriptions.forEach { (_, connected: WebSocketConnected) in
-            connected(.success(()))
-        }
+        self.writeQueuedSubscriptions()
     }
     
     func reset() {
@@ -238,6 +238,33 @@ open class WebSocketClient {
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
         self.state = .disconnected
+        self.isConnectionAck = false
+    }
+    
+    func writeQueuedSubscriptions() {
+        let queuedSubscriptions = self.queuedSubscriptions
+        self.queuedSubscriptions.removeAll()
+        queuedSubscriptions.forEach { (_, connected: WebSocketConnected) in
+            connected(.success(()))
+        }
+    }
+    
+    func resendSubscriptionIfNoConnectionAck() {
+        self.connectionAckWorkItem?.cancel()
+        self.connectionAckWorkItem = nil
+        
+        guard self.isConnectionAck == false else {
+            return
+        }
+        
+        let connectionAckWorkItem = DispatchWorkItem { [weak self] in
+            self?.requeueAllSubscribers()
+            self?.disconnectAndPossiblyReconnect()
+            self?.webSocket.connect()
+        }
+        
+        self.connectionAckWorkItem = connectionAckWorkItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: connectionAckWorkItem)
     }
 }
 
@@ -273,24 +300,7 @@ extension WebSocketClient: WebSocketDelegate {
                 let subscriptionResponse = try self.subscriptionSerializer.serialize(data: data)
                 self.didReceive(subscriptionResponse: subscriptionResponse)
             case let .text(text):
-                
-                let json = JSONValue.decode(text.data(using: .utf8))
-                let graphProtocol = json["id"]
-                
-                switch type {
-                case .data
-                    serilaize repsone data
-                case .connectionAck:
-                    do something here
-                }
-                
-                
-                
-                
-                
-                
-                let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
-                self.didReceive(subscriptionResponse: subscriptionResponse)
+                try self.processWebSocketTextEvent(text: text)
             case .connected:
                 try self.didConnect()
             case let .reconnectSuggested(shouldReconnect):
@@ -316,18 +326,39 @@ extension WebSocketClient: WebSocketDelegate {
     }
     
     func processWebSocketTextEvent(text: String) throws {
-        guard let data =  text.data(using: .utf8) else {
-            throw SubscriptionResponseSerializerError.failedToConvertTextToData
+        guard let data = text.data(using: .utf8) else {
+            throw ResponseSerializerError.failedToConvertTextToData(text)
         }
         
         let json = try JSONValue.decode(data)
-        guard let type = json["type"] as? String else {
+        guard case let .string(typeValue) = json["type"] else {
             return
         }
         
-        let _ = GraphQLWSProtocol(rawValue: type) ?? .unknownResponse
+        let graphQLWSProtocol = GraphQLWSProtocol(rawValue: typeValue)
+        switch graphQLWSProtocol {
+        case .connectionAck:
+            self.isConnectionAck = true
+            self.connectionAckWorkItem?.cancel()
+            self.connectionAckWorkItem = nil
+        case .data:
+            let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
+            self.didReceive(subscriptionResponse: subscriptionResponse)
+        case .connectionKeepAlive:
+            self.writeQueuedSubscriptions()
+        case .error:
+            throw ResponseSerializerError.webSocketError(text)
+        case .complete:
+            guard case let .string(id) = json["id"] else {
+                return
+            }
+            
+            self.subscriptions.removeValue(forKey: id)
+            self.queuedSubscriptions = self.queuedSubscriptions.filter { $0.key.subscriptionID == id }
+        default:
+            break
+        }
     }
-    
     
     func didReceive(subscriptionResponse: SubscriptionResponse) {
         let id = subscriptionResponse.id
