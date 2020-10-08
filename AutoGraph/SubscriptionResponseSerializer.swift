@@ -8,9 +8,9 @@ public enum ResponseSerializerError: Error {
     public var localizedDescription: String {
         switch self {
         case let .failedToConvertTextToData(text):
-            return "Failed to convert into data:\n\(text)"
+            return "Failed to convert into data: \(text)"
         case let .webSocketError(error):
-            return "Received websocket error event:\n\(error)"
+            return "Received websocket error event: \(error)"
         }
     }
 }

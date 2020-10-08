@@ -67,7 +67,7 @@ open class WebSocketClient {
     internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
     internal var subscriptions = [SubscriptionID: SubscriptionSet]()
     internal var attemptReconnectCount = kAttemptReconnectCount
-    internal var isConnectionAck = false
+    internal var receivedConnectionAck = false
     internal var connectionAckWorkItem: DispatchWorkItem?
     
     public init(url: URL) throws {
@@ -107,7 +107,7 @@ open class WebSocketClient {
             return
         }
         
-        self.isConnectionAck = false
+        self.receivedConnectionAck = false
         
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
@@ -203,12 +203,18 @@ open class WebSocketClient {
         let delayInSeconds = DispatchTimeInterval.seconds(min(abs(kAttemptReconnectCount - self.attemptReconnectCount) * 10, 30))
         DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds) { [weak self] in
             guard let self = self else { return }
-            // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
-            self.requeueAllSubscribers()
-            self.disconnectAndPossiblyReconnect()
-            self.webSocket.connect()
+            self.performReconnect()
         }
         return delayInSeconds
+    }
+    
+    func didConnect() throws {
+        self.state = .connected
+        self.attemptReconnectCount = kAttemptReconnectCount
+        
+        let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
+        self.write(connectedPayload)
+        self.subscribeQueuedSubscriptions()
     }
     
     /// Takes all subscriptions and puts them back on the queue, used for reconnection.
@@ -221,27 +227,32 @@ open class WebSocketClient {
         self.subscriptions.removeAll(keepingCapacity: true)
     }
     
-    // TODO: test
-    /// Take all connection completion blocks out of the queue and runs them. Removes from queue first to avoid any side affects.
-    func didConnect() throws {
-        self.state = .connected
-        self.attemptReconnectCount = kAttemptReconnectCount
-        
-        let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
-        self.write(connectedPayload)
-        self.writeQueuedSubscriptions()
-    }
-    
-    func reset() {
+    private func reset() {
         self.disconnect()
         self.subscriptions.removeAll()
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
         self.state = .disconnected
-        self.isConnectionAck = false
+        self.receivedConnectionAck = false
     }
     
-    func writeQueuedSubscriptions() {
+    private func resendSubscriptionIfNoConnectionAck() {
+        self.connectionAckWorkItem?.cancel()
+        self.connectionAckWorkItem = nil
+        
+        guard self.receivedConnectionAck == false else {
+            return
+        }
+        
+        let connectionAckWorkItem = DispatchWorkItem { [weak self] in
+            self?.performReconnect()
+        }
+        
+        self.connectionAckWorkItem = connectionAckWorkItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: connectionAckWorkItem)
+    }
+    
+    private func subscribeQueuedSubscriptions() {
         let queuedSubscriptions = self.queuedSubscriptions
         self.queuedSubscriptions.removeAll()
         queuedSubscriptions.forEach { (_, connected: WebSocketConnected) in
@@ -249,22 +260,11 @@ open class WebSocketClient {
         }
     }
     
-    func resendSubscriptionIfNoConnectionAck() {
-        self.connectionAckWorkItem?.cancel()
-        self.connectionAckWorkItem = nil
-        
-        guard self.isConnectionAck == false else {
-            return
-        }
-        
-        let connectionAckWorkItem = DispatchWorkItem { [weak self] in
-            self?.requeueAllSubscribers()
-            self?.disconnectAndPossiblyReconnect()
-            self?.webSocket.connect()
-        }
-        
-        self.connectionAckWorkItem = connectionAckWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: connectionAckWorkItem)
+    private func performReconnect() {
+        // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
+        self.requeueAllSubscribers()
+        self.disconnectAndPossiblyReconnect()
+        self.webSocket.connect()
     }
 }
 
@@ -338,16 +338,16 @@ extension WebSocketClient: WebSocketDelegate {
         let graphQLWSProtocol = GraphQLWSProtocol(rawValue: typeValue)
         switch graphQLWSProtocol {
         case .connectionAck:
-            self.isConnectionAck = true
+            self.receivedConnectionAck = true
             self.connectionAckWorkItem?.cancel()
             self.connectionAckWorkItem = nil
+        case .connectionKeepAlive:
+            self.subscribeQueuedSubscriptions()
         case .data:
             let subscriptionResponse = try self.subscriptionSerializer.serialize(text: text)
             self.didReceive(subscriptionResponse: subscriptionResponse)
-        case .connectionKeepAlive:
-            self.writeQueuedSubscriptions()
         case .error:
-            throw ResponseSerializerError.webSocketError(text)
+             throw ResponseSerializerError.webSocketError(text)
         case .complete:
             guard case let .string(id) = json["id"] else {
                 return
@@ -355,7 +355,13 @@ extension WebSocketClient: WebSocketDelegate {
             
             self.subscriptions.removeValue(forKey: id)
             self.queuedSubscriptions = self.queuedSubscriptions.filter { $0.key.subscriptionID == id }
-        default:
+        case .unknownResponse,
+             .connectionInit,
+             .connectionTerminate,
+             .connectionError,
+             .start,
+             .stop,
+             .none:
             break
         }
     }
