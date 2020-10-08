@@ -187,7 +187,7 @@ open class WebSocketClient {
     
     func sendSubscription(request: SubscriptionRequestSerializable) throws {
         let subscriptionPayload = try request.serializedSubscriptionPayload()
-        guard case let .connected(receivedAck) = self.state, receivedAck == true else {
+        guard case .connected(receivedAck: true) = self.state else {
             throw WebSocketError.webSocketNotConnected(subscriptionPayload: subscriptionPayload)
         }
         self.write(subscriptionPayload)
