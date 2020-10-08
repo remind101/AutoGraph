@@ -41,6 +41,7 @@ class WebSocketClientTests: XCTestCase {
         }))
         
         waitFor(delay: kDelay)
+        self.webSocket.sendSubscriptionChange()
         XCTAssertTrue(called)
     }
     
@@ -67,6 +68,8 @@ class WebSocketClientTests: XCTestCase {
             self.subject.subscriptionSerializer.serializeFinalObject(data: data, completion: completion)
         }))
         
+        waitFor(delay: kDelay)
+        self.webSocket.sendSubscriptionChange()
         waitFor(delay: kDelay)
         XCTAssertNotNil(film)
         XCTAssertEqual(film?.remoteId, "ZmlsbXM6MQ==")
@@ -284,7 +287,7 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     override func sendSubscription(request: SubscriptionRequestSerializable) throws {
         self.subscriptionPayload = try! request.serializedSubscriptionPayload()
         
-        guard self.state == .connected else {
+        guard case let .connected(receivedAck) = self.state, receivedAck == true else {
             throw WebSocketError.webSocketNotConnected(subscriptionPayload: self.subscriptionPayload!)
         }
         
@@ -321,6 +324,7 @@ class MockWebSocket: Starscream.WebSocket {
         else {
              self.isConnected = true
              self.didReceive(event: WebSocketEvent.connected([:]))
+             self.write(string: "{\"type\": \"connection_ack\"}", completion: nil)
         }
     }
     
@@ -331,11 +335,15 @@ class MockWebSocket: Starscream.WebSocket {
     
     override func write(string: String, completion: (() -> ())?) {
         self.subscriptionRequest = string
-        self.didReceive(event: WebSocketEvent.text(self.createResponseString()))
+        self.didReceive(event: WebSocketEvent.text(string))
     }
     
     override func didReceive(event: WebSocketEvent) {
         self.delegate?.didReceive(event: event, client: self)
+    }
+    
+    func sendSubscriptionChange() {
+        self.write(string: self.createResponseString(), completion: nil)
     }
     
     func createResponseString() -> String {

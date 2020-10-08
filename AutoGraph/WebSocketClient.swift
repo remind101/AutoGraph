@@ -36,10 +36,16 @@ public struct Subscriber: Hashable {
 }
 
 open class WebSocketClient {
-    public enum State {
-        case connected
+    public enum State: Equatable {
+        case connected(receivedAck: Bool)
         case reconnecting
         case disconnected
+        
+        var isConnected: Bool {
+            guard case .connected = self else { return false }
+            
+            return true
+        }
     }
     
     // Reference type because it's used as a mutable dictionary within a dictionary.
@@ -67,7 +73,6 @@ open class WebSocketClient {
     internal var queuedSubscriptions = [Subscriber : WebSocketConnected]()
     internal var subscriptions = [SubscriptionID: SubscriptionSet]()
     internal var attemptReconnectCount = kAttemptReconnectCount
-    internal var receivedConnectionAck = false
     internal var connectionAckWorkItem: DispatchWorkItem?
     
     public init(url: URL) throws {
@@ -106,9 +111,7 @@ open class WebSocketClient {
         guard self.state != .disconnected, !force else {
             return
         }
-        
-        self.receivedConnectionAck = false
-        
+                
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
             self.write(payload)
@@ -126,7 +129,7 @@ open class WebSocketClient {
         let subscriber = Subscriber(subscriptionID: request.subscriptionID, serializableRequest: request)
         let connectionCompletionBlock: WebSocketConnected = self.connectionCompletionBlock(subscriber: subscriber, responseHandler: responseHandler)
         
-        guard self.state != .connected else {
+        guard !self.state.isConnected else {
             connectionCompletionBlock(.success(()))
             return subscriber
         }
@@ -184,7 +187,7 @@ open class WebSocketClient {
     
     func sendSubscription(request: SubscriptionRequestSerializable) throws {
         let subscriptionPayload = try request.serializedSubscriptionPayload()
-        guard self.state == .connected else {
+        guard case let .connected(receivedAck) = self.state, receivedAck == true else {
             throw WebSocketError.webSocketNotConnected(subscriptionPayload: subscriptionPayload)
         }
         self.write(subscriptionPayload)
@@ -209,12 +212,11 @@ open class WebSocketClient {
     }
     
     func didConnect() throws {
-        self.state = .connected
+        self.state = .connected(receivedAck: false)
         self.attemptReconnectCount = kAttemptReconnectCount
         
         let connectedPayload = try GraphQLWSProtocol.connectionInit.serializedSubscriptionPayload()
         self.write(connectedPayload)
-        self.subscribeQueuedSubscriptions()
     }
     
     /// Takes all subscriptions and puts them back on the queue, used for reconnection.
@@ -233,14 +235,13 @@ open class WebSocketClient {
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
         self.state = .disconnected
-        self.receivedConnectionAck = false
     }
     
     private func resendSubscriptionIfNoConnectionAck() {
         self.connectionAckWorkItem?.cancel()
         self.connectionAckWorkItem = nil
         
-        guard self.receivedConnectionAck == false else {
+        guard case let .connected(receivedAck) = self.state, receivedAck == false else {
             return
         }
         
@@ -338,9 +339,10 @@ extension WebSocketClient: WebSocketDelegate {
         let graphQLWSProtocol = GraphQLWSProtocol(rawValue: typeValue)
         switch graphQLWSProtocol {
         case .connectionAck:
-            self.receivedConnectionAck = true
+            self.state = .connected(receivedAck: true)
             self.connectionAckWorkItem?.cancel()
             self.connectionAckWorkItem = nil
+            self.subscribeQueuedSubscriptions()
         case .connectionKeepAlive:
             self.subscribeQueuedSubscriptions()
         case .data:

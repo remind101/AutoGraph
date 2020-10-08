@@ -233,10 +233,14 @@ class AutoGraphTests: XCTestCase {
         XCTAssertNotNil(subscriber)
         
         waitFor(delay: kDelay)
+        webSocket.sendSubscriptionChange()
+        waitFor(delay: kDelay)
+
         XCTAssertTrue(called)
-        
         XCTAssertEqual(webSocketClient.subscriptions.count, 1)
+        
         try self.subject.unsubscribe(subscriber: subscriber!)
+        
         XCTAssertEqual(webSocketClient.subscriptions.count, 0)
     }
     
@@ -267,10 +271,14 @@ class AutoGraphTests: XCTestCase {
         XCTAssertNotNil(subscriber)
         
         waitFor(delay: kDelay)
+        webSocket.sendSubscriptionChange()
+        waitFor(delay: kDelay)
+
         XCTAssertTrue(called)
-        
         XCTAssertEqual(webSocketClient.subscriptions.count, 1)
+        
         try self.subject.unsubscribe(subscriber: subscriber!)
+        
         XCTAssertEqual(webSocketClient.subscriptions.count, 0)
     }
     
