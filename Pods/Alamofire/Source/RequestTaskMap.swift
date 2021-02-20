@@ -26,12 +26,14 @@ import Foundation
 
 /// A type that maintains a two way, one to one map of `URLSessionTask`s to `Request`s.
 struct RequestTaskMap {
+    private typealias Events = (completed: Bool, metricsGathered: Bool)
+
     private var tasksToRequests: [URLSessionTask: Request]
     private var requestsToTasks: [Request: URLSessionTask]
-    private var taskEvents: [URLSessionTask: (completed: Bool, metricsGathered: Bool)]
+    private var taskEvents: [URLSessionTask: Events]
 
     var requests: [Request] {
-        return Array(tasksToRequests.values)
+        Array(tasksToRequests.values)
     }
 
     init(tasksToRequests: [URLSessionTask: Request] = [:],
@@ -43,7 +45,7 @@ struct RequestTaskMap {
     }
 
     subscript(_ request: Request) -> URLSessionTask? {
-        get { return requestsToTasks[request] }
+        get { requestsToTasks[request] }
         set {
             guard let newValue = newValue else {
                 guard let task = requestsToTasks[request] else {
@@ -64,7 +66,7 @@ struct RequestTaskMap {
     }
 
     subscript(_ task: URLSessionTask) -> Request? {
-        get { return tasksToRequests[task] }
+        get { tasksToRequests[task] }
         set {
             guard let newValue = newValue else {
                 guard let request = tasksToRequests[task] else {
@@ -129,11 +131,18 @@ struct RequestTaskMap {
 
         switch (events.completed, events.metricsGathered) {
         case (true, _): fatalError("RequestTaskMap consistency error: duplicate completionReceivedForTask call.")
-        #if os(watchOS) // watchOS doesn't gather metrics, so unconditionally remove the reference and return true.
+        #if os(Linux) // Linux doesn't gather metrics, so unconditionally remove the reference and return true.
         default: self[task] = nil; return true
         #else
-        case (false, false): taskEvents[task] = (completed: true, metricsGathered: false); return false
-        case (false, true): self[task] = nil; return true
+        case (false, false):
+            if #available(macOS 10.12, iOS 10, watchOS 7, tvOS 10, *) {
+                taskEvents[task] = (completed: true, metricsGathered: false); return false
+            } else {
+                // watchOS < 7 doesn't gather metrics, so unconditionally remove the reference and return true.
+                self[task] = nil; return true
+            }
+        case (false, true):
+            self[task] = nil; return true
         #endif
         }
     }

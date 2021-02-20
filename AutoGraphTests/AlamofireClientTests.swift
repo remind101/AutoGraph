@@ -97,7 +97,7 @@ class AlamofireClientTests: XCTestCase {
         class MockSession: Session {
             var success = false
             
-            override func request(_ convertible: URLConvertible, method: HTTPMethod = .get, parameters: Parameters? = nil, encoding: ParameterEncoding = URLEncoding.default, headers: HTTPHeaders? = nil, interceptor: RequestInterceptor? = nil) -> DataRequest {
+            override func request(_ convertible: URLConvertible, method: HTTPMethod = .get, parameters: Parameters? = nil, encoding: ParameterEncoding = URLEncoding.default, headers: HTTPHeaders? = nil, interceptor: RequestInterceptor? = nil, requestModifier: Session.RequestModifier? = nil) -> DataRequest {
                 
                 success =
                     (convertible as! URL == URL(string: "localhost")!)

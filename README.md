@@ -24,8 +24,9 @@ AutoGraph is a Swift client framework for making requests using GraphQL and mapp
 
 ## Requirements
 
-Swift 5.2
+Swift 5.3.2
 
+- Swift 5.2 iOS 10 - use version `0.14.7`
 - Swift 5.1.3 iOS 10 - use version `0.11.1`
 - Swift 5.0 iOS 8 - use version `0.10.0`
 - Swift 5.0 pre Decodable - use version `0.8.0`
