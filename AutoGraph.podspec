@@ -27,10 +27,11 @@ Pod::Spec.new do |s|
   s.source           = { :git => "https://github.com/remind101/AutoGraph.git", :tag => s.version.to_s }
 
   s.platform     = :ios, '10.0'
+  s.swift_version = '5.3.2'
   s.requires_arc = true
 
-  s.dependency 'Alamofire', '~> 5.4.1'
-  s.dependency 'JSONValueRX', '~> 7.1.0'
+  s.dependency 'Alamofire', '~> 5.4.2'
+  s.dependency 'JSONValueRX', '~> 7.2.0'
   s.dependency 'Starscream', '~> 4.0.4'
   
   s.source_files = 'AutoGraph/**/*.swift', 'QueryBuilder/**/*.swift'

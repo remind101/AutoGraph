@@ -5,12 +5,12 @@ inhibit_all_warnings!
 use_frameworks!
 
 def jsonvalue
-  pod 'JSONValueRX', '~> 7.0'
+  pod 'JSONValueRX', '~> 7.2'
 end
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 5.4.1'
-  pod 'Starscream', '~> 4.0.0'
+  pod 'Alamofire', '~> 5.4.2'
+  pod 'Starscream', '~> 4.0.4'
   jsonvalue
     
   target 'AutoGraphTests' do
