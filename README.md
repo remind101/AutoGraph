@@ -56,7 +56,7 @@ pod 'AutoGraph'
 
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.14.1"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.15.1"))
 ]
 ```
 
