@@ -1,4 +1,4 @@
-// swift-tools-version:5.2.0
+// swift-tools-version:5.3.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -16,8 +16,8 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "5.4.1")),
-        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "7.1.0")),
+        .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "5.4.2")),
+        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "7.2.0")),
         .package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMinor(from: "4.0.4")),
     ],
     targets: [

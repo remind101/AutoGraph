@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/Alamofire/Alamofire.git",
         "state": {
           "branch": null,
-          "revision": "eaf6e622dd41b07b251d8f01752eab31bc811493",
-          "version": "5.4.1"
+          "revision": "4d19ad82f80cc71ff829b941ded114c56f4f604c",
+          "version": "5.4.2"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/rexmas/JSONValue.git",
         "state": {
           "branch": null,
-          "revision": "ce69c23debeee1446dc40ae8a6cc479bb22ebdce",
-          "version": "7.1.0"
+          "revision": "696916c028fdb0e30ec2771639135172700d424c",
+          "version": "7.2.0"
         }
       },
       {
