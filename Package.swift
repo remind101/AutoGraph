@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "AutoGraph",
     platforms: [
-        .macOS(.v10_12),
-        .iOS(.v10),
+        .macOS(.v10_15),
+        .iOS(.v13),
     ],
     products: [
         .library(
