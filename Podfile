@@ -9,7 +9,7 @@ def jsonvalue
 end
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 5.4.2'
+  pod 'Alamofire', '~> 5.5.0'
   pod 'Starscream', '~> 4.0.4'
   jsonvalue
     
