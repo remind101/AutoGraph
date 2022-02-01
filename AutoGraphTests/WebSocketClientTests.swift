@@ -153,7 +153,7 @@ class WebSocketClientTests: XCTestCase {
         XCTAssertEqual(self.webSocketDelegate.event, textEvent)
     }
     
-    func testWebSocketClientDelegatDidRecieveError() {
+    func testWebSocketClientDelegateDidRecieveError() {
         self.subject.didReceive(event: WebSocketEvent.error(TestError()), client: self.webSocket)
         
         XCTAssertNotNil(self.webSocketDelegate.error)
