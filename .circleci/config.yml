@@ -8,7 +8,7 @@ jobs:
   build-and-test:
     # Specify the Xcode version to use.
     macos:
-      xcode: "13.2"
+      xcode: "13.2.1"
     working_directory: /Users/distiller/project
     environment:
       FL_OUTPUT_DIR: output

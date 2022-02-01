@@ -26,8 +26,8 @@ Pod::Spec.new do |s|
   s.author           = { "rexmas" => "rex@remindhq.com" }
   s.source           = { :git => "https://github.com/remind101/AutoGraph.git", :tag => s.version.to_s }
 
-  s.platform     = :ios, '10.0'
-  s.swift_version = '5.3.2'
+  s.platform     = :ios, '13.0'
+  s.swift_version = '5.5.2'
   s.requires_arc = true
 
   s.dependency 'Alamofire', '~> 5.5.0'

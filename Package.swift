@@ -7,18 +7,18 @@ let package = Package(
     name: "AutoGraph",
     platforms: [
         .macOS(.v10_15),
-        .iOS(.v13),
+        .iOS(.v13)
     ],
     products: [
         .library(
             name: "AutoGraphQL",
             targets: ["AutoGraphQL"]
-        ),
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "5.5.0")),
         .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "7.2.0")),
-        .package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMinor(from: "4.0.4")),
+        .package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMinor(from: "4.0.4"))
     ],
     targets: [
         .target(
@@ -26,7 +26,7 @@ let package = Package(
             dependencies: [
                 "Alamofire",
                 .product(name: "JSONValueRX", package: "JSONValue"),
-                "Starscream",
+                "Starscream"
             ],
             path: ".",
             exclude: ["AutoGraph/Info.plist", "QueryBuilder/Info.plist"],
@@ -41,6 +41,6 @@ let package = Package(
             name: "QueryBuilderTests",
             dependencies: ["AutoGraphQL"],
             path: "./QueryBuilderTests"
-        ),
+        )
     ]
 )
