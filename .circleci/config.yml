@@ -8,7 +8,7 @@ jobs:
   build-and-test:
     # Specify the Xcode version to use.
     macos:
-      xcode: "13.2"
+      xcode: "13.2.1"
     working_directory: /Users/distiller/project
     environment:
       FL_OUTPUT_DIR: output
@@ -34,15 +34,15 @@ jobs:
 
       - run:
           name: devices
-          command: instruments -s devices
+          command: xcrun xctrace list devices
 
       - run:
           name: pre-start simulator
-          command: xcrun instruments -w "iPhone 12 (14.1) [" || true
+          command: xcrun instruments -w "iPhone 12 (14.5) [" || true
 
       - run:
           name: Run tests
-          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -destination 'platform=iOS Simulator,OS=14.1,name=iPhone 12' ONLY_ACTIVE_ARCH=NO build test
+          command: xcodebuild -workspace AutoGraph.xcworkspace -scheme AutoGraph -destination 'platform=iOS Simulator,OS=14.5,name=iPhone 12' ONLY_ACTIVE_ARCH=NO build test
 
       - store_test_results:
           path: output/scan

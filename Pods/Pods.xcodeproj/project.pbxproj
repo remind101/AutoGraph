@@ -247,7 +247,7 @@
 		96BB393ED1420C6D5B14F17683A1D778 /* DispatchQueue+Alamofire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "DispatchQueue+Alamofire.swift"; path = "Source/DispatchQueue+Alamofire.swift"; sourceTree = "<group>"; };
 		9800868A255B77BE9C7007B6EE667A97 /* Pods-QueryBuilder-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-QueryBuilder-acknowledgements.plist"; sourceTree = "<group>"; };
 		9B00784E279B21CF6FC3A650AB258182 /* FrameCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FrameCollector.swift; path = Sources/Framer/FrameCollector.swift; sourceTree = "<group>"; };
-		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; };
 		A08B69E23090E2EE8A035A34ED5241E9 /* ServerTrustEvaluation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ServerTrustEvaluation.swift; path = Source/ServerTrustEvaluation.swift; sourceTree = "<group>"; };
 		A1B1AE56AB0D942BB94BAC0E3755F4C1 /* Pods-QueryBuilder-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-QueryBuilder-acknowledgements.markdown"; sourceTree = "<group>"; };
 		A2C2FEA5C3B6F10A6A06C274DC198FB5 /* Alamofire.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Alamofire.swift; path = Source/Alamofire.swift; sourceTree = "<group>"; };
@@ -413,7 +413,6 @@
 				8F6AC075928BEE7518BE1BDDFC63EA6C /* WSEngine.swift */,
 				C92E158A7C63BDFA43E9F23AC1B2835F /* Support Files */,
 			);
-			name = Starscream;
 			path = Starscream;
 			sourceTree = "<group>";
 		};
@@ -461,7 +460,6 @@
 				CA6D064E07B4A6CE336E4959D68684D4 /* Utilities.swift */,
 				458D87850F95F93E2275B6A4DA02D72E /* Support Files */,
 			);
-			name = JSONValueRX;
 			path = JSONValueRX;
 			sourceTree = "<group>";
 		};
@@ -516,7 +514,6 @@
 				F18DF71CC4411E9A09F79E28587F7C78 /* Validation.swift */,
 				D12EF115B08A3CE990C4676243C305D7 /* Support Files */,
 			);
-			name = Alamofire;
 			path = Alamofire;
 			sourceTree = "<group>";
 		};
@@ -1364,8 +1361,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRIP_INSTALLED_PRODUCT = NO;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				SYMROOT = "${SRCROOT}/../build";
 			};
@@ -1606,7 +1602,10 @@
 					"POD_CONFIGURATION_DEBUG=1",
 					"DEBUG=1",
 					"$(inherited)",
-					"DEBUG=1 RCT_DEBUG=1 RCT_DEV=1 RCT_NSASSERT=1",
+					"DEBUG=1",
+					"RCT_DEBUG=1",
+					"RCT_DEV=1",
+					"RCT_NSASSERT=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
