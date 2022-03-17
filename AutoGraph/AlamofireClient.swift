@@ -46,14 +46,18 @@ open class AlamofireClient: Client {
         self.init(url: try url.asURL(), httpHeaders: httpHeaders, session: session)
     }
     
-    public func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ()) {
-        self.session.request(
-            self.url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: HTTPHeaders(self.httpHeaders))
-            .responseJSON(completionHandler: completion)
+    public func sendRequest(parameters: [String: Any]) async -> AFDataResponse<Any> {
+        await withCheckedContinuation { continuation in
+            self.session.request(
+                self.url,
+                method: .post,
+                parameters: parameters,
+                encoding: JSONEncoding.default,
+                headers: HTTPHeaders(self.httpHeaders))
+                .responseJSON(completionHandler: { response in
+                    continuation.resume(returning: response)
+                })
+        }
     }
 
     public func authenticate(authTokens: AuthTokens) {

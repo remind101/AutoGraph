@@ -2,7 +2,7 @@ import Alamofire
 import Foundation
 
 public protocol RequestSender {
-    func sendRequest(parameters: [String : Any], completion: @escaping (AFDataResponse<Any>) -> ())
+    func sendRequest(parameters: [String : Any]) async -> AFDataResponse<Any>
 }
 
 public final class Sendable {
@@ -47,6 +47,7 @@ open class Dispatcher {
     public let responseHandler: ResponseHandler
     public let requestSender: RequestSender
     
+    // Use a [Task] replacement instead? Queue those tasks? Replace Sendable?
     public internal(set) var pendingRequests = [Sendable]()
     
     public internal(set) var paused = false {
@@ -65,10 +66,10 @@ open class Dispatcher {
         self.responseHandler = responseHandler
     }
     
-    open func send(sendable: Sendable) {
+    open func send(sendable: Sendable) async -> Result<AFDataResponse<Any>, Error>? {
         guard !self.paused else {
             self.pendingRequests.append(sendable)
-            return
+            return nil
         }
         
         do {
@@ -78,10 +79,14 @@ open class Dispatcher {
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
                 parameters["variables"] = variables
             }
-            self.requestSender.sendRequest(parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
+            
+            let response = await self.requestSender.sendRequest(parameters: parameters)
+            return .success(response)
+//            self.requestSender.sendRequest(parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
         }
         catch let e {
-            sendable.dispatcherEarlyFailure(sendable)(e)
+            return .failure(e)
+//            sendable.dispatcherEarlyFailure(sendable)(e)
         }
     }
     
