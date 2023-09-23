@@ -12,7 +12,7 @@ The Swiftest way to GraphQL
 
 ## Features
 
-- [ ] ⚡️ [Code Generation](#code-generation)
+- [x] ⚡️ [Code Generation](#code-generation)
 - [x] 🔨 [Query Builder](#query-builder)
 - [x] 📩 [Subscriptions](#subscriptions)
 - [x] ⛑ [Type safe Mapping](#decodable-for-type-safe-models)
@@ -62,7 +62,7 @@ dependencies: [
 
 ## Code Generation
 
-Code generation is in an early-alpha stage. If you're interested in testing it please open an inquiry.
+See https://github.com/remind101/AutoGraphCodeGen for Code Generation.
 
 ## Databases
 
