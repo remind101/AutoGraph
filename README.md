@@ -64,11 +64,11 @@ dependencies: [
 
 See https://github.com/remind101/AutoGraphCodeGen for Code Generation.
 
-## Databases
+## Storage and Caching
 
-##### Update
+AutoGraph's current philosophy is to bring your own storage/caching layer. There's simply too much variety in the ways users may wish to store or cache their data and therefore we don't include any specific approach. Simply use AutoGraph to handle codegen and networking and then use whatever storage desired.
 
-Previously this project would map into any arbitrary database directly via a database mapping library. In practice we've found that mapping to pure structs through Codable is simpler and enables more flexibility when combined with code generation. If you wish to still map directly to a database in the old style please use version `0.8.0`. Going forward we are internally exploring different methods of code generation that enable flexible, code generated database caching behind the scenes. We hope to open source these efforts in the future, stay tuned.
+This doesn't preclude us from exploring storage/caching in the future, but if so it will come as a separate library with AutoGraph as a dependency.
 
 ## Query Builder
 
