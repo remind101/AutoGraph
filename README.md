@@ -46,7 +46,7 @@ Swift 5.9
 
 ### CocoaPods
 
-# NOTE:
+#### NOTE:
 Due to [this issue](https://github.com/CocoaPods/trunk.cocoapods.org/issues/458) we are currently blocked on new CocoaPods Releases. SPM is recommended.
 
 ```
