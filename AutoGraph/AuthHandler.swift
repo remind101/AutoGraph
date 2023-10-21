@@ -3,12 +3,12 @@ import Foundation
 
 public typealias ReauthenticationRefreshCompletion = (_ succeeded: Bool, _ accessToken: String?, _ refreshToken: String?) -> Void
 
-internal protocol AuthHandlerDelegate: class {
+internal protocol AuthHandlerDelegate: AnyObject {
     func authHandlerBeganReauthentication(_ authHandler: AuthHandler)
     func authHandler(_ authHandler: AuthHandler, reauthenticatedSuccessfully: Bool)
 }
 
-public protocol ReauthenticationDelegate: class {
+public protocol ReauthenticationDelegate: AnyObject {
     func autoGraphRequiresReauthentication(accessToken: String?, refreshToken: String?, completion: ReauthenticationRefreshCompletion)
 }
 

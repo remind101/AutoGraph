@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //
 
-#if !((os(iOS) && (arch(i386) || arch(arm))) || os(Windows) || os(Linux))
+#if !((os(iOS) && (arch(i386) || arch(arm))) || os(Windows) || os(Linux) || os(Android))
 
 import Combine
 import Dispatch
@@ -87,7 +87,7 @@ public struct DataResponsePublisher<Value>: Publisher {
                                                downstream: subscriber))
     }
 
-    private final class Inner<Downstream: Subscriber>: Subscription, Cancellable
+    private final class Inner<Downstream: Subscriber>: Subscription
         where Downstream.Input == Output {
         typealias Failure = Downstream.Failure
 
@@ -308,7 +308,7 @@ public struct DataStreamPublisher<Value>: Publisher {
                                                downstream: subscriber))
     }
 
-    private final class Inner<Downstream: Subscriber>: Subscription, Cancellable
+    private final class Inner<Downstream: Subscriber>: Subscription
         where Downstream.Input == Output {
         typealias Failure = Downstream.Failure
 
@@ -458,7 +458,7 @@ public struct DownloadResponsePublisher<Value>: Publisher {
                                                downstream: subscriber))
     }
 
-    private final class Inner<Downstream: Subscriber>: Subscription, Cancellable
+    private final class Inner<Downstream: Subscriber>: Subscription
         where Downstream.Input == Output {
         typealias Failure = Downstream.Failure
 

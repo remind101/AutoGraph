@@ -34,16 +34,12 @@ public struct HTTPHeaders {
     /// Creates an instance from an array of `HTTPHeader`s. Duplicate case-insensitive names are collapsed into the last
     /// name and value encountered.
     public init(_ headers: [HTTPHeader]) {
-        self.init()
-
         headers.forEach { update($0) }
     }
 
     /// Creates an instance from a `[String: String]`. Duplicate case-insensitive names are collapsed into the last name
     /// and value encountered.
     public init(_ dictionary: [String: String]) {
-        self.init()
-
         dictionary.forEach { update(HTTPHeader(name: $0.key, value: $0.value)) }
     }
 
@@ -145,8 +141,6 @@ public struct HTTPHeaders {
 
 extension HTTPHeaders: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, String)...) {
-        self.init()
-
         elements.forEach { update(name: $0.0, value: $0.1) }
     }
 }
@@ -300,10 +294,19 @@ extension HTTPHeader {
         HTTPHeader(name: "Content-Disposition", value: value)
     }
 
+    /// Returns a `Content-Encoding` header.
+    ///
+    /// - Parameter value: The `Content-Encoding`.
+    ///
+    /// - Returns:         The header.
+    public static func contentEncoding(_ value: String) -> HTTPHeader {
+        HTTPHeader(name: "Content-Encoding", value: value)
+    }
+
     /// Returns a `Content-Type` header.
     ///
-    /// All Alamofire `ParameterEncoding`s and `ParameterEncoder`s set the `Content-Type` of the request, so it may not be necessary to manually
-    /// set this value.
+    /// All Alamofire `ParameterEncoding`s and `ParameterEncoder`s set the `Content-Type` of the request, so it may not
+    /// be necessary to manually set this value.
     ///
     /// - Parameter value: The `Content-Type` value.
     ///
@@ -396,6 +399,8 @@ extension HTTPHeader {
                 return "Linux"
                 #elseif os(Windows)
                 return "Windows"
+                #elseif os(Android)
+                return "Android"
                 #else
                 return "Unknown"
                 #endif

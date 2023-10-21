@@ -9,8 +9,9 @@ def jsonvalue
 end
 
 target 'AutoGraphQL' do
-  pod 'Alamofire', '~> 5.5.0'
-  pod 'Starscream', '~> 4.0.4'
+  pod 'Alamofire', '~> 5.8.0'
+  # Starscream breaks semvar and we should likely move off of it anyway.
+  pod 'Starscream', '= 4.0.4'
   jsonvalue
     
   target 'AutoGraphTests' do
@@ -32,6 +33,14 @@ post_install do |installer|
       config.build_settings['GCC_OPTIMIZATION_LEVEL'] = '0'
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
       config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'DEBUG=1 RCT_DEBUG=1 RCT_DEV=1 RCT_NSASSERT=1'
+    end
+  end
+  
+  installer.generated_projects.each do |project|
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      end
     end
   end
 end

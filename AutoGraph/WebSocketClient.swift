@@ -5,7 +5,7 @@ import JSONValueRX
 
 public typealias WebSocketConnected = (Result<Void, Error>) -> Void
 
-public protocol WebSocketClientDelegate: class {
+public protocol WebSocketClientDelegate: AnyObject {
     func didReceive(event: WebSocketEvent)
     func didReceive(error: Error)
     func didChangeConnection(state: WebSocketClient.State)
@@ -37,15 +37,10 @@ public struct Subscriber: Hashable {
 
 open class WebSocketClient {
     public enum State: Equatable {
+        case connecting
         case connected(receivedAck: Bool)
         case reconnecting
         case disconnected
-        
-        var isConnected: Bool {
-            guard case .connected = self else { return false }
-            
-            return true
-        }
     }
     
     // Reference type because it's used as a mutable dictionary within a dictionary.
@@ -111,7 +106,7 @@ open class WebSocketClient {
         guard self.state != .disconnected, !force else {
             return
         }
-                
+        
         // TODO: Possible return something to the user if this fails?
         if let payload = try? GraphQLWSProtocol.connectionTerminate.serializedSubscriptionPayload() {
             self.write(payload)
@@ -129,18 +124,22 @@ open class WebSocketClient {
         let subscriber = Subscriber(subscriptionID: request.subscriptionID, serializableRequest: request)
         let connectionCompletionBlock: WebSocketConnected = self.connectionCompletionBlock(subscriber: subscriber, responseHandler: responseHandler)
         
-        guard !self.state.isConnected else {
+        switch self.state {
+        case .connected:
             connectionCompletionBlock(.success(()))
-            return subscriber
+        case .connecting, .reconnecting:
+            self.queuedSubscriptions[subscriber] = connectionCompletionBlock
+        case .disconnected:
+            self.queuedSubscriptions[subscriber] = connectionCompletionBlock
+            
+            self.performConnect()
         }
         
-        self.queuedSubscriptions[subscriber] = connectionCompletionBlock
-        self.webSocket.connect()
         return subscriber
     }
     
     func connectionCompletionBlock(subscriber: Subscriber, responseHandler: SubscriptionResponseHandler) -> WebSocketConnected {
-        return { [weak self] (result) in
+        return { [weak self] (_) in
             guard let self = self else { return }
             
             // If we already have a subscription for that key then just add the subscriber to the set for that key with a callback.
@@ -261,11 +260,17 @@ open class WebSocketClient {
         }
     }
     
+    private func performConnect() {
+        self.state = .connecting
+        self.webSocket.connect()
+    }
+    
     private func performReconnect() {
         // Requeue all so they don't get error callbacks on disconnect and they get re-subscribed on connect.
         self.requeueAllSubscribers()
         self.disconnectAndPossiblyReconnect()
-        self.webSocket.connect()
+        
+        self.performConnect()
     }
 }
 
@@ -308,7 +313,7 @@ extension WebSocketClient: WebSocketDelegate {
                 if shouldReconnect {
                     _ = self.reconnect()
                 }
-            case .viabilityChanged: //let .viabilityChanged(isViable):
+            case .viabilityChanged: // let .viabilityChanged(isViable):
                 // TODO: if `isViable` is false then we need to pause sending and wait for x seconds for it to return.
                 // if it doesn't return to `isViable` true then reconnect.
                 break
