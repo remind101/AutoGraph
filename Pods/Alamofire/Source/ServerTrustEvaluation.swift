@@ -1,5 +1,5 @@
 //
-//  ServerTrustPolicy.swift
+//  ServerTrustEvaluation.swift
 //
 //  Copyright (c) 2014-2016 Alamofire Software Foundation (http://alamofire.org/)
 //
@@ -48,7 +48,7 @@ open class ServerTrustManager {
         self.evaluators = evaluators
     }
 
-    #if !(os(Linux) || os(Windows))
+    #if canImport(Security)
     /// Returns the `ServerTrustEvaluating` value for the given host, if one is set.
     ///
     /// By default, this method will return the policy that perfectly matches the given host. Subclasses could override
@@ -75,8 +75,8 @@ open class ServerTrustManager {
 
 /// A protocol describing the API used to evaluate server trusts.
 public protocol ServerTrustEvaluating {
-    #if os(Linux) || os(Windows)
-    // Implement this once Linux/Windows has API for evaluating server trusts.
+    #if !canImport(Security)
+    // Implement this once other platforms have API for evaluating server trusts.
     #else
     /// Evaluates the given `SecTrust` value for the given `host`.
     ///
@@ -91,7 +91,7 @@ public protocol ServerTrustEvaluating {
 
 // MARK: - Server Trust Evaluators
 
-#if !(os(Linux) || os(Windows))
+#if canImport(Security)
 /// An evaluator which uses the default server trust evaluation while allowing you to control whether to validate the
 /// host provided by the challenge. Applications are encouraged to always validate the host in production environments
 /// to guarantee the validity of the server's certificate chain.
@@ -181,6 +181,15 @@ public final class RevocationTrustEvaluator: ServerTrustEvaluating {
             try trust.af.performValidation(forHost: host)
         }
 
+        #if swift(>=5.9)
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
+            try trust.af.evaluate(afterApplying: SecPolicy.af.revocation(options: options))
+        } else {
+            try trust.af.validate(policy: SecPolicy.af.revocation(options: options)) { status, result in
+                AFError.serverTrustEvaluationFailed(reason: .revocationCheckFailed(output: .init(host, trust, status, result), options: options))
+            }
+        }
+        #else
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) {
             try trust.af.evaluate(afterApplying: SecPolicy.af.revocation(options: options))
         } else {
@@ -188,10 +197,10 @@ public final class RevocationTrustEvaluator: ServerTrustEvaluating {
                 AFError.serverTrustEvaluationFailed(reason: .revocationCheckFailed(output: .init(host, trust, status, result), options: options))
             }
         }
+        #endif
     }
 }
 
-#if swift(>=5.5)
 extension ServerTrustEvaluating where Self == RevocationTrustEvaluator {
     /// Provides a default `RevocationTrustEvaluator` instance.
     public static var revocationChecking: RevocationTrustEvaluator { RevocationTrustEvaluator() }
@@ -218,7 +227,6 @@ extension ServerTrustEvaluating where Self == RevocationTrustEvaluator {
                                  options: options)
     }
 }
-#endif
 
 /// Uses the pinned certificates to validate the server trust. The server trust is considered valid if one of the pinned
 /// certificates match one of the server certificates. By validating both the certificate chain and host, certificate
@@ -283,7 +291,6 @@ public final class PinnedCertificatesTrustEvaluator: ServerTrustEvaluating {
     }
 }
 
-#if swift(>=5.5)
 extension ServerTrustEvaluating where Self == PinnedCertificatesTrustEvaluator {
     /// Provides a default `PinnedCertificatesTrustEvaluator` instance.
     public static var pinnedCertificates: PinnedCertificatesTrustEvaluator { PinnedCertificatesTrustEvaluator() }
@@ -311,7 +318,6 @@ extension ServerTrustEvaluating where Self == PinnedCertificatesTrustEvaluator {
                                          validateHost: validateHost)
     }
 }
-#endif
 
 /// Uses the pinned public keys to validate the server trust. The server trust is considered valid if one of the pinned
 /// public keys match one of the server certificate public keys. By validating both the certificate chain and host,
@@ -359,10 +365,8 @@ public final class PublicKeysTrustEvaluator: ServerTrustEvaluating {
 
         let pinnedKeysInServerKeys: Bool = {
             for serverPublicKey in trust.af.publicKeys {
-                for pinnedPublicKey in keys {
-                    if serverPublicKey == pinnedPublicKey {
-                        return true
-                    }
+                if keys.contains(serverPublicKey) {
+                    return true
                 }
             }
             return false
@@ -377,7 +381,6 @@ public final class PublicKeysTrustEvaluator: ServerTrustEvaluating {
     }
 }
 
-#if swift(>=5.5)
 extension ServerTrustEvaluating where Self == PublicKeysTrustEvaluator {
     /// Provides a default `PublicKeysTrustEvaluator` instance.
     public static var publicKeys: PublicKeysTrustEvaluator { PublicKeysTrustEvaluator() }
@@ -401,7 +404,6 @@ extension ServerTrustEvaluating where Self == PublicKeysTrustEvaluator {
         PublicKeysTrustEvaluator(keys: keys, performDefaultValidation: performDefaultValidation, validateHost: validateHost)
     }
 }
-#endif
 
 /// Uses the provided evaluators to validate the server trust. The trust is only considered valid if all of the
 /// evaluators consider it valid.
@@ -420,7 +422,6 @@ public final class CompositeTrustEvaluator: ServerTrustEvaluating {
     }
 }
 
-#if swift(>=5.5)
 extension ServerTrustEvaluating where Self == CompositeTrustEvaluator {
     /// Creates a `CompositeTrustEvaluator` from the provided evaluators.
     ///
@@ -429,7 +430,6 @@ extension ServerTrustEvaluating where Self == CompositeTrustEvaluator {
         CompositeTrustEvaluator(evaluators: evaluators)
     }
 }
-#endif
 
 /// Disables all evaluation which in turn will always consider any server trust as valid.
 ///
@@ -457,7 +457,7 @@ public final class DisabledTrustEvaluator: ServerTrustEvaluating {
 // MARK: - Extensions
 
 extension Array where Element == ServerTrustEvaluating {
-    #if os(Linux) || os(Windows)
+    #if os(Linux) || os(Windows) || os(Android)
     // Add this same convenience method for Linux/Windows.
     #else
     /// Evaluates the given `SecTrust` value for the given `host`.
@@ -604,11 +604,29 @@ extension AlamofireExtension where ExtendedType == SecTrust {
         certificates.af.publicKeys
     }
 
-    /// The `SecCertificate`s contained i `self`.
+    /// The `SecCertificate`s contained in `self`.
     public var certificates: [SecCertificate] {
+        #if swift(>=5.9)
+        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, visionOS 1, *) {
+            return (SecTrustCopyCertificateChain(type) as? [SecCertificate]) ?? []
+        } else {
+            return (0..<SecTrustGetCertificateCount(type)).compactMap { index in
+                SecTrustGetCertificateAtIndex(type, index)
+            }
+        }
+        #elseif swift(>=5.5.1) // Xcode 13.1 / 2021 SDKs.
+        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) {
+            return (SecTrustCopyCertificateChain(type) as? [SecCertificate]) ?? []
+        } else {
+            return (0..<SecTrustGetCertificateCount(type)).compactMap { index in
+                SecTrustGetCertificateAtIndex(type, index)
+            }
+        }
+        #else
         (0..<SecTrustGetCertificateCount(type)).compactMap { index in
             SecTrustGetCertificateAtIndex(type, index)
         }
+        #endif
     }
 
     /// The `Data` values for all certificates contained in `self`.
@@ -621,6 +639,15 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname, used only in the error output if validation fails.
     /// - Throws: An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performDefaultValidation(forHost host: String) throws {
+        #if swift(>=5.9)
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
+            try evaluate(afterApplying: SecPolicy.af.default)
+        } else {
+            try validate(policy: SecPolicy.af.default) { status, result in
+                AFError.serverTrustEvaluationFailed(reason: .defaultEvaluationFailed(output: .init(host, type, status, result)))
+            }
+        }
+        #else
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) {
             try evaluate(afterApplying: SecPolicy.af.default)
         } else {
@@ -628,6 +655,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                 AFError.serverTrustEvaluationFailed(reason: .defaultEvaluationFailed(output: .init(host, type, status, result)))
             }
         }
+        #endif
     }
 
     /// Validates `self` after applying `SecPolicy.af.hostname(host)`, which performs the default validation as well as
@@ -636,6 +664,15 @@ extension AlamofireExtension where ExtendedType == SecTrust {
     /// - Parameter host: The hostname to use in the validation.
     /// - Throws:         An `AFError.serverTrustEvaluationFailed` instance with a `.defaultEvaluationFailed` reason.
     public func performValidation(forHost host: String) throws {
+        #if swift(>=5.9)
+        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, visionOS 1, *) {
+            try evaluate(afterApplying: SecPolicy.af.hostname(host))
+        } else {
+            try validate(policy: SecPolicy.af.hostname(host)) { status, result in
+                AFError.serverTrustEvaluationFailed(reason: .hostValidationFailed(output: .init(host, type, status, result)))
+            }
+        }
+        #else
         if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) {
             try evaluate(afterApplying: SecPolicy.af.hostname(host))
         } else {
@@ -643,6 +680,7 @@ extension AlamofireExtension where ExtendedType == SecTrust {
                 AFError.serverTrustEvaluationFailed(reason: .hostValidationFailed(output: .init(host, type, status, result)))
             }
         }
+        #endif
     }
 }
 
@@ -692,6 +730,9 @@ extension AlamofireExtension where ExtendedType == [SecCertificate] {
 extension SecCertificate: AlamofireExtended {}
 extension AlamofireExtension where ExtendedType == SecCertificate {
     /// The public key for `self`, if it can be extracted.
+    ///
+    /// - Note: On 2020 OSes and newer, only RSA and ECDSA keys are supported.
+    ///
     public var publicKey: SecKey? {
         let policy = SecPolicyCreateBasicX509()
         var trust: SecTrust?
@@ -699,7 +740,19 @@ extension AlamofireExtension where ExtendedType == SecCertificate {
 
         guard let createdTrust = trust, trustCreationStatus == errSecSuccess else { return nil }
 
-        return SecTrustCopyPublicKey(createdTrust)
+        #if swift(>=5.9)
+        if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, visionOS 1, *) {
+            return SecTrustCopyKey(createdTrust)
+        } else {
+            return SecTrustCopyPublicKey(createdTrust)
+        }
+        #else
+        if #available(iOS 14, macOS 11, tvOS 14, watchOS 7, *) {
+            return SecTrustCopyKey(createdTrust)
+        } else {
+            return SecTrustCopyPublicKey(createdTrust)
+        }
+        #endif
     }
 }
 

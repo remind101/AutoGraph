@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //
 
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6.0) && canImport(_Concurrency)
 
 import Foundation
 
@@ -37,7 +37,7 @@ extension Request {
     /// - Returns:                   The `StreamOf<Progress>`.
     public func uploadProgress(bufferingPolicy: StreamOf<Progress>.BufferingPolicy = .unbounded) -> StreamOf<Progress> {
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
-            uploadProgress(queue: .singleEventQueue) { progress in
+            uploadProgress(queue: underlyingQueue) { progress in
                 continuation.yield(progress)
             }
         }
@@ -50,7 +50,7 @@ extension Request {
     /// - Returns:                   The `StreamOf<Progress>`.
     public func downloadProgress(bufferingPolicy: StreamOf<Progress>.BufferingPolicy = .unbounded) -> StreamOf<Progress> {
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
-            downloadProgress(queue: .singleEventQueue) { progress in
+            downloadProgress(queue: underlyingQueue) { progress in
                 continuation.yield(progress)
             }
         }
@@ -63,7 +63,7 @@ extension Request {
     /// - Returns:                   The `StreamOf<URLRequest>`.
     public func urlRequests(bufferingPolicy: StreamOf<URLRequest>.BufferingPolicy = .unbounded) -> StreamOf<URLRequest> {
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
-            onURLRequestCreation(on: .singleEventQueue) { request in
+            onURLRequestCreation(on: underlyingQueue) { request in
                 continuation.yield(request)
             }
         }
@@ -76,7 +76,7 @@ extension Request {
     /// - Returns:                   The `StreamOf<URLSessionTask>`.
     public func urlSessionTasks(bufferingPolicy: StreamOf<URLSessionTask>.BufferingPolicy = .unbounded) -> StreamOf<URLSessionTask> {
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
-            onURLSessionTaskCreation(on: .singleEventQueue) { task in
+            onURLSessionTaskCreation(on: underlyingQueue) { task in
                 continuation.yield(task)
             }
         }
@@ -89,15 +89,15 @@ extension Request {
     /// - Returns:                   The `StreamOf<String>`.
     public func cURLDescriptions(bufferingPolicy: StreamOf<String>.BufferingPolicy = .unbounded) -> StreamOf<String> {
         stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
-            cURLDescription(on: .singleEventQueue) { description in
+            cURLDescription(on: underlyingQueue) { description in
                 continuation.yield(description)
             }
         }
     }
 
-    private func stream<T>(of type: T.Type = T.self,
-                           bufferingPolicy: StreamOf<T>.BufferingPolicy = .unbounded,
-                           yielder: @escaping (StreamOf<T>.Continuation) -> Void) -> StreamOf<T> {
+    fileprivate func stream<T>(of type: T.Type = T.self,
+                               bufferingPolicy: StreamOf<T>.BufferingPolicy = .unbounded,
+                               yielder: @escaping (StreamOf<T>.Continuation) -> Void) -> StreamOf<T> {
         StreamOf<T>(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
             yielder(continuation)
             // Must come after serializers run in order to catch retry progress.
@@ -118,9 +118,9 @@ public struct DataTask<Value> {
         get async {
             if shouldAutomaticallyCancel {
                 return await withTaskCancellationHandler {
-                    self.cancel()
-                } operation: {
                     await task.value
+                } onCancel: {
+                    cancel()
                 }
             } else {
                 return await task.value
@@ -168,18 +168,83 @@ public struct DataTask<Value> {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DataRequest {
+    /// Creates a `StreamOf<HTTPURLResponse>` for the instance's responses.
+    ///
+    /// - Parameter bufferingPolicy: `BufferingPolicy` that determines the stream's buffering behavior.`.unbounded` by default.
+    ///
+    /// - Returns:                   The `StreamOf<HTTPURLResponse>`.
+    public func httpResponses(bufferingPolicy: StreamOf<HTTPURLResponse>.BufferingPolicy = .unbounded) -> StreamOf<HTTPURLResponse> {
+        stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
+            onHTTPResponse(on: underlyingQueue) { response in
+                continuation.yield(response)
+            }
+        }
+    }
+
+    #if swift(>=5.7)
+    /// Sets an async closure returning a `Request.ResponseDisposition`, called whenever the `DataRequest` produces an
+    /// `HTTPURLResponse`.
+    ///
+    /// - Note: Most requests will only produce a single response for each outgoing attempt (initial + retries).
+    ///         However, some types of response may trigger multiple `HTTPURLResponse`s, such as multipart streams,
+    ///         where responses after the first will contain the part headers.
+    ///
+    /// - Parameters:
+    ///   - handler: Async closure executed when a new `HTTPURLResponse` is received and returning a
+    ///              `ResponseDisposition` value. This value determines whether to continue the request or cancel it as
+    ///              if `cancel()` had been called on the instance. Note, this closure is called on an arbitrary thread,
+    ///              so any synchronous calls in it will execute in that context.
+    ///
+    /// - Returns:   The instance.
+    @_disfavoredOverload
+    @discardableResult
+    public func onHTTPResponse(
+        perform handler: @escaping @Sendable (_ response: HTTPURLResponse) async -> ResponseDisposition
+    ) -> Self {
+        onHTTPResponse(on: underlyingQueue) { response, completionHandler in
+            Task {
+                let disposition = await handler(response)
+                completionHandler(disposition)
+            }
+        }
+
+        return self
+    }
+
+    /// Sets an async closure called whenever the `DataRequest` produces an `HTTPURLResponse`.
+    ///
+    /// - Note: Most requests will only produce a single response for each outgoing attempt (initial + retries).
+    ///         However, some types of response may trigger multiple `HTTPURLResponse`s, such as multipart streams,
+    ///         where responses after the first will contain the part headers.
+    ///
+    /// - Parameters:
+    ///   - handler: Async closure executed when a new `HTTPURLResponse` is received. Note, this closure is called on an
+    ///              arbitrary thread, so any synchronous calls in it will execute in that context.
+    ///
+    /// - Returns:   The instance.
+    @discardableResult
+    public func onHTTPResponse(perform handler: @escaping @Sendable (_ response: HTTPURLResponse) async -> Void) -> Self {
+        onHTTPResponse { response in
+            await handler(response)
+            return .allow
+        }
+
+        return self
+    }
+    #endif
+
     /// Creates a `DataTask` to `await` a `Data` value.
     ///
     /// - Parameters:
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DataTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before completion.
     ///   - emptyResponseCodes:        HTTP response codes for which empty responses are allowed. `[204, 205]` by default.
     ///   - emptyRequestMethods:       `HTTPMethod`s for which empty responses are always valid. `[.head]` by default.
     ///
     /// - Returns: The `DataTask`.
-    public func serializingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+    public func serializingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                 dataPreprocessor: DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                                 emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                                 emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DataTask<Data> {
@@ -195,7 +260,7 @@ extension DataRequest {
     ///   - type:                      `Decodable` type to decode from response data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DataTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before calling the serializer.
     ///                                `PassthroughPreprocessor()` by default.
     ///   - decoder:                   `DataDecoder` to use to decode the response. `JSONDecoder()` by default.
@@ -204,7 +269,7 @@ extension DataRequest {
     ///
     /// - Returns: The `DataTask`.
     public func serializingDecodable<Value: Decodable>(_ type: Value.Type = Value.self,
-                                                       automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+                                                       automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                                        dataPreprocessor: DataPreprocessor = DecodableResponseSerializer<Value>.defaultDataPreprocessor,
                                                        decoder: DataDecoder = JSONDecoder(),
                                                        emptyResponseCodes: Set<Int> = DecodableResponseSerializer<Value>.defaultEmptyResponseCodes,
@@ -221,7 +286,7 @@ extension DataRequest {
     /// - Parameters:
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DataTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before calling the serializer.
     ///                                `PassthroughPreprocessor()` by default.
     ///   - encoding:                  `String.Encoding` to use during serialization. Defaults to `nil`, in which case
@@ -231,7 +296,7 @@ extension DataRequest {
     ///   - emptyRequestMethods:       `HTTPMethod`s for which empty responses are always valid. `[.head]` by default.
     ///
     /// - Returns: The `DataTask`.
-    public func serializingString(automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+    public func serializingString(automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                   dataPreprocessor: DataPreprocessor = StringResponseSerializer.defaultDataPreprocessor,
                                   encoding: String.Encoding? = nil,
                                   emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
@@ -249,16 +314,16 @@ extension DataRequest {
     ///   - serializer:                `ResponseSerializer` responsible for serializing the request, response, and data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DataTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///
     /// - Returns: The `DataTask`.
     public func serializingResponse<Serializer: ResponseSerializer>(using serializer: Serializer,
-                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = false)
+                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DataTask<Serializer.SerializedObject> {
-        dataTask(automaticallyCancelling: shouldAutomaticallyCancel) {
-            self.response(queue: .singleEventQueue,
-                          responseSerializer: serializer,
-                          completionHandler: $0)
+        dataTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
+            response(queue: underlyingQueue,
+                     responseSerializer: serializer,
+                     completionHandler: $0)
         }
     }
 
@@ -269,16 +334,16 @@ extension DataRequest {
     ///                                response, and data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DataTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///
     /// - Returns: The `DataTask`.
     public func serializingResponse<Serializer: DataResponseSerializerProtocol>(using serializer: Serializer,
-                                                                                automaticallyCancelling shouldAutomaticallyCancel: Bool = false)
+                                                                                automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DataTask<Serializer.SerializedObject> {
-        dataTask(automaticallyCancelling: shouldAutomaticallyCancel) {
-            self.response(queue: .singleEventQueue,
-                          responseSerializer: serializer,
-                          completionHandler: $0)
+        dataTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
+            response(queue: underlyingQueue,
+                     responseSerializer: serializer,
+                     completionHandler: $0)
         }
     }
 
@@ -287,13 +352,13 @@ extension DataRequest {
         -> DataTask<Value> {
         let task = Task {
             await withTaskCancellationHandler {
-                self.cancel()
-            } operation: {
                 await withCheckedContinuation { continuation in
                     onResponse {
                         continuation.resume(returning: $0)
                     }
                 }
+            } onCancel: {
+                self.cancel()
             }
         }
 
@@ -311,9 +376,9 @@ public struct DownloadTask<Value> {
         get async {
             if shouldAutomaticallyCancel {
                 return await withTaskCancellationHandler {
-                    self.cancel()
-                } operation: {
                     await task.value
+                } onCancel: {
+                    cancel()
                 }
             } else {
                 return await task.value
@@ -366,13 +431,13 @@ extension DownloadRequest {
     /// - Parameters:
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before completion.
     ///   - emptyResponseCodes:        HTTP response codes for which empty responses are allowed. `[204, 205]` by default.
     ///   - emptyRequestMethods:       `HTTPMethod`s for which empty responses are always valid. `[.head]` by default.
     ///
     /// - Returns:                   The `DownloadTask`.
-    public func serializingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+    public func serializingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                 dataPreprocessor: DataPreprocessor = DataResponseSerializer.defaultDataPreprocessor,
                                 emptyResponseCodes: Set<Int> = DataResponseSerializer.defaultEmptyResponseCodes,
                                 emptyRequestMethods: Set<HTTPMethod> = DataResponseSerializer.defaultEmptyRequestMethods) -> DownloadTask<Data> {
@@ -390,7 +455,7 @@ extension DownloadRequest {
     ///   - type:                      `Decodable` type to decode from response data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before calling the serializer.
     ///                                `PassthroughPreprocessor()` by default.
     ///   - decoder:                   `DataDecoder` to use to decode the response. `JSONDecoder()` by default.
@@ -399,7 +464,7 @@ extension DownloadRequest {
     ///
     /// - Returns:                   The `DownloadTask`.
     public func serializingDecodable<Value: Decodable>(_ type: Value.Type = Value.self,
-                                                       automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+                                                       automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                                        dataPreprocessor: DataPreprocessor = DecodableResponseSerializer<Value>.defaultDataPreprocessor,
                                                        decoder: DataDecoder = JSONDecoder(),
                                                        emptyResponseCodes: Set<Int> = DecodableResponseSerializer<Value>.defaultEmptyResponseCodes,
@@ -413,9 +478,15 @@ extension DownloadRequest {
 
     /// Creates a `DownloadTask` to `await` serialization of the downloaded file's `URL` on disk.
     ///
+    /// - Parameters:
+    ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
+    ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
+    ///                                properties. `true` by default.
+    ///
     /// - Returns: The `DownloadTask`.
-    public func serializingDownloadedFileURL() -> DownloadTask<URL> {
-        serializingDownload(using: URLResponseSerializer())
+    public func serializingDownloadedFileURL(automaticallyCancelling shouldAutomaticallyCancel: Bool = true) -> DownloadTask<URL> {
+        serializingDownload(using: URLResponseSerializer(),
+                            automaticallyCancelling: shouldAutomaticallyCancel)
     }
 
     /// Creates a `DownloadTask` to `await` serialization of a `String` value.
@@ -423,7 +494,7 @@ extension DownloadRequest {
     /// - Parameters:
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///   - dataPreprocessor:          `DataPreprocessor` which processes the received `Data` before calling the
     ///                                serializer. `PassthroughPreprocessor()` by default.
     ///   - encoding:                  `String.Encoding` to use during serialization. Defaults to `nil`, in which case
@@ -433,7 +504,7 @@ extension DownloadRequest {
     ///   - emptyRequestMethods:       `HTTPMethod`s for which empty responses are always valid. `[.head]` by default.
     ///
     /// - Returns:                   The `DownloadTask`.
-    public func serializingString(automaticallyCancelling shouldAutomaticallyCancel: Bool = false,
+    public func serializingString(automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                   dataPreprocessor: DataPreprocessor = StringResponseSerializer.defaultDataPreprocessor,
                                   encoding: String.Encoding? = nil,
                                   emptyResponseCodes: Set<Int> = StringResponseSerializer.defaultEmptyResponseCodes,
@@ -451,16 +522,16 @@ extension DownloadRequest {
     ///   - serializer:                `ResponseSerializer` responsible for serializing the request, response, and data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///
     /// - Returns: The `DownloadTask`.
     public func serializingDownload<Serializer: ResponseSerializer>(using serializer: Serializer,
-                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = false)
+                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DownloadTask<Serializer.SerializedObject> {
-        downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) {
-            self.response(queue: .singleEventQueue,
-                          responseSerializer: serializer,
-                          completionHandler: $0)
+        downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
+            response(queue: underlyingQueue,
+                     responseSerializer: serializer,
+                     completionHandler: $0)
         }
     }
 
@@ -472,16 +543,16 @@ extension DownloadRequest {
     ///                                response, and data.
     ///   - shouldAutomaticallyCancel: `Bool` determining whether or not the request should be cancelled when the
     ///                                enclosing async context is cancelled. Only applies to `DownloadTask`'s async
-    ///                                properties. `false` by default.
+    ///                                properties. `true` by default.
     ///
     /// - Returns: The `DownloadTask`.
     public func serializingDownload<Serializer: DownloadResponseSerializerProtocol>(using serializer: Serializer,
-                                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = false)
+                                                                                    automaticallyCancelling shouldAutomaticallyCancel: Bool = true)
         -> DownloadTask<Serializer.SerializedObject> {
-        downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) {
-            self.response(queue: .singleEventQueue,
-                          responseSerializer: serializer,
-                          completionHandler: $0)
+        downloadTask(automaticallyCancelling: shouldAutomaticallyCancel) { [self] in
+            response(queue: underlyingQueue,
+                     responseSerializer: serializer,
+                     completionHandler: $0)
         }
     }
 
@@ -490,13 +561,13 @@ extension DownloadRequest {
         -> DownloadTask<Value> {
         let task = Task {
             await withTaskCancellationHandler {
-                self.cancel()
-            } operation: {
                 await withCheckedContinuation { continuation in
                     onResponse {
                         continuation.resume(returning: $0)
                     }
                 }
+            } onCancel: {
+                self.cancel()
             }
         }
 
@@ -527,7 +598,7 @@ public struct DataStreamTask {
     /// - Returns:                   The `Stream`.
     public func streamingData(automaticallyCancelling shouldAutomaticallyCancel: Bool = true, bufferingPolicy: Stream<Data, Never>.BufferingPolicy = .unbounded) -> Stream<Data, Never> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
-            self.request.responseStream(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
+            request.responseStream(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
         }
     }
 
@@ -540,7 +611,7 @@ public struct DataStreamTask {
     /// - Returns:
     public func streamingStrings(automaticallyCancelling shouldAutomaticallyCancel: Bool = true, bufferingPolicy: Stream<String, Never>.BufferingPolicy = .unbounded) -> Stream<String, Never> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
-            self.request.responseStreamString(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
+            request.responseStreamString(on: .streamCompletionQueue(forRequestID: request.id), stream: onStream)
         }
     }
 
@@ -576,9 +647,9 @@ public struct DataStreamTask {
                                                                      bufferingPolicy: Stream<Serializer.SerializedObject, AFError>.BufferingPolicy = .unbounded)
         -> Stream<Serializer.SerializedObject, AFError> {
         createStream(automaticallyCancelling: shouldAutomaticallyCancel, bufferingPolicy: bufferingPolicy) { onStream in
-            self.request.responseStream(using: serializer,
-                                        on: .streamCompletionQueue(forRequestID: request.id),
-                                        stream: onStream)
+            request.responseStream(using: serializer,
+                                   on: .streamCompletionQueue(forRequestID: request.id),
+                                   stream: onStream)
         }
     }
 
@@ -619,6 +690,69 @@ public struct DataStreamTask {
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DataStreamRequest {
+    /// Creates a `StreamOf<HTTPURLResponse>` for the instance's responses.
+    ///
+    /// - Parameter bufferingPolicy: `BufferingPolicy` that determines the stream's buffering behavior.`.unbounded` by default.
+    ///
+    /// - Returns:                   The `StreamOf<HTTPURLResponse>`.
+    public func httpResponses(bufferingPolicy: StreamOf<HTTPURLResponse>.BufferingPolicy = .unbounded) -> StreamOf<HTTPURLResponse> {
+        stream(bufferingPolicy: bufferingPolicy) { [unowned self] continuation in
+            onHTTPResponse(on: underlyingQueue) { response in
+                continuation.yield(response)
+            }
+        }
+    }
+
+    #if swift(>=5.7)
+    /// Sets an async closure returning a `Request.ResponseDisposition`, called whenever the `DataStreamRequest`
+    /// produces an `HTTPURLResponse`.
+    ///
+    /// - Note: Most requests will only produce a single response for each outgoing attempt (initial + retries).
+    ///         However, some types of response may trigger multiple `HTTPURLResponse`s, such as multipart streams,
+    ///         where responses after the first will contain the part headers.
+    ///
+    /// - Parameters:
+    ///   - handler: Async closure executed when a new `HTTPURLResponse` is received and returning a
+    ///              `ResponseDisposition` value. This value determines whether to continue the request or cancel it as
+    ///              if `cancel()` had been called on the instance. Note, this closure is called on an arbitrary thread,
+    ///              so any synchronous calls in it will execute in that context.
+    ///
+    /// - Returns:   The instance.
+    @_disfavoredOverload
+    @discardableResult
+    public func onHTTPResponse(perform handler: @escaping @Sendable (HTTPURLResponse) async -> ResponseDisposition) -> Self {
+        onHTTPResponse(on: underlyingQueue) { response, completionHandler in
+            Task {
+                let disposition = await handler(response)
+                completionHandler(disposition)
+            }
+        }
+
+        return self
+    }
+
+    /// Sets an async closure called whenever the `DataStreamRequest` produces an `HTTPURLResponse`.
+    ///
+    /// - Note: Most requests will only produce a single response for each outgoing attempt (initial + retries).
+    ///         However, some types of response may trigger multiple `HTTPURLResponse`s, such as multipart streams,
+    ///         where responses after the first will contain the part headers.
+    ///
+    /// - Parameters:
+    ///   - handler: Async closure executed when a new `HTTPURLResponse` is received. Note, this closure is called on an
+    ///              arbitrary thread, so any synchronous calls in it will execute in that context.
+    ///
+    /// - Returns:   The instance.
+    @discardableResult
+    public func onHTTPResponse(perform handler: @escaping @Sendable (HTTPURLResponse) async -> Void) -> Self {
+        onHTTPResponse { response in
+            await handler(response)
+            return .allow
+        }
+
+        return self
+    }
+    #endif
+
     /// Creates a `DataStreamTask` used to `await` streams of serialized values.
     ///
     /// - Returns: The `DataStreamTask`.
@@ -657,14 +791,14 @@ public struct StreamOf<Element>: AsyncSequence {
 
     public func makeAsyncIterator() -> Iterator {
         var continuation: AsyncStream<Element>.Continuation?
-        let stream = AsyncStream<Element> { innerContinuation in
+        let stream = AsyncStream<Element>(bufferingPolicy: bufferingPolicy) { innerContinuation in
             continuation = innerContinuation
             builder(innerContinuation)
         }
 
         return Iterator(iterator: stream.makeAsyncIterator()) {
             continuation?.finish()
-            self.onTermination?()
+            onTermination?()
         }
     }
 

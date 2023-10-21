@@ -11,6 +11,7 @@ disabled_rules: # rule identifiers to exclude from running
   - large_tuple
   - leading_whitespace
   - line_length
+  - nesting
   - opening_brace
   - statement_position
   - todo
@@ -37,4 +38,3 @@ custom_rules:
     regex: (?<=\n)\h*(var delegate)
     message: Delegates should be weak
     severity: error
-

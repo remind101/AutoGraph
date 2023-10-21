@@ -51,7 +51,7 @@ public struct SubscriptionRequest<R: Request>: SubscriptionRequestSerializable {
         return serializedString
     }
     
-    static func generateSubscriptionID<R: Request>(request: R, operationName: String) throws -> SubscriptionID {
+    static func generateSubscriptionID<Req: Request>(request: Req, operationName: String) throws -> SubscriptionID {
         guard let variablesString = try request.variables?.graphQLVariablesDictionary().reduce(into: "", { (result, arg1) in
             result += "\(String(describing: arg1.key)):\(String(describing: arg1.value)),"
         })
