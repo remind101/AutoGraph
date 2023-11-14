@@ -600,9 +600,9 @@ public struct NonNullInputValue<T: InputValue>: InputValue {
         return try self.inputValue.graphQLInputValue()
     }
 
-    let inputValue: T
+    public let inputValue: T
     
-    init(inputValue: T) {
+    public init(inputValue: T) {
         self.inputValue = inputValue
     }
 }

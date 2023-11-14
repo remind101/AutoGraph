@@ -46,11 +46,8 @@ Swift 5.9
 
 ### CocoaPods
 
-#### NOTE:
-Due to [this issue](https://github.com/CocoaPods/trunk.cocoapods.org/issues/458) we are currently blocked on new CocoaPods Releases. SPM is recommended.
-
 ```
-platform :ios, '11.0'
+platform :ios, '13.0'
 use_frameworks!
 
 pod 'AutoGraph'
