@@ -42,7 +42,10 @@ class DispatcherTests: XCTestCase {
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { params, completion in
-            return (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
+            return (params as! [String : String] == [
+                "query" : try! request.queryDocument.graphQLString(),
+                "operationName" : "film"
+            ])
         }
         
         XCTAssertFalse(self.mockRequestSender.expectation)
@@ -76,7 +79,10 @@ class DispatcherTests: XCTestCase {
         let sendable = Sendable(dispatcher: self.subject, request: request, objectBindingPromise: { _ in request.generateBinding(completion: { _ in }) }, globalWillSend: { _ in })
         
         self.mockRequestSender.testSendRequest = { params, completion in
-            return (params as! [String : String] == ["query" : try! request.queryDocument.graphQLString()])
+            return (params as! [String : String] == [
+                "query" : try! request.queryDocument.graphQLString(),
+                "operationName" : "film"
+            ])
         }
         
         self.subject.paused = true
