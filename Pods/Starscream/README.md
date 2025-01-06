@@ -1,6 +1,6 @@
 ![starscream](https://raw.githubusercontent.com/daltoniam/starscream/assets/starscream.jpg)
 
-Starscream is a conforming WebSocket ([RFC 6455](http://tools.ietf.org/html/rfc6455)) library in Swift.
+Starscream is a conforming WebSocket ([RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455)) library in Swift.
 
 ## Features
 
@@ -165,7 +165,7 @@ TODO: Update docs on how to load certificates and public keys into an app bundle
 
 ### Compression Extensions
 
-Compression Extensions ([RFC 7692](https://tools.ietf.org/html/rfc7692)) is supported in Starscream.  Compression is enabled by default, however compression will only be used if it is supported by the server as well.  You may enable or disable compression via the `.enableCompression` property:
+Compression Extensions ([RFC 7692](https://tools.ietf.org/html/rfc7692)) is supported in Starscream.  Compression is enabled by default, however compression will only be used if it is supported by the server as well. You may enable compression by adding a `compressionHandler`:
 
 ```swift
 var request = URLRequest(url: URL(string: "ws://localhost:8080/")!)
@@ -205,7 +205,7 @@ To use Starscream in your project add the following 'Podfile' to your project
 	platform :ios, '9.0'
 	use_frameworks!
 
-	pod 'Starscream', '~> 4.0.0'
+	pod 'Starscream', '~> 4.0.4'
 
 Then run:
 
@@ -227,7 +227,7 @@ $ brew install carthage
 To integrate Starscream into your Xcode project using Carthage, specify it in your `Cartfile`:
 
 ```
-github "daltoniam/Starscream" >= 4.0.0
+github "daltoniam/Starscream" >= 4.0.4
 ```
 
 ### Accio
@@ -237,7 +237,7 @@ Check out the [Accio](https://github.com/JamitLabs/Accio) docs on how to add a i
 Add the following to your Package.swift:
 
 ```swift
-.package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMajor(from: "4.0.0")),
+.package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMajor(from: "4.0.4")),
 ```
 
 Next, add `Starscream` to your App targets dependencies like so:
