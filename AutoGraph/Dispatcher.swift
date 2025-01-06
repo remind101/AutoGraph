@@ -78,6 +78,14 @@ open class Dispatcher {
             if let variables = try sendable.variables?.graphQLVariablesDictionary() {
                 parameters["variables"] = variables
             }
+
+            if let operation = sendable.queryDocument as? Operation {
+                parameters["operationName"] = operation.name
+            }
+            else if let document = sendable.queryDocument as? Document, let operation = document.operations.first {
+                parameters["operationName"] = operation.name
+            }
+            
             self.requestSender.sendRequest(parameters: parameters, completion: sendable.dispatcherCompletion(sendable))
         }
         catch let e {
