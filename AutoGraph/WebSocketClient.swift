@@ -290,7 +290,7 @@ extension WebSocketClient {
 
 extension WebSocketClient: WebSocketDelegate {
     // This is called on the Starscream callback queue, which defaults to Main.
-    public func didReceive(event: WebSocketEvent, client: WebSocket) {
+    public func didReceive(event: Starscream.WebSocketEvent, client: any Starscream.WebSocketClient) {
         self.delegate?.didReceive(event: event)
         do {
             switch event {
@@ -323,6 +323,8 @@ extension WebSocketClient: WebSocketDelegate {
                 }
                 _ = self.reconnect()
             case .ping, .pong:  // We just ignore these for now.
+                break
+            case .peerClosed:
                 break
             }
         }
