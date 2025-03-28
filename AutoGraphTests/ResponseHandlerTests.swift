@@ -5,7 +5,7 @@ import JSONValueRX
 
 class ResponseHandlerTests: XCTestCase {
     
-    class MockQueue: OperationQueue {
+    class MockQueue: OperationQueue, @unchecked Swift.Sendable {
         override func addOperation(_ op: Foundation.Operation) {
             op.start()
         }

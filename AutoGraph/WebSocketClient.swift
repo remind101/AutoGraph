@@ -69,6 +69,7 @@ open class WebSocketClient {
     internal var subscriptions = [SubscriptionID: SubscriptionSet]()
     internal var attemptReconnectCount = kAttemptReconnectCount
     internal var connectionAckWorkItem: DispatchWorkItem?
+    internal var viabilityTimeoutWorkItem: DispatchWorkItem?
     
     public init(url: URL) throws {
         let request = try WebSocketClient.connectionRequest(url: url)
@@ -99,6 +100,8 @@ open class WebSocketClient {
     private var fullDisconnect = false
     public func disconnect() {
         self.fullDisconnect = true
+        
+        self.cancelViabilityTimeout()
         self.disconnectAndPossiblyReconnect(force: true)
     }
     
@@ -200,6 +203,7 @@ open class WebSocketClient {
             self.attemptReconnectCount -= 1
         }
         
+        self.cancelViabilityTimeout()
         self.state = .reconnecting
         
         let delayInSeconds = DispatchTimeInterval.seconds(min(abs(kAttemptReconnectCount - self.attemptReconnectCount) * 10, 30))
@@ -234,6 +238,11 @@ open class WebSocketClient {
         self.queuedSubscriptions.removeAll()
         self.attemptReconnectCount = kAttemptReconnectCount
         self.state = .disconnected
+    }
+    
+    func cancelViabilityTimeout() {
+        self.viabilityTimeoutWorkItem?.cancel()
+        self.viabilityTimeoutWorkItem = nil
     }
     
     private func resendSubscriptionIfNoConnectionAck() {
@@ -313,10 +322,25 @@ extension WebSocketClient: WebSocketDelegate {
                 if shouldReconnect {
                     _ = self.reconnect()
                 }
-            case .viabilityChanged: // let .viabilityChanged(isViable):
-                // TODO: if `isViable` is false then we need to pause sending and wait for x seconds for it to return.
-                // if it doesn't return to `isViable` true then reconnect.
-                break
+            case let .viabilityChanged(isViable):
+                if !isViable {
+                    // Connection is experiencing issues but not yet disconnected.
+                    // We'll set a timer to check if viability returns.
+                    self.viabilityTimeoutWorkItem?.cancel()
+                    
+                    let timeoutWorkItem = DispatchWorkItem { [weak self] in
+                        guard let self = self else { return }
+                        // If we're still in this handler, connection viability didn't recover within time.
+                        // Force a reconnect.
+                        _ = self.reconnect()
+                    }
+                    self.viabilityTimeoutWorkItem = timeoutWorkItem
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: timeoutWorkItem)
+                }
+                else {
+                    self.viabilityTimeoutWorkItem?.cancel()
+                    self.viabilityTimeoutWorkItem = nil
+                }
             case let .error(error):
                 if let error = error {
                     self.delegate?.didReceive(error: error)
