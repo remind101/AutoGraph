@@ -231,6 +231,16 @@ class WebSocketClientTests: XCTestCase {
         XCTAssertTrue(self.webSocket.isConnected)
     }
     
+    func testPeerClosedEventReconnects() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.reconnectCalled = false
+        self.subject.didReceive(event: WebSocketEvent.peerClosed, client: self.webSocket)
+        
+        XCTAssertTrue(self.subject.reconnectCalled)
+    }
+    
     func testGenerateSubscriptionID() throws {
         var id = try SubscriptionRequest<FilmSubscriptionRequest>.generateSubscriptionID(request: FilmSubscriptionRequest(), operationName: "film")
         XCTAssertEqual(id, "film")

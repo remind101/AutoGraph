@@ -325,7 +325,7 @@ extension WebSocketClient: WebSocketDelegate {
             case .ping, .pong:  // We just ignore these for now.
                 break
             case .peerClosed:
-                break
+                _ = self.reconnect()
             }
         }
         catch let error {
