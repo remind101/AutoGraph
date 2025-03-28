@@ -57,19 +57,28 @@ pod 'AutoGraph'
 
 ```swift
 dependencies: [
-.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.16.0"))
+.package(url: "https://github.com/remind101/AutoGraph.git", .upToNextMinor(from: "0.18.0"))
 ]
 ```
 
 ## Code Generation
 
-See https://github.com/remind101/AutoGraphCodeGen for Code Generation.
+AutoGraph offers powerful code generation through [AutoGraphCodeGen](https://github.com/remind101/AutoGraphCodeGen), which transforms GraphQL schemas into native Swift types. This eliminates boilerplate and ensures type safety.
+
+Unlike GraphQL clients that use dictionaries under the hood, AutoGraph generates [zero-cost-abstraction](https://boats.gitlab.io/blog/post/zero-cost-abstractions/) structs - giving you the convenience of high-level abstractions with the performance of hand-written code.
 
 ## Storage and Caching
 
-AutoGraph's current philosophy is to bring your own storage/caching layer. There's simply too much variety in the ways users may wish to store or cache their data and therefore we don't include any specific approach. Simply use AutoGraph to handle codegen and networking and then use whatever storage desired.
+AutoGraph follows a lightweight, flexible philosophy by intentionally decoupling storage and caching from core functionality. This separation empowers you to:
 
-This doesn't preclude us from exploring storage/caching in the future, but if so it will come as a separate library with AutoGraph as a dependency.
+- Implement exactly the persistence strategy your app requires
+- Integrate with your existing storage infrastructure
+- Optimize caching based on your specific performance needs
+- Avoid unnecessary dependencies and overhead
+
+Simply use AutoGraph to handle GraphQL codegen and networking, then connect the response data to your preferred storage solution—whether that's Realm, Core Data, SQLite, or a custom in-memory cache.
+
+While AutoGraph remains focused on its core GraphQL capabilities, we may explore companion libraries for common storage patterns in the future. These would be offered as optional dependencies to maintain AutoGraph's lightweight foundation.
 
 ## Query Builder
 
