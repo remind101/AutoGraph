@@ -1,6 +1,6 @@
 ![starscream](https://raw.githubusercontent.com/daltoniam/starscream/assets/starscream.jpg)
 
-Starscream is a conforming WebSocket ([RFC 6455](http://tools.ietf.org/html/rfc6455)) library in Swift.
+Starscream is a conforming WebSocket ([RFC 6455](https://datatracker.ietf.org/doc/html/rfc6455)) library in Swift.
 
 ## Features
 
@@ -61,6 +61,8 @@ func didReceive(event: WebSocketEvent, client: WebSocket) {
 	case .error(let error):
 		isConnected = false
 		handleError(error)
+        case .peerClosed:
+               break
 	}
 }
 ```
@@ -102,7 +104,6 @@ socket.write(ping: Data()) //example on how to write a ping control frame over t
 ```
 
 ### write a pong frame
-
 
 the writePong method is the same as writePing, but sends a pong control frame.
 
@@ -165,7 +166,7 @@ TODO: Update docs on how to load certificates and public keys into an app bundle
 
 ### Compression Extensions
 
-Compression Extensions ([RFC 7692](https://tools.ietf.org/html/rfc7692)) is supported in Starscream.  Compression is enabled by default, however compression will only be used if it is supported by the server as well.  You may enable or disable compression via the `.enableCompression` property:
+Compression Extensions ([RFC 7692](https://tools.ietf.org/html/rfc7692)) is supported in Starscream.  Compression is enabled by default, however compression will only be used if it is supported by the server as well. You may enable compression by adding a `compressionHandler`:
 
 ```swift
 var request = URLRequest(url: URL(string: "ws://localhost:8080/")!)
@@ -195,6 +196,18 @@ Starscream works with iOS 8/10.10 or above for CocoaPods/framework support. To u
 
 ## Installation
 
+### Swift Package Manager
+
+The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
+
+Once you have your Swift package set up, adding Starscream as a dependency is as easy as adding it to the `dependencies` value of your `Package.swift`.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/daltoniam/Starscream.git", from: "4.0.6")
+]
+```
+
 ### CocoaPods
 
 Check out [Get Started](http://cocoapods.org/) tab on [cocoapods.org](http://cocoapods.org/).
@@ -202,10 +215,10 @@ Check out [Get Started](http://cocoapods.org/) tab on [cocoapods.org](http://coc
 To use Starscream in your project add the following 'Podfile' to your project
 
 	source 'https://github.com/CocoaPods/Specs.git'
-	platform :ios, '9.0'
+	platform :ios, '12.0'
 	use_frameworks!
 
-	pod 'Starscream', '~> 4.0.0'
+	pod 'Starscream', '~> 4.0.6'
 
 Then run:
 
@@ -227,54 +240,7 @@ $ brew install carthage
 To integrate Starscream into your Xcode project using Carthage, specify it in your `Cartfile`:
 
 ```
-github "daltoniam/Starscream" >= 4.0.0
-```
-
-### Accio
-
-Check out the [Accio](https://github.com/JamitLabs/Accio) docs on how to add a install. 
-
-Add the following to your Package.swift:
-
-```swift
-.package(url: "https://github.com/daltoniam/Starscream.git", .upToNextMajor(from: "4.0.0")),
-```
-
-Next, add `Starscream` to your App targets dependencies like so:
-
-```swift
-.target(
-    name: "App",
-    dependencies: [
-        "Starscream",
-    ]
-),
-```
-
-Then run `accio update`.
-
-### Rogue
-
-First see the [installation docs](https://github.com/acmacalister/Rogue) for how to install Rogue.
-
-To install Starscream run the command below in the directory you created the rogue file.
-
-```
-rogue add https://github.com/daltoniam/Starscream
-```
-
-Next open the `libs` folder and add the `Starscream.xcodeproj` to your Xcode project. Once that is complete, in your "Build Phases" add the `Starscream.framework` to your "Link Binary with Libraries" phase. Make sure to add the `libs` folder to your `.gitignore` file.
-
-### Swift Package Manager
-
-The [Swift Package Manager](https://swift.org/package-manager/) is a tool for automating the distribution of Swift code and is integrated into the `swift` compiler.
-
-Once you have your Swift package set up, adding Starscream as a dependency is as easy as adding it to the `dependencies` value of your `Package.swift`.
-
-```swift
-dependencies: [
-    .Package(url: "https://github.com/daltoniam/Starscream.git", majorVersion: 4)
-]
+github "daltoniam/Starscream" >= 4.0.6
 ```
 
 ### Other
@@ -290,6 +256,9 @@ If you are running this in an OSX app or on a physical iOS device you will need 
 ## TODOs
 
 - [ ] Proxy support
+- [ ] Thread safe implementation
+- [ ] Better testing/CI
+- [ ] SSL Pinning/client auth examples
 
 ## License
 

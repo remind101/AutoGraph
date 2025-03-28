@@ -9,11 +9,11 @@
 Pod::Spec.new do |s|
   s.name             = "AutoGraph"
   s.module_name      = "AutoGraphQL"
-  s.version          = "0.17.0"
-  s.summary          = "Swift GraphQL Client and Mapping library with Realm support"
+  s.version          = "0.18.0"
+  s.summary          = "Swift GraphQL Client with Zero Cost Abstractions"
 
   s.description      = <<-DESC
-  A flexible Swift framework for requesting and mapping data from a GraphQL server with support for storage solutions such as Realm.
+  A flexible Swift framework for requesting and mapping data from a GraphQL to Pure Structs.
                        DESC
 
   s.homepage         = "https://github.com/remind101/AutoGraph"

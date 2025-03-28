@@ -231,6 +231,75 @@ class WebSocketClientTests: XCTestCase {
         XCTAssertTrue(self.webSocket.isConnected)
     }
     
+    func testPeerClosedEventReconnects() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.reconnectCalled = false
+        self.subject.didReceive(event: WebSocketEvent.peerClosed, client: self.webSocket)
+        
+        XCTAssertTrue(self.subject.reconnectCalled)
+    }
+    
+    func testViabilityChangedTriggersReconnectAfterTimeout() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.reconnectCalled = false
+        self.subject.didReceive(event: WebSocketEvent.viabilityChanged(false), client: self.webSocket)
+        
+        XCTAssertFalse(self.subject.reconnectCalled)
+        
+        waitFor(delay: 5.5)
+        XCTAssertTrue(self.subject.reconnectCalled)
+    }
+    
+    func testViabilityChangedDoesNotReconnectIfViabilityReturns() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.reconnectCalled = false
+        self.subject.didReceive(event: WebSocketEvent.viabilityChanged(false), client: self.webSocket)
+        
+        waitFor(delay: 1)
+        self.subject.didReceive(event: WebSocketEvent.viabilityChanged(true), client: self.webSocket)
+        
+        waitFor(delay: 5)
+        XCTAssertFalse(self.subject.reconnectCalled)
+    }
+    
+    func testReconnectCancelsViabilityTimeout() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.reconnectCalled = false
+        self.subject.cancelViabilityTimeoutCalled = false
+        
+        self.subject.didReceive(event: WebSocketEvent.viabilityChanged(false), client: self.webSocket)
+        XCTAssertNotNil(self.subject.viabilityTimeoutWorkItem)
+        
+        _ = self.subject.reconnect()
+        
+        XCTAssertTrue(self.subject.cancelViabilityTimeoutCalled)
+        XCTAssertNil(self.subject.viabilityTimeoutWorkItem)
+        XCTAssertTrue(self.subject.reconnectCalled)
+    }
+    
+    func testDisconnectCancelsViabilityTimeout() {
+        let request = try! SubscriptionRequest(request: FilmSubscriptionRequest())
+        _ = self.subject.subscribe(request: request, responseHandler: SubscriptionResponseHandler(completion: { _ in }))
+        
+        self.subject.cancelViabilityTimeoutCalled = false
+        
+        self.subject.didReceive(event: WebSocketEvent.viabilityChanged(false), client: self.webSocket)
+        XCTAssertNotNil(self.subject.viabilityTimeoutWorkItem)
+        
+        self.subject.disconnect()
+        
+        XCTAssertTrue(self.subject.cancelViabilityTimeoutCalled)
+        XCTAssertNil(self.subject.viabilityTimeoutWorkItem)
+    }
+    
     func testGenerateSubscriptionID() throws {
         var id = try SubscriptionRequest<FilmSubscriptionRequest>.generateSubscriptionID(request: FilmSubscriptionRequest(), operationName: "film")
         XCTAssertEqual(id, "film")
@@ -275,6 +344,7 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
     var reconnectCalled = false
     var reconnectTime: DispatchTimeInterval?
     var ignoreConnection = false
+    var cancelViabilityTimeoutCalled = false
     
     init(url: URL, webSocket: MockWebSocket) throws {
         try super.init(url: url)
@@ -299,6 +369,11 @@ class MockWebSocketClient: AutoGraphQL.WebSocketClient {
         self.reconnectTime = super.reconnect()
         
         return reconnectTime
+    }
+    
+    override func cancelViabilityTimeout() {
+        self.cancelViabilityTimeoutCalled = true
+        super.cancelViabilityTimeout()
     }
     
     override func didConnect() throws {

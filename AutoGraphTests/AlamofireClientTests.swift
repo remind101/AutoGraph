@@ -53,8 +53,8 @@ class AlamofireClientTests: XCTestCase {
         }
         
         class Mock401Request: MockDataRequest {
-            class Mock401Task: URLSessionTask {
-                class Mock401Response: HTTPURLResponse {
+            class Mock401Task: URLSessionTask, @unchecked Swift.Sendable {
+                class Mock401Response: HTTPURLResponse, @unchecked Swift.Sendable {
                     override var statusCode: Int {
                         return 401
                     }
