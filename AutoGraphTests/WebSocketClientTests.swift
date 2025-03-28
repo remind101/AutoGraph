@@ -426,7 +426,7 @@ class MockWebSocket: Starscream.WebSocket {
     }
 }
 
-extension WebSocketEvent: @retroactive Equatable {
+extension WebSocketEvent: Equatable {
     public static func ==(lhs: WebSocketEvent, rhs: WebSocketEvent) -> Bool {
         switch (lhs, rhs) {
         case let (.connected(lhsHeader), .connected(rhsHeader)):
