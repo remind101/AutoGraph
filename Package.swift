@@ -17,7 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMinor(from: "5.8.0")),
-        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "7.2.0")),
+        .package(url: "https://github.com/rexmas/JSONValue.git", .upToNextMinor(from: "8.0.0")),
         .package(url: "https://github.com/daltoniam/Starscream.git", .exact("4.0.8"))
     ],
     targets: [
